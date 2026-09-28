@@ -13,18 +13,22 @@ import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
 
 export function GameScreen({ gameId }: { gameId: string }) {
-  const { game, loading, addHand, updateHand, deleteHand } = useGame(gameId);
+  const { game, loading, addHand, updateHand, deleteHand, updateGame } = useGame(gameId);
   const { go } = useNavigation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<HandRow | null>(null);
   const [presetSeat, setPresetSeat] = useState<Seat | null>(null);
   // A draw is one tap, so it needs a way back from a mis-tap.
   const [lastDrawId, setLastDrawId] = useState<string | null>(null);
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
 
   // Keep the screen awake while a game is on the table.
   useWakeLock(Boolean(game));
 
   const result = useMemo(() => (game ? replayGame(game) : null), [game]);
+  // Called early or played out: either way the game is done.
+  const endedEarly = Boolean(game?.endedAt);
+  const finished = Boolean(result?.isComplete) || endedEarly;
 
   if (loading) {
     return <p className="p-6 text-sm" style={{ color: 'var(--muted)' }}>Loading…</p>;
@@ -98,9 +102,32 @@ export function GameScreen({ gameId }: { gameId: string }) {
       />
 
       <main id="main" tabIndex={-1} className="flex flex-col gap-4 px-4 py-4 pad-safe-bottom">
-        <TableSurface game={game} replay={result} onSelectSeat={openForSeat} />
+        <TableSurface
+          game={game}
+          replay={result}
+          onSelectSeat={endedEarly ? undefined : openForSeat}
+          endedEarly={endedEarly}
+        />
 
-        {lastDrawId ? (
+        {endedEarly ? (
+          <div
+            className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"
+            style={{ background: 'var(--tile-face)', border: '1px solid var(--line-strong)' }}
+          >
+            <span className="text-sm">
+              Game ended after {result.handCount}{' '}
+              {result.handCount === 1 ? 'hand' : 'hands'}.
+            </span>
+            <button
+              type="button"
+              onClick={() => updateGame(game!.id, { endedAt: undefined })}
+              className="touch shrink-0 px-2 text-sm font-semibold underline"
+              style={{ color: 'var(--accent)' }}
+            >
+              Reopen
+            </button>
+          </div>
+        ) : lastDrawId ? (
           <div
             className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"
             style={{ background: 'var(--tile-face)', border: '1px solid var(--line-strong)' }}
@@ -150,10 +177,10 @@ export function GameScreen({ gameId }: { gameId: string }) {
             type="button"
             onClick={() => go('settle')}
             className={`touch w-full rounded-xl py-3 text-sm font-semibold ${
-              result.isComplete ? 'tile-pressable' : 'tile-sm tile-pressable'
+              finished ? 'tile-pressable' : 'tile-sm tile-pressable'
             }`}
             style={
-              result.isComplete
+              finished
                 ? {
                     background: 'var(--tile-back)',
                     color: '#fff',
@@ -165,6 +192,29 @@ export function GameScreen({ gameId }: { gameId: string }) {
             Settle up
           </button>
         )}
+
+        {result.handCount > 0 && !endedEarly && !result.isComplete && (
+          <button
+            type="button"
+            onClick={() => {
+              if (!confirmingEnd) {
+                setConfirmingEnd(true);
+                return;
+              }
+              void updateGame(game!.id, { endedAt: new Date().toISOString() });
+              setConfirmingEnd(false);
+            }}
+            // A rare, deliberate, reversible action. Kept as a plain link so it
+            // does not compete with settling, which is the common next step.
+            className="touch mx-auto px-3 text-xs underline underline-offset-2"
+            style={{ color: confirmingEnd ? 'var(--accent)' : 'var(--muted)' }}
+          >
+            {confirmingEnd
+              ? `Tap again to end after ${result.handCount} hands`
+              : 'End game early'}
+          </button>
+        )}
+
       </main>
 
       {/* Keyed so each open starts from a clean draft, or from the hand being

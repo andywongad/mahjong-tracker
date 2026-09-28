@@ -22,7 +22,10 @@ interface GamesContextValue {
   updateGame: (
     id: string,
     patch: Partial<
-      Pick<GameRecord, 'date' | 'players' | 'rules' | 'ruleSetId' | 'ruleSetName'>
+      Pick<
+        GameRecord,
+        'date' | 'players' | 'rules' | 'ruleSetId' | 'ruleSetName' | 'endedAt'
+      >
     >,
   ) => Promise<void>;
   deleteGame: (id: string) => Promise<void>;

@@ -153,7 +153,10 @@ export const localStore: GameStore = {
 
   async updateGame(id, patch) {
     const game = await load(id);
-    return put({ ...game, ...patch });
+    const next = { ...game, ...patch };
+    // Reopening clears the end, rather than leaving a stale timestamp behind.
+    if ('endedAt' in patch && !patch.endedAt) delete next.endedAt;
+    return put(next);
   },
 
   async deleteGame(id) {

@@ -40,7 +40,12 @@ export interface GameSummary {
   players: GameRecord['players'];
   scores: readonly number[];
   handCount: number;
+  /** Played out to the end of the North round. */
   isComplete: boolean;
+  /** Called by the scorekeeper before the rounds ran out. */
+  endedEarly: boolean;
+  /** Done either way, which is what the history list cares about. */
+  isFinished: boolean;
   shareSlug: string;
   /** Stake, so a list can show money without reaching for the rules. */
   baseUnit: number;
@@ -58,6 +63,8 @@ export function summarise(games: GameRecord[]): GameSummary[] {
       scores: result.scores,
       handCount: result.handCount,
       isComplete: result.isComplete,
+      endedEarly: Boolean(game.endedAt),
+      isFinished: result.isComplete || Boolean(game.endedAt),
       shareSlug: game.shareSlug,
       baseUnit: game.rules.baseUnit,
       currency: game.rules.currency,

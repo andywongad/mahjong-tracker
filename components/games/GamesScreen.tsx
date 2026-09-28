@@ -102,12 +102,17 @@ export function GamesScreen() {
                     <span className="text-sm font-semibold">
                       {formatGameDate(summary.date)}
                     </span>
-                    {summary.isComplete && (
+                    {summary.isFinished && (
                       <span
                         className="rounded-full px-2 py-0.5 text-[0.65rem] font-semibold tracking-wide uppercase"
                         style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}
+                        title={
+                          summary.endedEarly
+                            ? 'Ended before the rounds ran out'
+                            : 'Played out to the end'
+                        }
                       >
-                        Final
+                        {summary.endedEarly ? 'Ended' : 'Final'}
                       </span>
                     )}
                     <span className="tnum text-xs" style={{ color: 'var(--muted)' }}>

@@ -204,3 +204,35 @@ describe('all time rates and patterns', () => {
     expect(rows.find((r) => r.key === 'player a')?.topPatterns).toEqual([]);
   });
 });
+
+describe('finishing a game', () => {
+  const game = () => makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0)]);
+
+  it('is unfinished while the rounds are still running', () => {
+    const [row] = summarise([game()]);
+    expect(row.isComplete).toBe(false);
+    expect(row.endedEarly).toBe(false);
+    expect(row.isFinished).toBe(false);
+  });
+
+  it('is finished once the scorekeeper calls it', () => {
+    const called: GameRecord = { ...game(), endedAt: '2026-01-01T22:00:00.000Z' };
+    const [row] = summarise([called]);
+    expect(row.isComplete).toBe(false);
+    expect(row.endedEarly).toBe(true);
+    expect(row.isFinished).toBe(true);
+  });
+
+  it('does not change any score', () => {
+    const before = summarise([game()])[0].scores;
+    const called: GameRecord = { ...game(), endedAt: '2026-01-01T22:00:00.000Z' };
+    expect(summarise([called])[0].scores).toEqual(before);
+  });
+
+  it('still counts toward the all time standings', () => {
+    const called: GameRecord = { ...game(), endedAt: '2026-01-01T22:00:00.000Z' };
+    const rows = standings([called]);
+    expect(rows.find((r) => r.key === 'player a')?.games).toBe(1);
+    expect(rows.find((r) => r.key === 'player a')?.wins).toBe(1);
+  });
+});

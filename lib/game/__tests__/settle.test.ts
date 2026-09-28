@@ -197,3 +197,13 @@ describe('summary text', () => {
     expect(text).not.toMatch(/[<>*_`|]/);
   });
 });
+
+describe('games called early', () => {
+  it('still settles normally', () => {
+    const game = makeGame(FOUR, [ziMo(0, 3)]);
+    const ended: GameRecord = { ...game, endedAt: '2026-01-01T22:00:00.000Z' };
+    const result = settle([ended]);
+    expect(result.players.reduce((a, p) => a + p.points, 0)).toBe(0);
+    expect(result.transfers).toHaveLength(3);
+  });
+});

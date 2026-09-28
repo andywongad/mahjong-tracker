@@ -16,11 +16,14 @@ export function TableSurface({
   game,
   replay,
   onSelectSeat,
+  endedEarly = false,
 }: {
   game: GameRecord;
   replay: ReplayResult;
   /** Tapping a seat records a hand for that player. */
   onSelectSeat?: (seat: Seat) => void;
+  /** The scorekeeper called the game before the rounds ran out. */
+  endedEarly?: boolean;
 }) {
   return (
     <div
@@ -67,7 +70,11 @@ export function TableSurface({
               className="mt-1 text-[0.7rem] tracking-wide uppercase"
               style={{ color: 'var(--muted-on-felt)' }}
             >
-              {replay.isComplete ? 'Extra hands' : `${windLabel(replay.currentRound)} round`}
+              {endedEarly
+                ? 'Ended early'
+                : replay.isComplete
+                  ? 'Extra hands'
+                  : `${windLabel(replay.currentRound)} round`}
             </p>
             <p
               className="tnum text-sm font-semibold"
@@ -75,7 +82,7 @@ export function TableSurface({
             >
               Hand {replay.handCount + 1}
             </p>
-            {replay.isComplete && (
+            {(replay.isComplete || endedEarly) && (
               <p
                 className="mt-0.5 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold tracking-wide uppercase"
                 style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}

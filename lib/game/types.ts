@@ -15,6 +15,11 @@ export interface GameRecord {
   /** Which saved rule set this came from, for display only. */
   ruleSetId?: string;
   ruleSetName?: string;
+  /**
+   * When the scorekeeper called the game, if they ended it before the North
+   * round finished. Not derived: only they know the night stopped early.
+   */
+  endedAt?: string;
   /** Slug for the read only share link at /g/[slug]. */
   shareSlug: string;
   hands: HandRecord[];
@@ -45,7 +50,10 @@ export interface GameStore {
   updateGame(
     id: string,
     patch: Partial<
-      Pick<GameRecord, 'date' | 'players' | 'rules' | 'ruleSetId' | 'ruleSetName'>
+      Pick<
+        GameRecord,
+        'date' | 'players' | 'rules' | 'ruleSetId' | 'ruleSetName' | 'endedAt'
+      >
     >,
   ): Promise<GameRecord>;
   deleteGame(id: string): Promise<void>;
