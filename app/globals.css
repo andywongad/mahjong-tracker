@@ -1,0 +1,323 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Fonts
+   Sora carries the UI, with tabular numerals so scores do not jitter as they
+   change. Noto Serif TC is subset to the thirteen characters the app actually
+   shows (東南西北 自摸 出銃 詐糊 流局 莊), which keeps it at about 7 KB and
+   lets it work offline.
+--------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Noto Serif TC Subset';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/noto-serif-tc-subset.woff2') format('woff2');
+  unicode-range: U+51fa, U+5317, U+5357, U+5c40, U+6478, U+6771, U+6d41, U+7cca,
+    U+81ea, U+838a, U+897f, U+8a50, U+9283;
+}
+
+/* ---------------------------------------------------------------------------
+   Palette. Light is the brief's palette verbatim; dark keeps the same roles,
+   pulling the felt and page down and lifting the player colours so they stay
+   legible on a dark ground.
+--------------------------------------------------------------------------- */
+:root {
+  --felt: #0f3d33;
+  --felt-soft: #16554741;
+  --page: #e4eae5;
+  --surface: #f2f5f2;
+  --tile-face: #fcfcf7;
+  --tile-back: #1e7a5c;
+  --tile-edge: #00000014;
+  --ink: #17211e;
+  --ink-on-felt: #f1f6f2;
+  --muted: #5a6862;
+  --muted-on-felt: #a8c3b7;
+  --accent: #c23128;
+  --line: #17211e1f;
+  --line-strong: #17211e33;
+
+  /* Mark colours: dots, chart lines, card edges. Used for graphics, which
+     WCAG 1.4.11 holds to 3:1, never for small text. */
+  --player-1: #1e7a5c;
+  --player-2: #c23128;
+  --player-3: #2e4c9c;
+  --player-4: #a86e12;
+
+  /* Solid fills behind white text, each at or above 4.5:1. */
+  --player-1-solid: #027c5b;
+  --player-2-solid: #cf090d;
+  --player-3-solid: #2144b6;
+  --player-4-solid: #a56a03;
+  --on-player-solid: #ffffff;
+
+  /* Filled badge, white text at 5.58:1. */
+  --badge-bg: #c23128;
+  --on-badge: #ffffff;
+
+  --gain: #14674c;
+  --loss: #c23128;
+
+  --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 10px #17211e1f;
+  --shadow-tile-sm: 0 2px 0 var(--tile-back), 0 3px 6px #17211e1a;
+  --shadow-sheet: 0 -8px 40px #17211e2e;
+
+  --radius-tile: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --felt: #0b2c25;
+    --felt-soft: #1d5f4f4d;
+    --page: #0c1310;
+    --surface: #141c18;
+    --tile-face: #1b2420;
+    --tile-back: #056f52;
+    --tile-edge: #ffffff42;
+    --ink: #e9efea;
+    --ink-on-felt: #eef4ef;
+    --muted: #91a29a;
+    --muted-on-felt: #9fbcae;
+    --accent: #e9594d;
+    --line: #e9efea1f;
+    --line-strong: #e9efea33;
+
+    /* Validated against the dark chart surface: all checks pass, with a worst
+       adjacent colour-blind separation of dE 10.7 against a target of 8. */
+    --player-1: #40a179;
+    --player-2: #d02d23;
+    --player-3: #5d69a9;
+    --player-4: #93640c;
+
+    /* Jade is too light to carry white text, so the solid form is darkened;
+       the other three already clear 4.5:1 as they are. */
+    --player-1-solid: #056f52;
+    --player-2-solid: #d02d23;
+    --player-3-solid: #5d69a9;
+    --player-4-solid: #93640c;
+    --on-player-solid: #ffffff;
+
+    --badge-bg: #c62f26;
+    --on-badge: #ffffff;
+
+    --gain: #3fbb8b;
+    --loss: #e9594d;
+
+    --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 12px #00000066;
+    --shadow-tile-sm: 0 2px 0 var(--tile-back), 0 3px 8px #00000059;
+    --shadow-sheet: 0 -8px 40px #00000073;
+  }
+}
+
+:root[data-theme='dark'] {
+  --felt: #0b2c25;
+  --felt-soft: #1d5f4f4d;
+  --page: #0c1310;
+  --surface: #141c18;
+  --tile-face: #1b2420;
+  --tile-back: #056f52;
+  --tile-edge: #ffffff42;
+  --ink: #e9efea;
+  --ink-on-felt: #eef4ef;
+  --muted: #91a29a;
+  --muted-on-felt: #9fbcae;
+  --accent: #e9594d;
+  --line: #e9efea1f;
+  --line-strong: #e9efea33;
+
+  --player-1: #40a179;
+  --player-2: #d02d23;
+  --player-3: #5d69a9;
+  --player-4: #93640c;
+
+  --player-1-solid: #056f52;
+  --player-2-solid: #d02d23;
+  --player-3-solid: #5d69a9;
+  --player-4-solid: #93640c;
+  --on-player-solid: #ffffff;
+
+  --badge-bg: #c62f26;
+  --on-badge: #ffffff;
+
+  --gain: #3fbb8b;
+  --loss: #e9594d;
+
+  --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 12px #00000066;
+  --shadow-tile-sm: 0 2px 0 var(--tile-back), 0 3px 8px #00000059;
+  --shadow-sheet: 0 -8px 40px #00000073;
+}
+
+@theme inline {
+  --color-felt: var(--felt);
+  --color-felt-soft: var(--felt-soft);
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-tile-face: var(--tile-face);
+  --color-tile-back: var(--tile-back);
+  --color-ink: var(--ink);
+  --color-ink-on-felt: var(--ink-on-felt);
+  --color-muted: var(--muted);
+  --color-muted-on-felt: var(--muted-on-felt);
+  --color-accent: var(--accent);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-player-1: var(--player-1);
+  --color-player-2: var(--player-2);
+  --color-player-3: var(--player-3);
+  --color-player-4: var(--player-4);
+  --color-player-1-solid: var(--player-1-solid);
+  --color-player-2-solid: var(--player-2-solid);
+  --color-player-3-solid: var(--player-3-solid);
+  --color-player-4-solid: var(--player-4-solid);
+  --color-badge-bg: var(--badge-bg);
+  --color-gain: var(--gain);
+  --color-loss: var(--loss);
+
+  --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-hanzi: 'Noto Serif TC Subset', 'Noto Serif TC', 'Songti TC', serif;
+
+  --radius-tile: var(--radius-tile);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+html {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  /* Scores line up column to column as they tick over. */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  overscroll-behavior-y: none;
+}
+
+/* Numbers that must not shift width while they change. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.hanzi {
+  font-family: var(--font-hanzi);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------------
+   The signature element: seat cards and point chips read as mahjong tiles,
+   with a jade back edge sitting below the face as a solid offset shadow.
+--------------------------------------------------------------------------- */
+.tile {
+  background: var(--tile-face);
+  border: 1px solid var(--tile-edge);
+  border-radius: var(--radius-tile);
+  box-shadow: var(--shadow-tile);
+}
+
+.tile-sm {
+  background: var(--tile-face);
+  border: 1px solid var(--tile-edge);
+  border-radius: 10px;
+  box-shadow: var(--shadow-tile-sm);
+}
+
+/* A pressed tile sinks onto its back edge. */
+.tile-pressable {
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.tile-pressable:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--tile-back), 0 2px 4px #17211e1a;
+}
+
+.tile-selected {
+  background: var(--tile-back);
+  border-color: transparent;
+  color: #fff;
+  box-shadow:
+    0 3px 0 #0e4a38,
+    0 4px 10px #17211e2e;
+}
+
+/* ---------------------------------------------------------------------------
+   Accessibility
+--------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Visible only to assistive technology. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* A skip link that stays hidden until it is focused. */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -100px;
+  z-index: 100;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  transition: top 120ms ease;
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+/* Every interactive control clears the 44px touch target. */
+.touch {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Safe area padding for the notch and the home indicator. */
+.pad-safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.pad-safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
