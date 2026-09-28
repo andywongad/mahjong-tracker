@@ -18,7 +18,7 @@ that replaces the spreadsheet a group keeps during games.
   a live preview shows what each faan value pays before you commit.
 - **Hand builder.** Score a hand from its patterns rather than a number, with
   mutually exclusive patterns greyed out and the cap applied automatically.
-- **Who owes what.** Nets a whole night across several games, works out the
+- **Current tally.** Nets a whole night across several games, works out the
   fewest payments, and copies a plain text summary for the group chat. Available
   mid game too, since checking where you stand should not mean ending anything.
 - **Stats.** Running score chart, wins and deal ins by faan, win rates, streaks,

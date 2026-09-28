@@ -14,6 +14,17 @@ import { formatSigned } from '@/components/ui/Score';
  * Any number of games can be settled together, because a night is usually
  * several games and nobody wants to pay up three times.
  */
+/**
+ * What is being tallied. A single game in progress is still running, so it says
+ * "so far"; several games from a night are a finished total.
+ */
+function describeChosen(gameCount: number, handCount: number): string {
+  if (gameCount === 0) return 'Pick a game';
+  const hands = `${handCount} ${handCount === 1 ? 'hand' : 'hands'}`;
+  if (gameCount === 1) return `${hands} so far`;
+  return `${gameCount} games, ${hands}`;
+}
+
 export function SettleScreen() {
   const { games, loading } = useGames();
   const { gameId, go } = useNavigation();
@@ -51,12 +62,8 @@ export function SettleScreen() {
   return (
     <>
       <AppHeader
-        title="Who owes what"
-        subtitle={
-          chosen.length === 0
-            ? 'Pick a game'
-            : `${chosen.length} game${chosen.length === 1 ? '' : 's'}, ${settlement.handCount} hands so far`
-        }
+        title="Current tally"
+        subtitle={describeChosen(chosen.length, settlement.handCount)}
         back={{ onClick: () => go('games', null), label: 'Games' }}
       />
 

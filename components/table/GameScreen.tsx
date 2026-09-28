@@ -189,7 +189,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
                 : undefined
             }
           >
-            Who owes what
+            Current tally
           </button>
         )}
 

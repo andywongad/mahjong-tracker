@@ -52,7 +52,7 @@ export function StatsScreen({ gameId }: { gameId: string }) {
         title="Stats"
         subtitle={`${formatGameDate(game.date)} · ${result.handCount} hands`}
         back={{ onClick: () => go('table'), label: 'Table' }}
-        actions={<HeaderButton onClick={() => go('settle')}>Who owes what</HeaderButton>}
+        actions={<HeaderButton onClick={() => go('settle')}>Current tally</HeaderButton>}
       />
 
       <main id="main" tabIndex={-1} className="flex flex-col gap-6 px-4 py-4 pad-safe-bottom">
