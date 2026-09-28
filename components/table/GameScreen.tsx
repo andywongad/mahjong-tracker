@@ -189,7 +189,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
                 : undefined
             }
           >
-            Settle up
+            Who owes what
           </button>
         )}
 

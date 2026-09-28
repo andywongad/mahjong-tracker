@@ -51,11 +51,11 @@ export function SettleScreen() {
   return (
     <>
       <AppHeader
-        title="Settle up"
+        title="Who owes what"
         subtitle={
           chosen.length === 0
             ? 'Pick a game'
-            : `${chosen.length} game${chosen.length === 1 ? '' : 's'}, ${settlement.handCount} hands`
+            : `${chosen.length} game${chosen.length === 1 ? '' : 's'}, ${settlement.handCount} hands so far`
         }
         back={{ onClick: () => go('games', null), label: 'Games' }}
       />
@@ -68,7 +68,7 @@ export function SettleScreen() {
         )}
 
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">Games in this settle</h2>
+          <h2 className="text-sm font-semibold">Games included</h2>
           <ul className="flex flex-col gap-2">
             {games.map((game) => {
               const on = selected.includes(game.id);
@@ -190,7 +190,7 @@ export function SettleScreen() {
             </section>
 
             <section className="flex flex-col gap-2">
-              <h2 className="text-sm font-semibold">Who pays whom</h2>
+              <h2 className="text-sm font-semibold">Payments to make</h2>
               {settlement.transfers.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--muted)' }}>
                   Everyone is level. Nothing to settle.
