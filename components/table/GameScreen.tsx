@@ -142,6 +142,29 @@ export function GameScreen({ gameId }: { gameId: string }) {
           </div>
           <HandLog rows={result.rows} game={game} onEdit={openEdit} />
         </section>
+
+        {result.handCount > 0 && (
+          // Settling belongs where the game ends, not back on the games list.
+          // It leads once the game is final, and waits quietly until then.
+          <button
+            type="button"
+            onClick={() => go('settle')}
+            className={`touch w-full rounded-xl py-3 text-sm font-semibold ${
+              result.isComplete ? 'tile-pressable' : 'tile-sm tile-pressable'
+            }`}
+            style={
+              result.isComplete
+                ? {
+                    background: 'var(--tile-back)',
+                    color: '#fff',
+                    boxShadow: '0 3px 0 #0e4a38',
+                  }
+                : undefined
+            }
+          >
+            Settle up
+          </button>
+        )}
       </main>
 
       {/* Keyed so each open starts from a clean draft, or from the hand being
