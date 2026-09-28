@@ -202,12 +202,20 @@ export function GamesScreen() {
                       Win rate
                     </th>
                     <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
-                      <span lang="zh-Hant" className="hanzi" aria-hidden="true">自摸</span>
-                      <span className="sr-only">Zi Mo</span>
+                      <span className="flex flex-col items-end leading-none">
+                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">自摸</span>
+                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
+                          Self pick
+                        </span>
+                      </span>
                     </th>
                     <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
-                      <span lang="zh-Hant" className="hanzi" aria-hidden="true">出銃</span>
-                      <span className="sr-only">Cheut Chung</span>
+                      <span className="flex flex-col items-end leading-none">
+                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">出銃</span>
+                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
+                          Deal in
+                        </span>
+                      </span>
                     </th>
                     <th scope="col" className="px-3 py-2 text-right text-xs font-semibold">Net</th>
                   </tr>

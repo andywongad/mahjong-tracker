@@ -11,6 +11,7 @@ import { OfflineBadge } from '@/components/ui/OfflineBadge';
 import { TableSurface } from './TableSurface';
 import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
+import { TallySummary } from './TallySummary';
 
 export function GameScreen({ gameId }: { gameId: string }) {
   const { game, loading, addHand, updateHand, deleteHand, updateGame } = useGame(gameId);
@@ -168,6 +169,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
             </span>
           </div>
           <HandLog rows={result.rows} game={game} onEdit={openEdit} />
+          {result.handCount > 0 && <TallySummary game={game} />}
         </section>
 
         {result.handCount > 0 && (
@@ -189,7 +191,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
                 : undefined
             }
           >
-            Current tally
+            Tally details
           </button>
         )}
 

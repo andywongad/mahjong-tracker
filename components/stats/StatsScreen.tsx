@@ -66,18 +66,27 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                   <th scope="col" className="px-3 py-2 text-left text-xs font-semibold">Player</th>
                   <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">Wins</th>
                   <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
-                    <Term id="zi_mo">
-                      <span lang="zh-Hant" className="hanzi" aria-hidden="true">自摸</span>
+<Term id="zi_mo">
+                      <span className="flex flex-col items-end leading-none">
+                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">自摸</span>
+                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">Self pick</span>
+                      </span>
                     </Term>
                   </th>
                   <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
-                    <Term id="cheut_chung">
-                      <span lang="zh-Hant" className="hanzi" aria-hidden="true">出銃</span>
+<Term id="cheut_chung">
+                      <span className="flex flex-col items-end leading-none">
+                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">出銃</span>
+                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">Deal in</span>
+                      </span>
                     </Term>
                   </th>
                   <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
-                    <Term id="zaa_wu">
-                      <span lang="zh-Hant" className="hanzi" aria-hidden="true">詐糊</span>
+<Term id="zaa_wu">
+                      <span className="flex flex-col items-end leading-none">
+                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">詐糊</span>
+                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">False win</span>
+                      </span>
                     </Term>
                   </th>
                   <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">
@@ -258,21 +267,33 @@ function FormSection({ players }: { players: PlayerStats[] }) {
               </th>
               <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
                 <Term id="cheut_chung">
-                  <span lang="zh-Hant" className="hanzi" aria-hidden="true">出銃</span>
-                </Term>{' '}
-                rate
+                  <span className="flex flex-col items-end leading-none">
+                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">出銃</span>
+                    <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
+                      Deal in rate
+                    </span>
+                  </span>
+                </Term>
               </th>
               <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
                 <Term id="zong">
-                  <span lang="zh-Hant" className="hanzi" aria-hidden="true">莊</span>
-                </Term>{' '}
-                wins
+                  <span className="flex flex-col items-end leading-none">
+                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">莊</span>
+                    <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
+                      Dealer wins
+                    </span>
+                  </span>
+                </Term>
               </th>
               <th scope="col" className="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap">
                 <Term id="zi_mo">
-                  <span lang="zh-Hant" className="hanzi" aria-hidden="true">自摸</span>
-                </Term>{' '}
-                share
+                  <span className="flex flex-col items-end leading-none">
+                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">自摸</span>
+                    <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
+                      Self pick share
+                    </span>
+                  </span>
+                </Term>
               </th>
             </tr>
           </thead>

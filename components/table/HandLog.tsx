@@ -1,11 +1,16 @@
 'use client';
 
-import { HAND_TYPE_LABELS, SEATS, type HandRow, type Seat } from '@/lib/scoring';
+import {
+  HAND_TYPE_LABELS,
+  SEATS,
+  type HandRow,
+  type Seat,
+} from '@/lib/scoring';
 import type { GameRecord } from '@/lib/game/types';
-import { seatColor } from '@/lib/game/seats';
 import { Wind } from '@/components/ui/Wind';
 import { formatSigned } from '@/components/ui/Score';
 import { Term } from '@/components/ui/Term';
+import { PlayerColumns } from './PlayerColumns';
 
 /** Which glossary entry explains each way a hand can end. */
 const GLOSSARY_FOR_TYPE: Record<string, string> = {
@@ -65,80 +70,77 @@ export function HandLog({
 
   return (
     <>
-      {/* Name the four columns once, so the numbers below need no colour to
-          say whose they are. */}
-      <div className="grid grid-cols-4 gap-1 px-3">
-        {SEATS.map((seat: Seat) => (
-          <span key={seat} className="flex items-center gap-1 justify-end">
-            <span
-              aria-hidden="true"
-              className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ background: seatColor(seat) }}
-            />
-            <span className="truncate text-[0.7rem]" style={{ color: 'var(--muted)' }}>
-              {game.players[seat]}
-            </span>
-          </span>
-        ))}
-      </div>
+      <PlayerColumns players={game.players} />
 
       <ul className="flex flex-col gap-2">
-      {[...rows].reverse().map((row) => {
-        const label = HAND_TYPE_LABELS[row.hand.type];
-        return (
-          <li key={row.index} className="tile flex items-stretch gap-1 pr-3">
-            {/* The tag and the row are separate controls: one explains the
+        {[...rows].reverse().map((row) => {
+          const label = HAND_TYPE_LABELS[row.hand.type];
+          return (
+            <li key={row.index} className="tile flex items-stretch gap-1 pr-3">
+              {/* The tag and the row are separate controls: one explains the
                 term, the other opens the hand. Nesting them would be invalid. */}
-            <Term
-              id={GLOSSARY_FOR_TYPE[row.hand.type]}
-              className="touch flex shrink-0 items-center px-2 no-underline"
-            >
-              <span lang="zh-Hant" className="hanzi text-sm" aria-hidden="true">
-                {label.hanzi}
-              </span>
-            </Term>
-
-            <button
-              type="button"
-              onClick={() => onEdit(row)}
-              className="touch min-w-0 flex-1 py-2 text-left"
-            >
-              <span className="flex items-baseline gap-2">
+              <Term
+                id={GLOSSARY_FOR_TYPE[row.hand.type]}
+                className="touch flex w-14 shrink-0 flex-col items-center justify-center px-1 no-underline"
+              >
                 <span
-                  className="tnum w-4 shrink-0 text-xs font-semibold"
+                  lang="zh-Hant"
+                  className="hanzi text-sm leading-none"
+                  aria-hidden="true"
+                >
+                  {label.hanzi}
+                </span>
+                <span
+                  className="mt-0.5 text-center text-[0.55rem] leading-tight"
                   style={{ color: 'var(--muted)' }}
                 >
-                  {row.handNumber}
+                  {label.english}
                 </span>
-                <Wind wind={row.round} className="shrink-0 text-sm" />
-                <span className="sr-only">{label.roman}. </span>
-                <span className="min-w-0 flex-1 truncate text-sm">
-                  {describe(row, game.players)}
-                </span>
-              </span>
+              </Term>
 
-              <span className="mt-1 grid grid-cols-4 gap-1">
-                {SEATS.map((seat: Seat) => (
+              <button
+                type="button"
+                onClick={() => onEdit(row)}
+                className="touch min-w-0 flex-1 py-2 text-left"
+              >
+                <span className="flex items-baseline gap-2">
                   <span
-                    key={seat}
-                    className="tnum text-right text-xs font-semibold"
-                    style={{
-                      color:
-                        row.deltas[seat] === 0
-                          ? 'var(--muted)'
-                          : row.deltas[seat] > 0
-                            ? 'var(--gain)'
-                            : 'var(--loss)',
-                    }}
+                    className="tnum w-4 shrink-0 text-xs font-semibold"
+                    style={{ color: 'var(--muted)' }}
                   >
-                    {row.deltas[seat] === 0 ? '0' : formatSigned(row.deltas[seat])}
+                    {row.handNumber}
                   </span>
-                ))}
-              </span>
-            </button>
-          </li>
-        );
-      })}
+                  <Wind wind={row.round} className="shrink-0 text-sm" />
+                  <span className="sr-only">{label.roman}. </span>
+                  <span className="min-w-0 flex-1 truncate text-sm">
+                    {describe(row, game.players)}
+                  </span>
+                </span>
+
+                <span className="mt-1 grid grid-cols-4 gap-1">
+                  {SEATS.map((seat: Seat) => (
+                    <span
+                      key={seat}
+                      className="tnum text-right text-xs font-semibold"
+                      style={{
+                        color:
+                          row.deltas[seat] === 0
+                            ? 'var(--muted)'
+                            : row.deltas[seat] > 0
+                              ? 'var(--gain)'
+                              : 'var(--loss)',
+                      }}
+                    >
+                      {row.deltas[seat] === 0
+                        ? '0'
+                        : formatSigned(row.deltas[seat])}
+                    </span>
+                  ))}
+                </span>
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </>
   );

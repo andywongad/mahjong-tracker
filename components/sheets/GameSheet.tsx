@@ -140,11 +140,15 @@ export function GameSheet({
           {SEATS.map((seat: Seat) => (
             <label key={seat} className="flex items-center gap-2">
               <span
-                lang="zh-Hant" className="hanzi grid h-11 w-11 shrink-0 place-items-center rounded-lg text-lg"
+                className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg leading-none"
                 style={{ background: seatSolid(seat), color: 'var(--on-player-solid)' }}
-                title={windLabel(SEAT_WINDS[seat])}
               >
-                <span aria-hidden="true">{WIND_CHARS[SEAT_WINDS[seat]]}</span>
+                <span lang="zh-Hant" className="hanzi text-base" aria-hidden="true">
+                  {WIND_CHARS[SEAT_WINDS[seat]]}
+                </span>
+                <span className="mt-0.5 text-[0.55rem] leading-none">
+                  {windLabel(SEAT_WINDS[seat])}
+                </span>
               </span>
               <input
                 type="text"

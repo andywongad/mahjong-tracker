@@ -2,7 +2,7 @@
 
 import { DEALER_CHAR, type Seat } from '@/lib/scoring';
 import { SEAT_WINDS, seatColor } from '@/lib/game/seats';
-import { Wind, windLabel } from '@/components/ui/Wind';
+import { Wind } from '@/components/ui/Wind';
 import { Delta } from '@/components/ui/Score';
 
 /**
@@ -37,25 +37,22 @@ export function SeatCard({
     <>
       {isDealer && (
         <span
-          lang="zh-Hant" className="hanzi absolute -top-2 -right-1.5 grid h-7 w-7 place-items-center rounded-full text-sm leading-none shadow-sm"
+          className="absolute -top-2 -right-1.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.6rem] leading-none font-semibold shadow-sm"
           style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}
-          title="Dealer"
         >
-          <span aria-hidden="true">{DEALER_CHAR}</span>
-          <span className="sr-only">Dealer</span>
+          <span lang="zh-Hant" className="hanzi text-xs" aria-hidden="true">
+            {DEALER_CHAR}
+          </span>
+          Dealer
         </span>
       )}
 
       <div className="flex items-baseline gap-1.5">
-        <Wind wind={wind} className="text-base leading-none" />
-        <span className="sr-only">{windLabel(wind)}. </span>
+        <Wind wind={wind} className="text-base leading-none" label />
         <span
-          aria-hidden="true"
-          className="inline-block h-2 w-2 shrink-0 rounded-full"
-          style={{ background: color }}
-        />
-        <span
-          className={`truncate font-semibold ${compact ? 'text-sm' : 'text-[0.95rem]'}`}
+          className={`min-w-0 truncate font-semibold ${
+            compact ? 'text-sm' : 'text-[0.95rem]'
+          }`}
         >
           {name}
         </span>
