@@ -15,6 +15,12 @@ import type { GameRecord, NewGameInput } from './types';
 interface GamesContextValue {
   games: GameRecord[];
   loading: boolean;
+  /**
+   * Storage failed to open or read. Games are held in the browser, so this is
+   * the difference between "you have no games" and "your games cannot be
+   * reached", which must never look the same.
+   */
+  storageError: Error | null;
   /** Entries waiting to reach the server. */
   pending: number;
   online: boolean;
@@ -41,6 +47,7 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(0);
   const [online, setOnline] = useState(true);
+  const [storageError, setStorageError] = useState<Error | null>(null);
 
   const refresh = useCallback(async () => {
     const [list, count] = await Promise.all([localStore.listGames(), pendingCount()]);
@@ -55,6 +62,14 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
       try {
         await ensureSeeded();
         if (!cancelled) await refresh();
+      } catch (cause) {
+        // Private browsing, a full quota or a blocked database all land here.
+        // Saying so beats an empty screen that reads like the games are gone.
+        if (!cancelled) {
+          setStorageError(
+            cause instanceof Error ? cause : new Error('Storage is unavailable'),
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -79,6 +94,7 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
     () => ({
       games,
       loading,
+      storageError,
       pending,
       online,
       async createGame(input) {
@@ -107,7 +123,7 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
         await refresh();
       },
     }),
-    [games, loading, pending, online, refresh],
+    [games, loading, storageError, pending, online, refresh],
   );
 
   return <GamesContext.Provider value={value}>{children}</GamesContext.Provider>;

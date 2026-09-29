@@ -14,7 +14,7 @@ import { useGame } from '@/lib/game/GamesProvider';
 import { useNavigation } from '@/lib/game/navigation';
 import { formatGameDate } from '@/lib/game/format';
 import { seatColor } from '@/lib/game/seats';
-import { AppHeader, HeaderButton } from '@/components/ui/AppHeader';
+import { AppHeader } from '@/components/ui/AppHeader';
 import { formatSigned } from '@/components/ui/Score';
 import { formatMoney } from '@/lib/game/settle';
 import { Term } from '@/components/ui/Term';
@@ -51,8 +51,8 @@ export function StatsScreen({ gameId }: { gameId: string }) {
       <AppHeader
         title="Stats"
         subtitle={`${formatGameDate(game.date)} · ${result.handCount} hands`}
-        back={{ onClick: () => go('table'), label: 'Table' }}
-        actions={<HeaderButton onClick={() => go('settle')}>Current tally</HeaderButton>}
+        onClose={() => go('table')}
+        closeLabel="Close stats and go back to the table"
       />
 
       <main id="main" tabIndex={-1} className="flex flex-col gap-6 px-4 py-4 pad-safe-bottom">

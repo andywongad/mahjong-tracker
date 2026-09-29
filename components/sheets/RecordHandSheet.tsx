@@ -321,7 +321,8 @@ export function RecordHandSheet({
           </div>
         </Step>
 
-        {needsWinner && (presetSeat == null || changingPlayer || editing) && (
+        {(needsWinner || (changingPlayer && draft.type == null)) &&
+          (presetSeat == null || changingPlayer || editing) && (
           <Step label="Who won?">
             <SeatPicker
               game={game}

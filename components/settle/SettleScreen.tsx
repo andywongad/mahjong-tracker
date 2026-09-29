@@ -62,7 +62,7 @@ export function SettleScreen() {
   return (
     <>
       <AppHeader
-        title="Current tally"
+        title="Tally details"
         subtitle={describeChosen(chosen.length, settlement.handCount)}
         back={{ onClick: () => go('games', null), label: 'Games' }}
       />

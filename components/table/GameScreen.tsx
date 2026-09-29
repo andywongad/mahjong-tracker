@@ -102,7 +102,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
         }
       />
 
-      <main id="main" tabIndex={-1} className="flex flex-col gap-4 px-4 py-4 pad-safe-bottom">
+      <main id="main" tabIndex={-1} className="flex flex-col gap-5 px-4 py-4 pad-safe-bottom">
         <TableSurface
           game={game}
           replay={result}
@@ -150,7 +150,8 @@ export function GameScreen({ gameId }: { gameId: string }) {
           <button
             type="button"
             onClick={recordDraw}
-            className="tile-sm tile-pressable touch w-full rounded-xl py-3 text-sm font-semibold"
+            className="touch w-full rounded-xl py-3 text-sm font-semibold"
+            style={{ border: '1px solid var(--line-strong)', color: 'var(--ink)' }}
           >
             <span lang="zh-Hant" className="hanzi" aria-hidden="true">
               流局
@@ -163,13 +164,17 @@ export function GameScreen({ gameId }: { gameId: string }) {
 
         <section className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold">Hands</h2>
+            <h2 className="text-base font-bold">Hands</h2>
             <span className="tnum text-xs" style={{ color: 'var(--muted)' }}>
               {result.handCount} played
             </span>
           </div>
-          <HandLog rows={result.rows} game={game} onEdit={openEdit} />
-          {result.handCount > 0 && <TallySummary game={game} />}
+          <HandLog
+            rows={result.rows}
+            game={game}
+            onEdit={openEdit}
+            footer={result.handCount > 0 ? <TallySummary game={game} /> : null}
+          />
         </section>
 
         {result.handCount > 0 && (

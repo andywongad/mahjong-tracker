@@ -10,25 +10,31 @@
 -- return only the matching game, so an unknown slug reveals nothing and the
 -- tables stay closed.
 
+-- Every object below is dropped first, so the file can be run again safely.
 alter table public.games enable row level security;
 alter table public.hands enable row level security;
 
 -- Owners, full access to their own games.
 
+drop policy if exists games_select_own on public.games;
 create policy games_select_own on public.games
   for select using (auth.uid() = owner_id);
 
+drop policy if exists games_insert_own on public.games;
 create policy games_insert_own on public.games
   for insert with check (auth.uid() = owner_id);
 
+drop policy if exists games_update_own on public.games;
 create policy games_update_own on public.games
   for update using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 
+drop policy if exists games_delete_own on public.games;
 create policy games_delete_own on public.games
   for delete using (auth.uid() = owner_id);
 
 -- Hands inherit their permissions from the game they belong to.
 
+drop policy if exists hands_select_own on public.hands;
 create policy hands_select_own on public.hands
   for select using (
     exists (
@@ -37,6 +43,7 @@ create policy hands_select_own on public.hands
     )
   );
 
+drop policy if exists hands_insert_own on public.hands;
 create policy hands_insert_own on public.hands
   for insert with check (
     exists (
@@ -45,6 +52,7 @@ create policy hands_insert_own on public.hands
     )
   );
 
+drop policy if exists hands_update_own on public.hands;
 create policy hands_update_own on public.hands
   for update using (
     exists (
@@ -58,6 +66,7 @@ create policy hands_update_own on public.hands
     )
   );
 
+drop policy if exists hands_delete_own on public.hands;
 create policy hands_delete_own on public.hands
   for delete using (
     exists (

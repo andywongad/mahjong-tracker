@@ -17,8 +17,10 @@ create table if not exists public.games (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
 
+  -- array_length returns null for an empty array, and a null check passes,
+  -- so an empty players list would otherwise slip through.
   constraint games_four_players check (
-    array_length(player_names, 1) = 4
+    coalesce(array_length(player_names, 1), 0) = 4
   ),
   constraint games_penalty_non_negative check (zaa_wu_penalty >= 0)
 );
@@ -26,7 +28,12 @@ create table if not exists public.games (
 create index if not exists games_owner_date_idx
   on public.games (owner_id, date desc, created_at desc);
 
-create type public.hand_type as enum ('ceot_cung', 'zi_mo', 'zaa_wu', 'draw');
+do $$
+begin
+  create type public.hand_type as enum ('ceot_cung', 'zi_mo', 'zaa_wu', 'draw');
+exception
+  when duplicate_object then null;
+end $$;
 
 create table if not exists public.hands (
   id uuid primary key default gen_random_uuid(),
@@ -93,6 +100,7 @@ begin
 end;
 $$;
 
+drop trigger if exists games_touch_updated_at on public.games;
 create trigger games_touch_updated_at
   before update on public.games
   for each row execute function public.touch_updated_at();
@@ -109,6 +117,7 @@ begin
 end;
 $$;
 
+drop trigger if exists hands_touch_game on public.hands;
 create trigger hands_touch_game
   after insert or update or delete on public.hands
   for each row execute function public.touch_game_from_hand();

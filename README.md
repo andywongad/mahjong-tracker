@@ -26,9 +26,14 @@ that replaces the spreadsheet a group keeps during games.
 - **Glossary.** Every term in the app is tappable for a plain English
   definition, with Chinese and romanisation.
 - **Works offline.** Games live in the browser, so the app opens and records
-  hands with no signal. Installable to the home screen.
+  hands with no signal. Installable to the home screen. Note that this is also
+  the limit: games stay on the device that recorded them, and there is no
+  syncing between phones yet.
 - **Accessible.** Built to WCAG 2.2 AA and checked, not assumed: contrast is
   verified against the real design tokens as part of the test suite.
+- **Fails out loud.** Games live in the browser, so if storage cannot be opened
+  the app says so rather than showing an empty screen that reads like the games
+  are gone.
 
 ## Scoring
 

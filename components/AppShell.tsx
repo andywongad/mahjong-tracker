@@ -6,6 +6,7 @@ import { useNavigation } from '@/lib/game/navigation';
 import { GameScreen } from '@/components/table/GameScreen';
 import { StatsScreen } from '@/components/stats/StatsScreen';
 import { GamesScreen } from '@/components/games/GamesScreen';
+import { StorageError } from '@/components/ui/StorageError';
 import { SettleScreen } from '@/components/settle/SettleScreen';
 import { GlossaryScreen } from '@/components/glossary/GlossaryScreen';
 
@@ -15,17 +16,21 @@ import { GlossaryScreen } from '@/components/glossary/GlossaryScreen';
  * with no signal.
  */
 export function AppShell() {
-  const { games, loading } = useGames();
+  const { games, loading, storageError } = useGames();
   const { view, gameId, go } = useNavigation();
 
   // With no game chosen, fall to the most recent one, or to the games list.
   useEffect(() => {
+    if (storageError) return;
     if (loading || view === 'games' || view === 'settle' || view === 'glossary') return;
     const known = gameId && games.some((game) => game.id === gameId);
     if (known) return;
     if (games.length > 0) go('table', games[0].id);
     else go('games', null);
-  }, [loading, view, gameId, games, go]);
+  }, [loading, storageError, view, gameId, games, go]);
+
+  // A storage failure is reported, never silently shown as an empty app.
+  if (storageError) return <StorageError error={storageError} />;
 
   if (loading) {
     return (

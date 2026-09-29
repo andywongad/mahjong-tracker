@@ -56,7 +56,7 @@ export function GamesScreen() {
               onClick={() => go('settle', null)}
               className="tile-sm tile-pressable touch flex-1 rounded-xl py-3 text-sm font-semibold"
             >
-              Current tally
+              Tally details
             </button>
           )}
           <button

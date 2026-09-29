@@ -40,10 +40,13 @@ export function HandLog({
   rows,
   game,
   onEdit,
+  footer,
 }: {
   rows: HandRow[];
   game: GameRecord;
   onEdit: (row: HandRow) => void;
+  /** The running tally, shown as the closing row of the same card. */
+  footer?: React.ReactNode;
 }) {
   if (rows.length === 0) {
     // First time in a game, say how scoring works. Coming from the spreadsheet,
@@ -69,14 +72,25 @@ export function HandLog({
   }
 
   return (
-    <>
-      <PlayerColumns players={game.players} />
+    // One card holding the whole log, rather than a card per hand. Twenty
+    // identical tiles stacked up read as noise; a single object with ruled
+    // rows reads as a ledger, and leaves the real actions free to stand out.
+    <div className="tile overflow-hidden">
+      <PlayerColumns
+        players={game.players}
+        className="px-1 py-2"
+        style={{ background: 'var(--surface)', borderBottom: '1px solid var(--line)' }}
+      />
 
-      <ul className="flex flex-col gap-2">
-        {[...rows].reverse().map((row) => {
+      <ul>
+        {[...rows].reverse().map((row, index) => {
           const label = HAND_TYPE_LABELS[row.hand.type];
           return (
-            <li key={row.index} className="tile flex items-stretch gap-1 pr-3">
+            <li
+              key={row.index}
+              className="flex items-stretch gap-1 pr-3"
+              style={index > 0 ? { borderTop: '1px solid var(--line)' } : undefined}
+            >
               {/* The tag and the row are separate controls: one explains the
                 term, the other opens the hand. Nesting them would be invalid. */}
               <Term
@@ -131,9 +145,7 @@ export function HandLog({
                               : 'var(--loss)',
                       }}
                     >
-                      {row.deltas[seat] === 0
-                        ? '0'
-                        : formatSigned(row.deltas[seat])}
+                      {row.deltas[seat] === 0 ? '0' : formatSigned(row.deltas[seat])}
                     </span>
                   ))}
                 </span>
@@ -142,6 +154,8 @@ export function HandLog({
           );
         })}
       </ul>
-    </>
+
+      {footer}
+    </div>
   );
 }

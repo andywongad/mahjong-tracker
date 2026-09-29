@@ -3,12 +3,20 @@
 import { useGames } from '@/lib/game/GamesProvider';
 
 /**
- * A subtle note that hands are held locally. Shown while offline, or while
- * changes are still waiting to reach the server.
+ * Says something only when there is something to say.
+ *
+ * Games are held in this browser and nowhere else. That is simply how the app
+ * works, so it is not worth a permanent banner; what is worth saying is that
+ * the network is down, since that is a temporary state people worry about.
+ *
+ * There is deliberately no promise of syncing here. Changes do queue in an
+ * outbox ready for a server, but no server exists yet, so saying "will sync"
+ * would be claiming something the app cannot do. When sync is built, this is
+ * where the pending count belongs.
  */
 export function OfflineBadge() {
-  const { online, pending } = useGames();
-  if (online && pending === 0) return null;
+  const { online } = useGames();
+  if (online) return null;
 
   return (
     <p
@@ -20,7 +28,7 @@ export function OfflineBadge() {
       }}
       role="status"
     >
-      {online ? 'Saved on this device, will sync' : 'Saved offline, will sync'}
+      Offline. Hands are saved on this device and stay there.
     </p>
   );
 }

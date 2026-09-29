@@ -32,15 +32,19 @@ export function TallySummary({ game }: { game: GameRecord }) {
     value === 0 ? 'var(--muted)' : value > 0 ? 'var(--gain)' : 'var(--loss)';
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div style={{ borderTop: '2px solid var(--line-strong)' }}>
       {/* The names again, so a long log reads from the bottom too. */}
-      <PlayerColumns players={game.players} />
+      <PlayerColumns
+        players={game.players}
+        className="px-1 pt-2"
+        style={{ background: 'var(--surface)' }}
+      />
 
-      <div className="tile flex gap-1 py-2 pr-3">
-        <span
-          className="w-14 shrink-0 self-center px-1 text-center text-[0.7rem] font-semibold"
-          style={{ color: 'var(--muted)' }}
-        >
+      <div
+        className="flex gap-1 px-1 pt-1 pb-2"
+        style={{ background: 'var(--surface)' }}
+      >
+        <span className="w-14 shrink-0 self-center px-1 text-center text-xs font-bold">
           Tally
         </span>
 
