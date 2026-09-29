@@ -11,7 +11,11 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "check:contrast": "node scripts/check-contrast.mjs",
-    "verify": "npm run typecheck && npm test && npm run check:contrast && npm run build"
+    "verify": "npm run typecheck && npm test && npm run check:contrast && npm run build",
+    "shots:before": "SHOT_PHASE=before playwright test e2e/screenshots.spec.ts",
+    "shots:after": "SHOT_PHASE=after playwright test e2e/screenshots.spec.ts",
+    "shots:sheet": "node scripts/contact-sheet.mjs",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
@@ -21,6 +25,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

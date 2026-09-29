@@ -49,7 +49,11 @@ export function GamesScreen() {
         }
       />
 
-      <main id="main" tabIndex={-1} className="flex flex-col gap-6 px-4 py-4 pad-safe-bottom">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="flex flex-col gap-6 px-4 py-4 pad-safe-bottom"
+      >
         <button
           type="button"
           onClick={() => {
@@ -57,7 +61,11 @@ export function GamesScreen() {
             setSheetOpen(true);
           }}
           className="tile-pressable touch w-full rounded-xl py-4 text-base font-semibold"
-          style={{ background: 'var(--tile-back)', color: '#fff', boxShadow: '0 3px 0 #0e4a38' }}
+          style={{
+            background: 'var(--tile-back)',
+            color: '#fff',
+            boxShadow: '0 3px 0 #0e4a38',
+          }}
         >
           Start a new game
         </button>
@@ -139,7 +147,10 @@ export function GamesScreen() {
                     {summary.isFinished && (
                       <span
                         className="rounded-full px-2 py-0.5 text-[0.65rem] font-semibold tracking-wide uppercase"
-                        style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}
+                        style={{
+                          background: 'var(--badge-bg)',
+                          color: 'var(--on-badge)',
+                        }}
                         title={
                           summary.endedEarly
                             ? 'Ended before the rounds ran out'
@@ -149,8 +160,12 @@ export function GamesScreen() {
                         {summary.endedEarly ? 'Ended' : 'Final'}
                       </span>
                     )}
-                    <span className="tnum text-xs" style={{ color: 'var(--muted)' }}>
-                      {summary.handCount} {summary.handCount === 1 ? 'hand' : 'hands'}
+                    <span
+                      className="tnum text-xs"
+                      style={{ color: 'var(--muted)' }}
+                    >
+                      {summary.handCount}{' '}
+                      {summary.handCount === 1 ? 'hand' : 'hands'}
                     </span>
                   </span>
 
@@ -189,7 +204,9 @@ export function GamesScreen() {
                             style={{ color: 'var(--muted)' }}
                           >
                             {formatMoney(
-                              Math.round(summary.scores[seat] * summary.baseUnit * 100),
+                              Math.round(
+                                summary.scores[seat] * summary.baseUnit * 100,
+                              ),
                               summary.currency,
                             )}
                           </span>
@@ -202,7 +219,9 @@ export function GamesScreen() {
                 <button
                   type="button"
                   onClick={() => {
-                    const game = games.find((candidate) => candidate.id === summary.id);
+                    const game = games.find(
+                      (candidate) => candidate.id === summary.id,
+                    );
                     if (!game) return;
                     setEditing(game);
                     setSheetOpen(true);
@@ -225,52 +244,114 @@ export function GamesScreen() {
             </p>
             <div className="tile overflow-x-auto">
               <table className="w-full text-sm">
-                <caption className="sr-only">All time standings by player</caption>
+                <caption className="sr-only">
+                  All time standings by player
+                </caption>
                 <thead>
                   <tr style={{ color: 'var(--muted)' }}>
-                    <th scope="col" className="px-3 py-2 text-left text-xs font-semibold">Player</th>
-                    <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">Games</th>
-                    <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">Top</th>
-                    <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">Wins</th>
-                    <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
+                    <th
+                      scope="col"
+                      className="px-3 py-2 text-left text-xs font-semibold"
+                    >
+                      Player
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-2 py-2 text-right text-xs font-semibold"
+                    >
+                      Games
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-2 py-2 text-right text-xs font-semibold"
+                    >
+                      Top
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-2 py-2 text-right text-xs font-semibold"
+                    >
+                      Wins
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+                    >
                       Win rate
                     </th>
-                    <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
+                    <th
+                      scope="col"
+                      className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+                    >
                       <span className="flex flex-col items-end leading-none">
-                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">自摸</span>
+                        <span
+                          lang="zh-Hant"
+                          className="hanzi"
+                          aria-hidden="true"
+                        >
+                          自摸
+                        </span>
                         <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
                           Self pick
                         </span>
                       </span>
                     </th>
-                    <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
+                    <th
+                      scope="col"
+                      className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+                    >
                       <span className="flex flex-col items-end leading-none">
-                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">出銃</span>
+                        <span
+                          lang="zh-Hant"
+                          className="hanzi"
+                          aria-hidden="true"
+                        >
+                          出銃
+                        </span>
                         <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                          Deal in
+                          Shooter
                         </span>
                       </span>
                     </th>
-                    <th scope="col" className="px-3 py-2 text-right text-xs font-semibold">Net</th>
+                    <th
+                      scope="col"
+                      className="px-3 py-2 text-right text-xs font-semibold"
+                    >
+                      Net
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {table.map((row) => (
-                    <tr key={row.key} style={{ borderTop: '1px solid var(--line)' }}>
-                      <th scope="row" className="px-3 py-2 text-left font-semibold">
+                    <tr
+                      key={row.key}
+                      style={{ borderTop: '1px solid var(--line)' }}
+                    >
+                      <th
+                        scope="row"
+                        className="px-3 py-2 text-left font-semibold"
+                      >
                         {row.name}
                       </th>
                       <td className="tnum px-2 py-2 text-right">{row.games}</td>
-                      <td className="tnum px-2 py-2 text-right">{row.topFinishes}</td>
+                      <td className="tnum px-2 py-2 text-right">
+                        {row.topFinishes}
+                      </td>
                       <td className="tnum px-2 py-2 text-right">{row.wins}</td>
                       <td className="tnum px-2 py-2 text-right">
-                        {row.hands > 0 ? `${Math.round(row.winRate * 100)}%` : '·'}
+                        {row.hands > 0
+                          ? `${Math.round(row.winRate * 100)}%`
+                          : '·'}
                       </td>
                       <td className="tnum px-2 py-2 text-right">{row.ziMo}</td>
-                      <td className="tnum px-2 py-2 text-right">{row.ceotCung}</td>
+                      <td className="tnum px-2 py-2 text-right">
+                        {row.ceotCung}
+                      </td>
                       <td
                         className="tnum px-3 py-2 text-right font-bold"
-                        style={{ color: row.net >= 0 ? 'var(--gain)' : 'var(--loss)' }}
+                        style={{
+                          color: row.net >= 0 ? 'var(--gain)' : 'var(--loss)',
+                        }}
                       >
                         {formatSigned(row.net)}
                       </td>
@@ -288,7 +369,9 @@ export function GamesScreen() {
                   .map((row) => (
                     <p key={row.key} className="text-xs">
                       <span className="font-semibold">{row.name}</span>{' '}
-                      <span className="tnum">{row.signatureHand?.faan} faan</span>
+                      <span className="tnum">
+                        {row.signatureHand?.faan} faan
+                      </span>
                       <span style={{ color: 'var(--muted)' }}>
                         {' '}
                         ·{' '}

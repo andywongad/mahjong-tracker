@@ -5,6 +5,7 @@ import { NavigationProvider } from '@/lib/game/navigation';
 import { GlossaryProvider } from '@/lib/glossary/GlossaryProvider';
 import { AuthProvider } from '@/lib/supabase/AuthProvider';
 import { ServiceWorker } from '@/components/ui/ServiceWorker';
+import { DebugPanel } from '@/components/debug/DebugPanel';
 import { THEME_INIT_SCRIPT } from '@/components/ui/ThemeToggle';
 import './globals.css';
 
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </GamesProvider>
         </AuthProvider>
         <ServiceWorker />
+        <DebugPanel />
       </body>
     </html>
   );

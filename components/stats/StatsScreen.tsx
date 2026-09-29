@@ -28,7 +28,11 @@ export function StatsScreen({ gameId }: { gameId: string }) {
   const summary = useMemo(() => (game ? stats(game) : null), [game]);
 
   if (loading) {
-    return <p className="p-6 text-sm" style={{ color: 'var(--muted)' }}>Loading…</p>;
+    return (
+      <p className="p-6 text-sm" style={{ color: 'var(--muted)' }}>
+        Loading…
+      </p>
+    );
   }
 
   if (!game || !result || !summary) {
@@ -55,49 +59,109 @@ export function StatsScreen({ gameId }: { gameId: string }) {
         closeLabel="Close stats and go back to the table"
       />
 
-      <main id="main" tabIndex={-1} className="flex flex-col gap-6 px-4 py-4 pad-safe-bottom">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="flex flex-col gap-6 px-4 py-4 pad-safe-bottom"
+      >
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold">Summary</h2>
           <div className="tile overflow-x-auto">
             <table className="w-full text-sm">
-              <caption className="sr-only">Summary of this game by player</caption>
+              <caption className="sr-only">
+                Summary of this game by player
+              </caption>
               <thead>
                 <tr style={{ color: 'var(--muted)' }}>
-                  <th scope="col" className="px-3 py-2 text-left text-xs font-semibold">Player</th>
-                  <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">Wins</th>
-                  <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
-<Term id="zi_mo">
+                  <th
+                    scope="col"
+                    className="px-3 py-2 text-left text-xs font-semibold"
+                  >
+                    Player
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-2 py-2 text-right text-xs font-semibold"
+                  >
+                    Wins
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+                  >
+                    <Term id="zi_mo">
                       <span className="flex flex-col items-end leading-none">
-                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">自摸</span>
-                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">Self pick</span>
+                        <span
+                          lang="zh-Hant"
+                          className="hanzi"
+                          aria-hidden="true"
+                        >
+                          自摸
+                        </span>
+                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
+                          Self pick
+                        </span>
                       </span>
                     </Term>
                   </th>
-                  <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
-<Term id="cheut_chung">
+                  <th
+                    scope="col"
+                    className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+                  >
+                    <Term id="cheut_chung">
                       <span className="flex flex-col items-end leading-none">
-                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">出銃</span>
-                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">Deal in</span>
+                        <span
+                          lang="zh-Hant"
+                          className="hanzi"
+                          aria-hidden="true"
+                        >
+                          出銃
+                        </span>
+                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
+                          Shooter
+                        </span>
                       </span>
                     </Term>
                   </th>
-                  <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
-<Term id="zaa_wu">
+                  <th
+                    scope="col"
+                    className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+                  >
+                    <Term id="zaa_wu">
                       <span className="flex flex-col items-end leading-none">
-                        <span lang="zh-Hant" className="hanzi" aria-hidden="true">詐糊</span>
-                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">False win</span>
+                        <span
+                          lang="zh-Hant"
+                          className="hanzi"
+                          aria-hidden="true"
+                        >
+                          詐糊
+                        </span>
+                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
+                          False win
+                        </span>
                       </span>
                     </Term>
                   </th>
-                  <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">
+                  <th
+                    scope="col"
+                    className="px-2 py-2 text-right text-xs font-semibold"
+                  >
                     <Term id="baau_paang">High hand</Term>
                   </th>
-                  <th scope="col" className="px-3 py-2 text-right text-xs font-semibold">Score</th>
+                  <th
+                    scope="col"
+                    className="px-3 py-2 text-right text-xs font-semibold"
+                  >
+                    Score
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {summary.players.map((player) => (
-                  <tr key={player.seat} style={{ borderTop: '1px solid var(--line)' }}>
+                  <tr
+                    key={player.seat}
+                    style={{ borderTop: '1px solid var(--line)' }}
+                  >
                     <th scope="row" className="px-3 py-2 text-left font-normal">
                       <span className="flex items-center gap-1.5">
                         <span
@@ -110,12 +174,21 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                     </th>
                     <td className="tnum px-2 py-2 text-right">{player.wins}</td>
                     <td className="tnum px-2 py-2 text-right">{player.ziMo}</td>
-                    <td className="tnum px-2 py-2 text-right">{player.ceotCung}</td>
-                    <td className="tnum px-2 py-2 text-right">{player.zaaWu}</td>
-                    <td className="tnum px-2 py-2 text-right">{player.biggestHand}</td>
+                    <td className="tnum px-2 py-2 text-right">
+                      {player.ceotCung}
+                    </td>
+                    <td className="tnum px-2 py-2 text-right">
+                      {player.zaaWu}
+                    </td>
+                    <td className="tnum px-2 py-2 text-right">
+                      {player.biggestHand}
+                    </td>
                     <td
                       className="tnum px-3 py-2 text-right font-bold"
-                      style={{ color: player.score >= 0 ? 'var(--gain)' : 'var(--loss)' }}
+                      style={{
+                        color:
+                          player.score >= 0 ? 'var(--gain)' : 'var(--loss)',
+                      }}
                     >
                       {formatSigned(player.score)}
                       {game.rules.baseUnit > 0 && (
@@ -124,7 +197,9 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                           style={{ color: 'var(--muted)' }}
                         >
                           {formatMoney(
-                            Math.round(player.score * game.rules.baseUnit * 100),
+                            Math.round(
+                              player.score * game.rules.baseUnit * 100,
+                            ),
                             game.rules.currency,
                           )}
                         </span>
@@ -135,7 +210,10 @@ export function StatsScreen({ gameId }: { gameId: string }) {
               </tbody>
               <tfoot>
                 <tr style={{ borderTop: '1px solid var(--line-strong)' }}>
-                  <td className="px-3 py-2 text-xs font-semibold" style={{ color: 'var(--muted)' }}>
+                  <td
+                    className="px-3 py-2 text-xs font-semibold"
+                    style={{ color: 'var(--muted)' }}
+                  >
                     All
                   </td>
                   <td className="tnum px-2 py-2 text-right font-semibold">
@@ -184,7 +262,7 @@ export function StatsScreen({ gameId }: { gameId: string }) {
         />
 
         <ByFaanTable
-          title="Dealt in by faan"
+          title="Shooter by faan"
           values={faanValues(game.rules)}
           players={summary.players.map((player) => ({
             seat: player.seat,
@@ -230,8 +308,8 @@ function Audit({
         </>
       ) : (
         <>
-          Audit: {totals.accountedFor} of {handCount} hands accounted for, scores sum
-          to {totals.score}. Something is off.
+          Audit: {totals.accountedFor} of {handCount} hands accounted for,
+          scores sum to {totals.score}. Something is off.
         </>
       )}
     </p>
@@ -253,42 +331,68 @@ function FormSection({ players }: { players: PlayerStats[] }) {
       <h2 className="text-sm font-semibold">Form</h2>
       <div className="tile overflow-x-auto">
         <table className="w-full text-sm">
-          <caption className="sr-only">Win rates, streaks and dealer holds</caption>
+          <caption className="sr-only">
+            Win rates, streaks and dealer holds
+          </caption>
           <thead>
             <tr style={{ color: 'var(--muted)' }}>
-              <th scope="col" className="px-3 py-2 text-left text-xs font-semibold">
+              <th
+                scope="col"
+                className="px-3 py-2 text-left text-xs font-semibold"
+              >
                 Player
               </th>
-              <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">
+              <th
+                scope="col"
+                className="px-2 py-2 text-right text-xs font-semibold"
+              >
                 Win rate
               </th>
-              <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">
+              <th
+                scope="col"
+                className="px-2 py-2 text-right text-xs font-semibold"
+              >
                 Best run
               </th>
-              <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
+              <th
+                scope="col"
+                className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+              >
                 <Term id="cheut_chung">
                   <span className="flex flex-col items-end leading-none">
-                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">出銃</span>
+                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+                      出銃
+                    </span>
                     <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                      Deal in rate
+                      Shooter rate
                     </span>
                   </span>
                 </Term>
               </th>
-              <th scope="col" className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">
+              <th
+                scope="col"
+                className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+              >
                 <Term id="zong">
                   <span className="flex flex-col items-end leading-none">
-                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">莊</span>
+                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+                      莊
+                    </span>
                     <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
                       Dealer wins
                     </span>
                   </span>
                 </Term>
               </th>
-              <th scope="col" className="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap">
+              <th
+                scope="col"
+                className="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap"
+              >
                 <Term id="zi_mo">
                   <span className="flex flex-col items-end leading-none">
-                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">自摸</span>
+                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+                      自摸
+                    </span>
                     <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
                       Self pick share
                     </span>
@@ -299,7 +403,10 @@ function FormSection({ players }: { players: PlayerStats[] }) {
           </thead>
           <tbody>
             {players.map((player) => (
-              <tr key={player.seat} style={{ borderTop: '1px solid var(--line)' }}>
+              <tr
+                key={player.seat}
+                style={{ borderTop: '1px solid var(--line)' }}
+              >
                 <th scope="row" className="px-3 py-2 text-left font-normal">
                   <span className="flex items-center gap-1.5">
                     <span
@@ -310,10 +417,18 @@ function FormSection({ players }: { players: PlayerStats[] }) {
                     <span className="font-semibold">{player.name}</span>
                   </span>
                 </th>
-                <td className="tnum px-2 py-2 text-right">{percent(player.winRate)}</td>
-                <td className="tnum px-2 py-2 text-right">{player.longestWinStreak}</td>
-                <td className="tnum px-2 py-2 text-right">{percent(player.ceotCungRate)}</td>
-                <td className="tnum px-2 py-2 text-right">{player.dealerHolds}</td>
+                <td className="tnum px-2 py-2 text-right">
+                  {percent(player.winRate)}
+                </td>
+                <td className="tnum px-2 py-2 text-right">
+                  {player.longestWinStreak}
+                </td>
+                <td className="tnum px-2 py-2 text-right">
+                  {percent(player.ceotCungRate)}
+                </td>
+                <td className="tnum px-2 py-2 text-right">
+                  {player.dealerHolds}
+                </td>
                 <td className="tnum px-3 py-2 text-right">
                   {player.wins > 0 ? percent(player.ziMoShare) : '·'}
                 </td>
@@ -417,7 +532,12 @@ function ByFaanTable({
             <caption className="sr-only">{title}</caption>
             <thead>
               <tr style={{ color: 'var(--muted)' }}>
-                <th scope="col" className="px-3 py-2 text-left text-xs font-semibold">Player</th>
+                <th
+                  scope="col"
+                  className="px-3 py-2 text-left text-xs font-semibold"
+                >
+                  Player
+                </th>
                 {columns.map((faan) => (
                   <th
                     key={faan}
@@ -427,12 +547,20 @@ function ByFaanTable({
                     {faan}
                   </th>
                 ))}
-                <th scope="col" className="px-3 py-2 text-right text-xs font-semibold">All</th>
+                <th
+                  scope="col"
+                  className="px-3 py-2 text-right text-xs font-semibold"
+                >
+                  All
+                </th>
               </tr>
             </thead>
             <tbody>
               {players.map((player) => (
-                <tr key={player.seat} style={{ borderTop: '1px solid var(--line)' }}>
+                <tr
+                  key={player.seat}
+                  style={{ borderTop: '1px solid var(--line)' }}
+                >
                   <th scope="row" className="px-3 py-2 text-left font-normal">
                     <span className="flex items-center gap-1.5">
                       <span
@@ -456,7 +584,9 @@ function ByFaanTable({
                       {player.tally[faan] || '·'}
                     </td>
                   ))}
-                  <td className="tnum px-3 py-2 text-right font-bold">{player.total}</td>
+                  <td className="tnum px-3 py-2 text-right font-bold">
+                    {player.total}
+                  </td>
                 </tr>
               ))}
             </tbody>

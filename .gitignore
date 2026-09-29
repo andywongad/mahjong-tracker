@@ -48,3 +48,10 @@ next-env.d.ts
 # Stray clones made by GitHub Desktop inside the project
 /mahjong-tracker
 /Untitled
+
+# Design review screenshots, regenerated on demand
+/design-review
+
+# Playwright
+/test-results
+/playwright-report

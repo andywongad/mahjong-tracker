@@ -48,7 +48,7 @@ export const HAND_TYPE_LABELS: Record<
   HandType,
   { roman: string; hanzi: string; english: string }
 > = {
-  ceot_cung: { roman: 'Cheut Chung', hanzi: '出銃', english: 'Deal in' },
+  ceot_cung: { roman: 'Cheut Chung', hanzi: '出銃', english: 'Shooter' },
   zi_mo: { roman: 'Zi Mo', hanzi: '自摸', english: 'Self pick' },
   zaa_wu: { roman: 'Zaa Wu', hanzi: '詐糊', english: 'False win' },
   draw: { roman: 'Lau Guk', hanzi: '流局', english: 'Draw' },
@@ -57,7 +57,8 @@ export const HAND_TYPE_LABELS: Record<
 /** Faan values a hand can be worth under a set of rules, for chips and columns. */
 export function faanValues(rules: Rules): number[] {
   const values: number[] = [];
-  for (let faan = rules.minFaan; faan <= rules.faanCap; faan += 1) values.push(faan);
+  for (let faan = rules.minFaan; faan <= rules.faanCap; faan += 1)
+    values.push(faan);
   return values;
 }
 
@@ -102,7 +103,9 @@ export interface GameRules {
 
 /** The seat that won, or null for a draw or a false declaration. */
 export function winnerOf(hand: Hand): Seat | null {
-  return hand.type === 'ceot_cung' || hand.type === 'zi_mo' ? hand.winnerSeat : null;
+  return hand.type === 'ceot_cung' || hand.type === 'zi_mo'
+    ? hand.winnerSeat
+    : null;
 }
 
 /** The faan of a hand, or null where faan does not apply. */

@@ -17,7 +17,9 @@ const GAME: GameRecord = {
   updatedAt: '2026-08-19T00:00:00.000Z',
 };
 
-function setup(props: Partial<React.ComponentProps<typeof RecordHandSheet>> = {}) {
+function setup(
+  props: Partial<React.ComponentProps<typeof RecordHandSheet>> = {},
+) {
   const onSave = vi.fn();
   const onClose = vi.fn();
   render(
@@ -45,15 +47,23 @@ function step(name: RegExp) {
 describe('recording a hand', () => {
   it('asks how the hand ended before anything else', () => {
     setup();
-    expect(screen.getByRole('heading', { name: /how did the hand end/i })).toBeVisible();
-    expect(screen.queryByRole('heading', { name: /how many faan/i })).toBeNull();
+    expect(
+      screen.getByRole('heading', { name: /how did the hand end/i }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole('heading', { name: /how many faan/i }),
+    ).toBeNull();
   });
 
   it('saves a self drawn win', async () => {
     const { onSave, user } = setup();
 
-    await user.click(step(/how did the hand end/i).getByRole('button', { name: /Zi Mo/ }));
-    await user.click(step(/who won/i).getByRole('button', { name: /Player C/ }));
+    await user.click(
+      step(/how did the hand end/i).getByRole('button', { name: /Zi Mo/ }),
+    );
+    await user.click(
+      step(/who won/i).getByRole('button', { name: /Player C/ }),
+    );
     await user.click(step(/how many faan/i).getByRole('button', { name: '5' }));
     await user.click(screen.getByRole('button', { name: /save hand/i }));
 
@@ -62,30 +72,47 @@ describe('recording a hand', () => {
     );
   });
 
-  it('saves a discard win, recording who dealt in', async () => {
+  it('saves a discard win, recording the shooter', async () => {
     const { onSave, user } = setup();
 
     await user.click(
-      step(/how did the hand end/i).getByRole('button', { name: /Cheut Chung/ }),
+      step(/how did the hand end/i).getByRole('button', {
+        name: /Cheut Chung/,
+      }),
     );
-    await user.click(step(/who won/i).getByRole('button', { name: /Player A/ }));
-    await user.click(step(/who dealt in/i).getByRole('button', { name: /Player B/ }));
+    await user.click(
+      step(/who won/i).getByRole('button', { name: /Player A/ }),
+    );
+    await user.click(
+      step(/who was the shooter/i).getByRole('button', { name: /Player B/ }),
+    );
     await user.click(step(/how many faan/i).getByRole('button', { name: '4' }));
     await user.click(screen.getByRole('button', { name: /save hand/i }));
 
     expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'ceot_cung', winnerSeat: 0, discarderSeat: 1, faan: 4 }),
+      expect.objectContaining({
+        type: 'ceot_cung',
+        winnerSeat: 0,
+        discarderSeat: 1,
+        faan: 4,
+      }),
     );
   });
 
-  it('will not let the winner deal in to themselves', async () => {
+  it('will not let the winner be their own shooter', async () => {
     const { user } = setup();
     await user.click(
-      step(/how did the hand end/i).getByRole('button', { name: /Cheut Chung/ }),
+      step(/how did the hand end/i).getByRole('button', {
+        name: /Cheut Chung/,
+      }),
     );
-    await user.click(step(/who won/i).getByRole('button', { name: /Player A/ }));
+    await user.click(
+      step(/who won/i).getByRole('button', { name: /Player A/ }),
+    );
 
-    expect(step(/who dealt in/i).getByRole('button', { name: /Player A/ })).toBeDisabled();
+    expect(
+      step(/who was the shooter/i).getByRole('button', { name: /Player A/ }),
+    ).toBeDisabled();
   });
 
   it('keeps Save unavailable until the hand is complete', async () => {
@@ -93,9 +120,13 @@ describe('recording a hand', () => {
     const save = () => screen.getByRole('button', { name: /save hand/i });
 
     expect(save()).toBeDisabled();
-    await user.click(step(/how did the hand end/i).getByRole('button', { name: /Zi Mo/ }));
+    await user.click(
+      step(/how did the hand end/i).getByRole('button', { name: /Zi Mo/ }),
+    );
     expect(save()).toBeDisabled();
-    await user.click(step(/who won/i).getByRole('button', { name: /Player C/ }));
+    await user.click(
+      step(/who won/i).getByRole('button', { name: /Player C/ }),
+    );
     expect(save()).toBeDisabled();
     await user.click(step(/how many faan/i).getByRole('button', { name: '3' }));
     expect(save()).toBeEnabled();
@@ -103,8 +134,12 @@ describe('recording a hand', () => {
 
   it('previews what the hand does to all four players', async () => {
     const { user } = setup();
-    await user.click(step(/how did the hand end/i).getByRole('button', { name: /Zi Mo/ }));
-    await user.click(step(/who won/i).getByRole('button', { name: /Player C/ }));
+    await user.click(
+      step(/how did the hand end/i).getByRole('button', { name: /Zi Mo/ }),
+    );
+    await user.click(
+      step(/who won/i).getByRole('button', { name: /Player C/ }),
+    );
     await user.click(step(/how many faan/i).getByRole('button', { name: '5' }));
 
     // Our table: a 5 faan self draw takes 10 from each and pays 30.
@@ -114,8 +149,12 @@ describe('recording a hand', () => {
 
   it('needs only the offender for a false win', async () => {
     const { onSave, user } = setup();
-    await user.click(step(/how did the hand end/i).getByRole('button', { name: /Zaa Wu/ }));
-    await user.click(step(/who called it/i).getByRole('button', { name: /Player D/ }));
+    await user.click(
+      step(/how did the hand end/i).getByRole('button', { name: /Zaa Wu/ }),
+    );
+    await user.click(
+      step(/who called it/i).getByRole('button', { name: /Player D/ }),
+    );
     await user.click(screen.getByRole('button', { name: /save hand/i }));
 
     expect(onSave).toHaveBeenCalledWith({ type: 'zaa_wu', offenderSeat: 3 });
@@ -123,7 +162,9 @@ describe('recording a hand', () => {
 
   it('saves a draw with nothing else asked', async () => {
     const { onSave, user } = setup();
-    await user.click(step(/how did the hand end/i).getByRole('button', { name: /Lau Guk/ }));
+    await user.click(
+      step(/how did the hand end/i).getByRole('button', { name: /Lau Guk/ }),
+    );
     await user.click(screen.getByRole('button', { name: /save hand/i }));
 
     expect(onSave).toHaveBeenCalledWith({ type: 'draw' });
@@ -145,7 +186,9 @@ describe('when a seat was tapped on the table', () => {
 
   it('treats the tapped player as the offender on a false win', async () => {
     const { onSave, user } = setup({ presetSeat: 1 });
-    await user.click(step(/how did the hand end/i).getByRole('button', { name: /Zaa Wu/ }));
+    await user.click(
+      step(/how did the hand end/i).getByRole('button', { name: /Zaa Wu/ }),
+    );
     await user.click(screen.getByRole('button', { name: /save hand/i }));
 
     expect(onSave).toHaveBeenCalledWith({ type: 'zaa_wu', offenderSeat: 1 });

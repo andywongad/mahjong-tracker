@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { logEvent } from '@/lib/telemetry/events';
 import {
   HAND_TYPE_LABELS,
   SEATS,
@@ -65,7 +66,11 @@ function draftFromHand(hand: Hand): Draft {
         patterns: hand.patterns,
       };
     case 'zaa_wu':
-      return { ...EMPTY_DRAFT, type: 'zaa_wu', offenderSeat: hand.offenderSeat };
+      return {
+        ...EMPTY_DRAFT,
+        type: 'zaa_wu',
+        offenderSeat: hand.offenderSeat,
+      };
     case 'draw':
       return { ...EMPTY_DRAFT, type: 'draw' };
   }
@@ -175,11 +180,44 @@ export function RecordHandSheet({
     });
   }
 
+  // Which question is still open, so an abandoned attempt says where it stopped.
+  const pendingStep = !draft.type
+    ? 'type'
+    : needsWinner && draft.winnerSeat == null
+      ? 'winner'
+      : needsOffender && draft.offenderSeat == null
+        ? 'offender'
+        : needsDiscarder && draft.discarderSeat == null
+          ? 'discarder'
+          : needsFaan && draft.faan == null
+            ? 'faan'
+            : 'confirm';
+
+  // Read at unmount, when the render that set it is long gone.
+  const stepRef = useRef(pendingStep);
+  const settledRef = useRef(false);
+
+  useEffect(() => {
+    stepRef.current = pendingStep;
+  }, [pendingStep]);
+
+  useEffect(() => {
+    if (!open || editing) return;
+    logEvent('record_started');
+    return () => {
+      if (!settledRef.current) {
+        logEvent('record_abandoned', { step: stepRef.current });
+      }
+    };
+  }, [open, editing]);
+
   async function handleSave() {
     if (!hand || saving) return;
     setSaving(true);
     try {
       await onSave(hand);
+      settledRef.current = true;
+      logEvent(editing ? 'hand_edited' : 'record_saved', { type: hand.type });
       onClose();
     } finally {
       setSaving(false);
@@ -193,234 +231,268 @@ export function RecordHandSheet({
       return;
     }
     await onDelete();
+    settledRef.current = true;
+    logEvent('hand_deleted');
     onClose();
   }
 
   return (
     <>
-    <Sheet
-      open={open && !builderOpen}
-      title={editing ? `Edit hand ${editing.handNumber}` : `Record hand ${handNumber}`}
-      onClose={onClose}
-      footer={
-        <div className="flex flex-col gap-2">
-          {preview && (
-            <div className="flex justify-between gap-2">
-              {SEATS.map((seat: Seat) => (
-                <div key={seat} className="min-w-0 flex-1 text-center">
-                  <p className="truncate text-[0.7rem]" style={{ color: 'var(--muted)' }}>
-                    {game.players[seat]}
-                  </p>
-                  <p
-                    className="tnum text-base font-bold"
-                    style={{
-                      color:
-                        preview[seat] === 0
-                          ? 'var(--muted)'
-                          : preview[seat] > 0
-                            ? 'var(--gain)'
-                            : 'var(--loss)',
-                    }}
-                  >
-                    {preview[seat] === 0 ? '0' : formatSigned(preview[seat])}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            {editing && onDelete && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="touch rounded-xl px-4 text-sm font-semibold"
-                style={
-                  confirmingDelete
-                    ? { background: 'var(--accent)', color: '#fff' }
-                    : { border: '1px solid var(--line-strong)', color: 'var(--accent)' }
-                }
-              >
-                {confirmingDelete ? 'Tap again to delete' : 'Delete'}
-              </button>
+      <Sheet
+        open={open && !builderOpen}
+        title={
+          editing
+            ? `Edit hand ${editing.handNumber}`
+            : `Record hand ${handNumber}`
+        }
+        onClose={onClose}
+        footer={
+          <div className="flex flex-col gap-2">
+            {preview && (
+              <div className="flex justify-between gap-2">
+                {SEATS.map((seat: Seat) => (
+                  <div key={seat} className="min-w-0 flex-1 text-center">
+                    <p
+                      className="truncate text-[0.7rem]"
+                      style={{ color: 'var(--muted)' }}
+                    >
+                      {game.players[seat]}
+                    </p>
+                    <p
+                      className="tnum text-base font-bold"
+                      style={{
+                        color:
+                          preview[seat] === 0
+                            ? 'var(--muted)'
+                            : preview[seat] > 0
+                              ? 'var(--gain)'
+                              : 'var(--loss)',
+                      }}
+                    >
+                      {preview[seat] === 0 ? '0' : formatSigned(preview[seat])}
+                    </p>
+                  </div>
+                ))}
+              </div>
             )}
 
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={!complete || saving}
-              className="touch flex-1 rounded-xl px-4 text-base font-semibold"
-              style={
-                complete && !saving
-                  ? { background: 'var(--tile-back)', color: '#fff' }
-                  : {
-                      background: 'var(--line)',
-                      color: 'var(--muted)',
-                      cursor: 'not-allowed',
-                    }
-              }
-            >
-              {editing ? 'Save changes' : 'Save hand'}
-            </button>
-          </div>
-        </div>
-      }
-    >
-      <div className="flex flex-col gap-5">
-        {presetSeat != null && !editing && !changingPlayer && chosenSeat != null && (
-          <div
-            className="flex items-center justify-between gap-3 rounded-lg px-3 py-2"
-            style={{ background: 'var(--tile-face)', border: '1px solid var(--line-strong)' }}
-          >
-            <span className="min-w-0 text-sm">
-              <span style={{ color: 'var(--muted)' }}>
-                {draft.type === 'zaa_wu' ? 'Called by ' : 'Won by '}
-              </span>
-              <span className="font-semibold">{game.players[chosenSeat]}</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setChangingPlayer(true)}
-              className="touch shrink-0 px-2 text-xs font-semibold underline"
-              style={{ color: 'var(--accent)' }}
-            >
-              Change
-            </button>
-          </div>
-        )}
-
-        <Step label="How did the hand end?">
-          {/* Two across rather than four, so the name and its plain English
-              reading both fit on one line and the targets stay large. */}
-          <div className="grid grid-cols-2 gap-2">
-            {HAND_TYPE_ORDER.map((type) => {
-              const label = HAND_TYPE_LABELS[type];
-              const selected = draft.type === type;
-              return (
-                <TileChoice
-                  key={type}
-                  selected={selected}
-                  onClick={() => setType(type)}
-                  className="gap-0.5 py-2.5"
-                >
-                  <span lang="zh-Hant" className="hanzi text-xl leading-none" aria-hidden="true">
-                    {label.hanzi}
-                  </span>
-                  <span className="text-sm leading-tight font-semibold">{label.roman}</span>
-                  <span
-                    className="text-xs leading-tight"
-                    style={{
-                      color: selected ? 'var(--on-player-solid)' : 'var(--muted)',
-                    }}
-                  >
-                    {label.english}
-                  </span>
-                </TileChoice>
-              );
-            })}
-          </div>
-        </Step>
-
-        {(needsWinner || (changingPlayer && draft.type == null)) &&
-          (presetSeat == null || changingPlayer || editing) && (
-          <Step label="Who won?">
-            <SeatPicker
-              game={game}
-              value={draft.winnerSeat}
-              onChange={(seat) =>
-                setDraft((current) => ({
-                  ...current,
-                  winnerSeat: seat,
-                  // The winner cannot also be the one who dealt in.
-                  discarderSeat:
-                    current.discarderSeat === seat ? null : current.discarderSeat,
-                }))
-              }
-            />
-          </Step>
-        )}
-
-        {needsDiscarder && (
-          <Step label="Who dealt in?">
-            <SeatPicker
-              game={game}
-              value={draft.discarderSeat}
-              disabledSeat={draft.winnerSeat}
-              onChange={(seat) =>
-                setDraft((current) => ({ ...current, discarderSeat: seat }))
-              }
-            />
-          </Step>
-        )}
-
-        {needsOffender && (presetSeat == null || changingPlayer || editing) && (
-          <Step label="Who called it?">
-            <SeatPicker
-              game={game}
-              value={draft.offenderSeat}
-              onChange={(seat) =>
-                setDraft((current) => ({ ...current, offenderSeat: seat }))
-              }
-            />
-          </Step>
-        )}
-
-        {needsFaan && (
-          <Step
-            label="How many faan?"
-            action={
-              <button
-                type="button"
-                onClick={() => setBuilderOpen(true)}
-                className="text-xs font-semibold underline underline-offset-2"
-                style={{ color: 'var(--accent)' }}
-              >
-                Build hand
-              </button>
-            }
-          >
-            {draft.patterns && draft.patterns.length > 0 && (
-              <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                Built from {draft.patterns.length} pattern
-                {draft.patterns.length === 1 ? '' : 's'}
-                {draft.isLimit ? ', a limit hand' : ''}.
-              </p>
-            )}
-            <div className="grid grid-cols-6 gap-2">
-              {faanValues(game.rules).map((faan) => (
-                <TileChoice
-                  key={faan}
-                  selected={draft.faan === faan}
-                  onClick={() =>
-                    // Tapping a number by hand replaces anything that was built.
-                    setDraft((current) => ({
-                      ...current,
-                      faan,
-                      patterns: undefined,
-                      isLimit: false,
-                    }))
+            <div className="flex gap-2">
+              {editing && onDelete && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="touch rounded-xl px-4 text-sm font-semibold"
+                  style={
+                    confirmingDelete
+                      ? { background: 'var(--accent)', color: '#fff' }
+                      : {
+                          border: '1px solid var(--line-strong)',
+                          color: 'var(--accent)',
+                        }
                   }
                 >
-                  <span className="tnum text-lg font-bold leading-none">{faan}</span>
-                </TileChoice>
-              ))}
+                  {confirmingDelete ? 'Tap again to delete' : 'Delete'}
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={!complete || saving}
+                className="touch flex-1 rounded-xl px-4 text-base font-semibold"
+                style={
+                  complete && !saving
+                    ? { background: 'var(--tile-back)', color: '#fff' }
+                    : {
+                        background: 'var(--line)',
+                        color: 'var(--muted)',
+                        cursor: 'not-allowed',
+                      }
+                }
+              >
+                {editing ? 'Save changes' : 'Save hand'}
+              </button>
+            </div>
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          {presetSeat != null &&
+            !editing &&
+            !changingPlayer &&
+            chosenSeat != null && (
+              <div
+                className="flex items-center justify-between gap-3 rounded-lg px-3 py-2"
+                style={{
+                  background: 'var(--tile-face)',
+                  border: '1px solid var(--line-strong)',
+                }}
+              >
+                <span className="min-w-0 text-sm">
+                  <span style={{ color: 'var(--muted)' }}>
+                    {draft.type === 'zaa_wu' ? 'Called by ' : 'Won by '}
+                  </span>
+                  <span className="font-semibold">
+                    {game.players[chosenSeat]}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setChangingPlayer(true)}
+                  className="touch shrink-0 px-2 text-xs font-semibold underline"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  Change
+                </button>
+              </div>
+            )}
+
+          <Step label="How did the hand end?">
+            {/* Two across rather than four, so the name and its plain English
+              reading both fit on one line and the targets stay large. */}
+            <div className="grid grid-cols-2 gap-2">
+              {HAND_TYPE_ORDER.map((type) => {
+                const label = HAND_TYPE_LABELS[type];
+                const selected = draft.type === type;
+                return (
+                  <TileChoice
+                    key={type}
+                    selected={selected}
+                    onClick={() => setType(type)}
+                    className="gap-0.5 py-2.5"
+                  >
+                    <span
+                      lang="zh-Hant"
+                      className="hanzi text-xl leading-none"
+                      aria-hidden="true"
+                    >
+                      {label.hanzi}
+                    </span>
+                    <span className="text-sm leading-tight font-semibold">
+                      {label.roman}
+                    </span>
+                    <span
+                      className="text-xs leading-tight"
+                      style={{
+                        color: selected
+                          ? 'var(--on-player-solid)'
+                          : 'var(--muted)',
+                      }}
+                    >
+                      {label.english}
+                    </span>
+                  </TileChoice>
+                );
+              })}
             </div>
           </Step>
-        )}
 
-        {draft.type === 'draw' && (
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>
-            Nothing changes on a draw. Save to move the hand count on.
-          </p>
-        )}
+          {(needsWinner || (changingPlayer && draft.type == null)) &&
+            (presetSeat == null || changingPlayer || editing) && (
+              <Step label="Who won?">
+                <SeatPicker
+                  game={game}
+                  value={draft.winnerSeat}
+                  onChange={(seat) =>
+                    setDraft((current) => ({
+                      ...current,
+                      winnerSeat: seat,
+                      // The winner cannot also be the shooter.
+                      discarderSeat:
+                        current.discarderSeat === seat
+                          ? null
+                          : current.discarderSeat,
+                    }))
+                  }
+                />
+              </Step>
+            )}
 
-        {draft.type === 'zaa_wu' && (
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>
-            The player who called it pays {game.rules.zaaWuPenalty} to each of the others.
-          </p>
-        )}
-      </div>
-    </Sheet>
+          {needsDiscarder && (
+            <Step label="Who was the shooter?">
+              <SeatPicker
+                game={game}
+                value={draft.discarderSeat}
+                disabledSeat={draft.winnerSeat}
+                onChange={(seat) =>
+                  setDraft((current) => ({ ...current, discarderSeat: seat }))
+                }
+              />
+            </Step>
+          )}
+
+          {needsOffender &&
+            (presetSeat == null || changingPlayer || editing) && (
+              <Step label="Who called it?">
+                <SeatPicker
+                  game={game}
+                  value={draft.offenderSeat}
+                  onChange={(seat) =>
+                    setDraft((current) => ({ ...current, offenderSeat: seat }))
+                  }
+                />
+              </Step>
+            )}
+
+          {needsFaan && (
+            <Step
+              label="How many faan?"
+              action={
+                <button
+                  type="button"
+                  onClick={() => setBuilderOpen(true)}
+                  className="text-xs font-semibold underline underline-offset-2"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  Build hand
+                </button>
+              }
+            >
+              {draft.patterns && draft.patterns.length > 0 && (
+                <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                  Built from {draft.patterns.length} pattern
+                  {draft.patterns.length === 1 ? '' : 's'}
+                  {draft.isLimit ? ', a limit hand' : ''}.
+                </p>
+              )}
+              <div className="grid grid-cols-6 gap-2">
+                {faanValues(game.rules).map((faan) => (
+                  <TileChoice
+                    key={faan}
+                    selected={draft.faan === faan}
+                    onClick={() =>
+                      // Tapping a number by hand replaces anything that was built.
+                      setDraft((current) => ({
+                        ...current,
+                        faan,
+                        patterns: undefined,
+                        isLimit: false,
+                      }))
+                    }
+                  >
+                    <span className="tnum text-lg font-bold leading-none">
+                      {faan}
+                    </span>
+                  </TileChoice>
+                ))}
+              </div>
+            </Step>
+          )}
+
+          {draft.type === 'draw' && (
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>
+              Nothing changes on a draw. Save to move the hand count on.
+            </p>
+          )}
+
+          {draft.type === 'zaa_wu' && (
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>
+              The player who called it pays {game.rules.zaaWuPenalty} to each of
+              the others.
+            </p>
+          )}
+        </div>
+      </Sheet>
 
       <HandBuilderSheet
         open={builderOpen}

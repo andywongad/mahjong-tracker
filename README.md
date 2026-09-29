@@ -21,7 +21,7 @@ that replaces the spreadsheet a group keeps during games.
 - **Current tally.** Nets a whole night across several games, works out the
   fewest payments, and copies a plain text summary for the group chat. Available
   mid game too, since checking where you stand should not mean ending anything.
-- **Stats.** Running score chart, wins and deal ins by faan, win rates, streaks,
+- **Stats.** Running score chart, wins and shooter counts by faan, win rates, streaks,
   dealer holds, most used patterns, and each player's best built hand.
 - **Glossary.** Every term in the app is tappable for a plain English
   definition, with Chinese and romanisation.
@@ -42,7 +42,7 @@ points. The engine in `lib/scoring` is pure: no storage, no React, no network.
 
 | Hand | Cantonese | |
 |---|---|---|
-| Deal in | Cheut Chung 出銃 | The discarder pays most, the other two less |
+| Shooter | Cheut Chung 出銃 | The shooter pays most, or the whole amount \u2014 a house rule |
 | Self drawn | Zi Mo 自摸 | All three losers pay |
 | False win | Zaa Wu 詐糊 | The offender pays a penalty to each other player |
 | Draw | Lau Guk 流局 | Nothing changes |

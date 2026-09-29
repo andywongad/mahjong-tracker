@@ -9,7 +9,12 @@ import {
   deleteRuleSet,
   type RuleSet,
 } from '@/lib/rules/ruleSets';
-import { presetFor, withRuleChange, type CurveKind, type Rules } from '@/lib/rules/types';
+import {
+  presetFor,
+  withRuleChange,
+  type CurveKind,
+  type Rules,
+} from '@/lib/rules/types';
 import { Sheet } from './Sheet';
 
 /** The three ways a table usually splits a discard win. */
@@ -23,7 +28,7 @@ const DISCARD_SPLITS: {
   {
     id: 'shared',
     label: 'Shooter pays double, others pay one each',
-    detail: 'The whole table pays, the one who dealt in pays most',
+    detail: 'The whole table pays, the shooter pays most',
     shooter: 2,
     others: 1,
   },
@@ -66,10 +71,15 @@ export function RulesSheet({
   /** Hands already played, so a change can warn about recalculating. */
   handCount: number;
   onClose: () => void;
-  onApply: (rules: Rules, ruleSet?: { id?: string; name?: string }) => void | Promise<void>;
+  onApply: (
+    rules: Rules,
+    ruleSet?: { id?: string; name?: string },
+  ) => void | Promise<void>;
 }) {
   const [rules, setRules] = useState<Rules>(initialRules);
-  const [appliedName, setAppliedName] = useState<string | undefined>(ruleSetName);
+  const [appliedName, setAppliedName] = useState<string | undefined>(
+    ruleSetName,
+  );
   const [sets, setSets] = useState<RuleSet[]>(BUILT_IN_RULE_SETS);
   const [saveName, setSaveName] = useState('');
   const [confirming, setConfirming] = useState(false);
@@ -129,8 +139,8 @@ export function RulesSheet({
               role="alert"
             >
               Changing rules will recalculate all {handCount}{' '}
-              {handCount === 1 ? 'hand' : 'hands'}. The faan you recorded stays as it
-              is, only the points change. Tap Apply again to go ahead.
+              {handCount === 1 ? 'hand' : 'hands'}. The faan you recorded stays
+              as it is, only the points change. Tap Apply again to go ahead.
             </p>
           )}
           <button
@@ -167,7 +177,9 @@ export function RulesSheet({
                       : undefined
                   }
                 >
-                  <span className="block text-sm font-semibold">{set.name}</span>
+                  <span className="block text-sm font-semibold">
+                    {set.name}
+                  </span>
                   <span
                     className="block text-xs"
                     style={{
@@ -196,7 +208,8 @@ export function RulesSheet({
           </div>
           {presetFor(rules) === 'custom' && !activeSetId && (
             <p className="text-xs" style={{ color: 'var(--muted)' }}>
-              These are custom rules. Save them below to reuse them in another game.
+              These are custom rules. Save them below to reuse them in another
+              game.
             </p>
           )}
         </Section>
@@ -221,26 +234,28 @@ export function RulesSheet({
 
           <Field label="Payout curve">
             <div className="grid grid-cols-3 gap-2">
-              {(['linear', 'doubling', 'custom'] as CurveKind[]).map((curve) => (
-                <button
-                  key={curve}
-                  type="button"
-                  onClick={() => edit({ curve })}
-                  aria-pressed={rules.curve === curve}
-                  className="tile-sm touch px-2 text-xs font-semibold capitalize"
-                  style={
-                    rules.curve === curve
-                      ? {
-                          background: 'var(--tile-back)',
-                          color: '#fff',
-                          borderColor: 'transparent',
-                        }
-                      : undefined
-                  }
-                >
-                  {curve}
-                </button>
-              ))}
+              {(['linear', 'doubling', 'custom'] as CurveKind[]).map(
+                (curve) => (
+                  <button
+                    key={curve}
+                    type="button"
+                    onClick={() => edit({ curve })}
+                    aria-pressed={rules.curve === curve}
+                    className="tile-sm touch px-2 text-xs font-semibold capitalize"
+                    style={
+                      rules.curve === curve
+                        ? {
+                            background: 'var(--tile-back)',
+                            color: '#fff',
+                            borderColor: 'transparent',
+                          }
+                        : undefined
+                    }
+                  >
+                    {curve}
+                  </button>
+                ),
+              )}
             </div>
           </Field>
 
@@ -268,12 +283,16 @@ export function RulesSheet({
                       : undefined
                   }
                 >
-                  <span className="block text-xs font-semibold">{split.label}</span>
+                  <span className="block text-xs font-semibold">
+                    {split.label}
+                  </span>
                   <span
                     className="block text-xs"
                     style={{
                       color:
-                        splitIdFor(rules) === split.id ? '#fff' : 'var(--muted)',
+                        splitIdFor(rules) === split.id
+                          ? '#fff'
+                          : 'var(--muted)',
                     }}
                   >
                     {split.detail}
@@ -332,32 +351,59 @@ export function RulesSheet({
               </caption>
               <thead>
                 <tr style={{ color: 'var(--muted)' }}>
-                  <th scope="col" className="px-2 py-1.5 text-left font-semibold">
+                  <th
+                    scope="col"
+                    className="px-2 py-1.5 text-left font-semibold"
+                  >
                     Faan
                   </th>
-                  <th scope="col" className="px-2 py-1.5 text-right font-semibold">
+                  <th
+                    scope="col"
+                    className="px-2 py-1.5 text-right font-semibold"
+                  >
                     Shooter
                   </th>
-                  <th scope="col" className="px-2 py-1.5 text-right font-semibold">
+                  <th
+                    scope="col"
+                    className="px-2 py-1.5 text-right font-semibold"
+                  >
                     Others
                   </th>
-                  <th scope="col" className="px-2 py-1.5 text-right font-semibold">
+                  <th
+                    scope="col"
+                    className="px-2 py-1.5 text-right font-semibold"
+                  >
                     Self draw
                   </th>
-                  <th scope="col" className="px-2 py-1.5 text-right font-semibold">
+                  <th
+                    scope="col"
+                    className="px-2 py-1.5 text-right font-semibold"
+                  >
                     Winner
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {preview.map((row) => (
-                  <tr key={row.faan} style={{ borderTop: '1px solid var(--line)' }}>
-                    <th scope="row" className="tnum px-2 py-1.5 text-left font-semibold">
+                  <tr
+                    key={row.faan}
+                    style={{ borderTop: '1px solid var(--line)' }}
+                  >
+                    <th
+                      scope="row"
+                      className="tnum px-2 py-1.5 text-left font-semibold"
+                    >
                       {row.faan}
                     </th>
-                    <td className="tnum px-2 py-1.5 text-right">{row.shooter}</td>
-                    <td className="tnum px-2 py-1.5 text-right">{row.others}</td>
-                    <td className="tnum px-2 py-1.5 text-right">{row.selfDrawEach}</td>
+                    <td className="tnum px-2 py-1.5 text-right">
+                      {row.shooter}
+                    </td>
+                    <td className="tnum px-2 py-1.5 text-right">
+                      {row.others}
+                    </td>
+                    <td className="tnum px-2 py-1.5 text-right">
+                      {row.selfDrawEach}
+                    </td>
                     <td className="tnum px-2 py-1.5 text-right font-semibold">
                       {row.discardWin} / {row.selfDrawWin}
                     </td>
@@ -419,11 +465,22 @@ function limitHint(rules: Rules): string {
 }
 
 function describeSet(rules: Rules): string {
-  const curve = rules.curve === 'linear' ? 'Linear' : rules.curve === 'doubling' ? 'Doubling' : 'Custom';
+  const curve =
+    rules.curve === 'linear'
+      ? 'Linear'
+      : rules.curve === 'doubling'
+        ? 'Doubling'
+        : 'Custom';
   return `${curve}, ${rules.minFaan} to ${rules.faanCap} faan`;
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="flex flex-col gap-3">
       <h3 className="text-sm font-semibold">{title}</h3>
@@ -432,7 +489,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-1 text-xs font-semibold">{label}</legend>
@@ -525,7 +588,9 @@ function ToggleRow({
       </span>
       <span
         className="relative inline-block h-6 w-11 shrink-0 rounded-full transition-colors"
-        style={{ background: checked ? 'var(--tile-back)' : 'var(--line-strong)' }}
+        style={{
+          background: checked ? 'var(--tile-back)' : 'var(--line-strong)',
+        }}
       >
         <span
           className="absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all"

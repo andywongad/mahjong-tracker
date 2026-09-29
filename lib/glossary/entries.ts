@@ -55,9 +55,9 @@ const CORE: GlossaryEntry[] = [
     id: 'cheut_chung',
     term: 'Cheut Chung',
     zh: '出銃',
-    english: 'Dealing in',
+    english: 'Shooter',
     definition:
-      'Discarding the exact tile another player needed to win. The player who did it usually pays a larger share than the other two, which is why everyone remembers who it was.',
+      'The player who discards the tile that completes another player\u2019s winning hand. How much of the win the shooter carries is a house rule: at some tables they pay the full amount alone, at others everyone pays and the shooter pays double. Either way, everyone remembers who it was.',
     related: ['sik_wu', 'zi_mo'],
     group: 'play',
   },
@@ -201,33 +201,46 @@ function patternDefinition(id: string, faan: number, limit?: boolean): string {
     : `It is worth ${faan} faan.`;
 
   const what: Record<string, string> = {
-    all_sequences: 'Every set in the hand is a run of three, with no triplets at all.',
+    all_sequences:
+      'Every set in the hand is a run of three, with no triplets at all.',
     seat_wind: 'A triplet of the wind belonging to your own seat.',
-    round_wind: 'A triplet of the wind the whole table is currently playing under.',
-    dragon_triplet: 'A triplet of dragons. Each separate dragon triplet counts again.',
-    no_flowers: 'You finished the hand without drawing a single flower or season tile.',
-    own_flower: 'A flower or season tile matching your seat. Each one counts again.',
-    self_drawn: 'You drew the winning tile yourself instead of taking a discard.',
-    all_triplets: 'Every set is three of a kind, with no runs anywhere in the hand.',
+    round_wind:
+      'A triplet of the wind the whole table is currently playing under.',
+    dragon_triplet:
+      'A triplet of dragons. Each separate dragon triplet counts again.',
+    no_flowers:
+      'You finished the hand without drawing a single flower or season tile.',
+    own_flower:
+      'A flower or season tile matching your seat. Each one counts again.',
+    self_drawn:
+      'You drew the winning tile yourself instead of taking a discard.',
+    all_triplets:
+      'Every set is three of a kind, with no runs anywhere in the hand.',
     mixed_one_suit: 'One suit only, plus winds and dragons.',
     small_three_dragons: 'Two dragon triplets and a pair of the third.',
-    full_flush: 'The whole hand is a single suit, with no winds or dragons at all.',
+    full_flush:
+      'The whole hand is a single suit, with no winds or dragons at all.',
     big_three_dragons: 'All three dragons as full triplets.',
     small_four_winds: 'Three wind triplets and a pair of the fourth.',
     all_honors: 'Nothing but winds and dragons, with no numbered tiles.',
-    heavenly_hand: 'The dealer wins on the opening hand, before discarding anything.',
+    heavenly_hand:
+      'The dealer wins on the opening hand, before discarding anything.',
     earthly_hand: 'A non dealer wins on the dealer’s very first discard.',
     thirteen_orphans:
       'One of each terminal and honour tile, plus a second copy of any one of them.',
     big_four_winds: 'All four winds as full triplets.',
-    nine_gates: 'A specific one suit hand that waits on any of the nine tiles in that suit.',
-    seven_pairs: 'Seven separate pairs rather than the usual four sets and a pair.',
-    concealed_hand: 'You never claimed a discard, so the whole hand stayed in your hand.',
+    nine_gates:
+      'A specific one suit hand that waits on any of the nine tiles in that suit.',
+    seven_pairs:
+      'Seven separate pairs rather than the usual four sets and a pair.',
+    concealed_hand:
+      'You never claimed a discard, so the whole hand stayed in your hand.',
     fully_concealed_self_draw:
       'A concealed hand finished on your own draw. It stands in for the concealed hand and the self draw together rather than counting both.',
     single_wait: 'You were waiting on exactly one tile to finish the pair.',
     pair_258: 'Your pair is a two, a five or an eight.',
-    all_simples: 'No ones, no nines, no winds and no dragons anywhere in the hand.',
+    all_simples:
+      'No ones, no nines, no winds and no dragons anywhere in the hand.',
     lacking_a_suit: 'The hand is missing one of the three suits entirely.',
   };
 
