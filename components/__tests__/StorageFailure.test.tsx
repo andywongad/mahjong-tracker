@@ -56,19 +56,27 @@ describe('when the browser will not open storage', () => {
 
   it('never implies the games are gone', async () => {
     renderApp();
-    await waitFor(() => screen.getByRole('heading', { name: /could not be opened/i }));
+    await waitFor(() =>
+      screen.getByRole('heading', { name: /could not be opened/i }),
+    );
 
     expect(screen.getByText(/nothing has been deleted/i)).toBeVisible();
     // The empty state must not be what a broken database looks like.
     expect(screen.queryByText(/no games yet/i)).toBeNull();
-    expect(screen.queryByRole('button', { name: /start a new game/i })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: /start a new game/i }),
+    ).toBeNull();
   });
 
   it('offers a way out and says what went wrong', async () => {
     renderApp();
-    await waitFor(() => screen.getByRole('heading', { name: /could not be opened/i }));
+    await waitFor(() =>
+      screen.getByRole('heading', { name: /could not be opened/i }),
+    );
 
     expect(screen.getByRole('button', { name: /try again/i })).toBeVisible();
-    expect(screen.getByText(/not allowed from this context/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/not allowed from this context/i),
+    ).toBeInTheDocument();
   });
 });

@@ -18,12 +18,16 @@ export function ServiceWorker() {
     if (process.env.NODE_ENV !== 'production') {
       void (async () => {
         const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map((registration) => registration.unregister()));
+        await Promise.all(
+          registrations.map((registration) => registration.unregister()),
+        );
         if ('caches' in window) {
           const keys = await caches.keys();
           await Promise.all(
             keys
-              .filter((key) => key.startsWith('shell-') || key.startsWith('assets-'))
+              .filter(
+                (key) => key.startsWith('shell-') || key.startsWith('assets-'),
+              )
               .map((key) => caches.delete(key)),
           );
         }

@@ -29,7 +29,11 @@ function getSnapshot(): Theme {
 /** The server cannot know the preference, so it renders the neutral one. */
 const getServerSnapshot = (): Theme => 'system';
 
-const LABELS: Record<Theme, string> = { system: 'Auto', light: 'Light', dark: 'Dark' };
+const LABELS: Record<Theme, string> = {
+  system: 'Auto',
+  light: 'Light',
+  dark: 'Dark',
+};
 
 /** Cycle through following the system, light, and dark. */
 export function ThemeToggle() {

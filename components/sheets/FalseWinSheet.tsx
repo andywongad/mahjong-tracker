@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { HAND_TYPE_LABELS, SEATS, type Hand, type Seat } from '@/lib/scoring';
+import { SEATS, type Hand, type Seat } from '@/lib/scoring';
 import type { GameRecord } from '@/lib/game/types';
 import { SEAT_WINDS, seatSolid } from '@/lib/game/seats';
 import { Sheet } from './Sheet';
 import { TileChoice } from '@/components/ui/TileChoice';
 import { Wind } from '@/components/ui/Wind';
+import { termForHandType } from '@/lib/terms';
 
 /**
  * Zaa Wu, on its own.
@@ -29,7 +30,7 @@ export function FalseWinSheet({
 }) {
   const [offenderSeat, setOffenderSeat] = useState<Seat | null>(null);
   const [saving, setSaving] = useState(false);
-  const label = HAND_TYPE_LABELS.zaa_wu;
+  const label = termForHandType('zaa_wu');
 
   async function handleSave() {
     if (offenderSeat == null || saving) return;

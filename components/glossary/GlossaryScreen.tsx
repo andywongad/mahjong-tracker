@@ -1,12 +1,17 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { GLOSSARY, GROUP_LABELS, type GlossaryEntry } from '@/lib/glossary/entries';
+import { TERMS, GROUP_LABELS, type Term as TermEntry } from '@/lib/terms';
 import { useGlossary } from '@/lib/glossary/GlossaryProvider';
 import { useNavigation } from '@/lib/game/navigation';
 import { AppHeader } from '@/components/ui/AppHeader';
 
-const GROUP_ORDER: GlossaryEntry['group'][] = ['play', 'table', 'scoring', 'pattern'];
+const GROUP_ORDER: TermEntry['group'][] = [
+  'play',
+  'table',
+  'scoring',
+  'pattern',
+];
 
 export function GlossaryScreen() {
   const { define } = useGlossary();
@@ -15,10 +20,12 @@ export function GlossaryScreen() {
 
   const groups = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const matches = GLOSSARY.filter((entry) =>
+    const matches = TERMS.filter((entry) =>
       needle === ''
         ? true
-        : `${entry.term} ${entry.zh} ${entry.english}`.toLowerCase().includes(needle),
+        : `${entry.roman} ${entry.zh} ${entry.english}`
+            .toLowerCase()
+            .includes(needle),
     );
     return GROUP_ORDER.map((group) => ({
       group,
@@ -30,11 +37,15 @@ export function GlossaryScreen() {
     <>
       <AppHeader
         title="Glossary"
-        subtitle={`${GLOSSARY.length} terms`}
+        subtitle={`${TERMS.length} terms`}
         back={{ onClick: () => go('games', null), label: 'Games' }}
       />
 
-      <main id="main" tabIndex={-1} className="page-column flex flex-col gap-5 px-4 py-4 pad-safe-bottom">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="page-column flex flex-col gap-5 px-4 py-4 pad-safe-bottom"
+      >
         <label className="flex flex-col gap-1.5">
           <span className="sr-only">Search the glossary</span>
           <input
@@ -59,7 +70,9 @@ export function GlossaryScreen() {
 
         {groups.map((section) => (
           <section key={section.group} className="flex flex-col gap-2">
-            <h2 className="text-sm font-semibold">{GROUP_LABELS[section.group]}</h2>
+            <h2 className="text-sm font-semibold">
+              {GROUP_LABELS[section.group]}
+            </h2>
             <ul className="flex flex-col gap-2">
               {section.entries.map((entry) => (
                 <li key={entry.id}>
@@ -69,11 +82,20 @@ export function GlossaryScreen() {
                     className="tile touch w-full px-3 py-2.5 text-left"
                   >
                     <span className="flex items-baseline gap-2">
-                      <span lang="zh-Hant" className="hanzi text-base" aria-hidden="true">
+                      <span
+                        lang="zh-Hant"
+                        className="hanzi text-base"
+                        aria-hidden="true"
+                      >
                         {entry.zh}
                       </span>
-                      <span className="text-sm font-semibold">{entry.term}</span>
-                      <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                      <span className="text-sm font-semibold">
+                        {entry.roman}
+                      </span>
+                      <span
+                        className="text-xs"
+                        style={{ color: 'var(--muted)' }}
+                      >
                         {entry.english}
                       </span>
                     </span>

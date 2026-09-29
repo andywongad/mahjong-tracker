@@ -17,6 +17,7 @@ import { AboutSheet } from '@/components/sheets/AboutSheet';
 import { formatSigned } from '@/components/ui/Score';
 import { formatMoney } from '@/lib/game/settle';
 import { PATTERNS_BY_ID } from '@/lib/patterns/catalog';
+import { TermStack } from '@/components/ui/Term';
 
 export function GamesScreen() {
   const { games, loading, createGame, updateGame, deleteGame } = useGames();
@@ -288,35 +289,13 @@ export function GamesScreen() {
                       scope="col"
                       className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
                     >
-                      <span className="flex flex-col items-end leading-none">
-                        <span
-                          lang="zh-Hant"
-                          className="hanzi"
-                          aria-hidden="true"
-                        >
-                          自摸
-                        </span>
-                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                          Self pick
-                        </span>
-                      </span>
+                      <TermStack id="zi_mo" />
                     </th>
                     <th
                       scope="col"
                       className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
                     >
-                      <span className="flex flex-col items-end leading-none">
-                        <span
-                          lang="zh-Hant"
-                          className="hanzi"
-                          aria-hidden="true"
-                        >
-                          出銃
-                        </span>
-                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                          Shooter
-                        </span>
-                      </span>
+                      <TermStack id="cheut_chung" />
                     </th>
                     <th
                       scope="col"

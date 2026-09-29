@@ -51,7 +51,10 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
   const [storageError, setStorageError] = useState<Error | null>(null);
 
   const refresh = useCallback(async () => {
-    const [list, count] = await Promise.all([localStore.listGames(), pendingCount()]);
+    const [list, count] = await Promise.all([
+      localStore.listGames(),
+      pendingCount(),
+    ]);
     setGames(list);
     setPending(count);
   }, []);
@@ -68,7 +71,9 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
         // Saying so beats an empty screen that reads like the games are gone.
         if (!cancelled) {
           setStorageError(
-            cause instanceof Error ? cause : new Error('Storage is unavailable'),
+            cause instanceof Error
+              ? cause
+              : new Error('Storage is unavailable'),
           );
         }
       } finally {
@@ -128,7 +133,9 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
     [games, loading, storageError, pending, online, refresh],
   );
 
-  return <GamesContext.Provider value={value}>{children}</GamesContext.Provider>;
+  return (
+    <GamesContext.Provider value={value}>{children}</GamesContext.Provider>
+  );
 }
 
 export function useGames(): GamesContextValue {
@@ -141,7 +148,10 @@ export function useGames(): GamesContextValue {
 export function useGame(id: string | undefined) {
   const context = useGames();
   const game = useMemo(
-    () => (id ? context.games.find((candidate) => candidate.id === id) ?? null : null),
+    () =>
+      id
+        ? (context.games.find((candidate) => candidate.id === id) ?? null)
+        : null,
     [context.games, id],
   );
   return { ...context, game };

@@ -16,8 +16,13 @@ import {
   type Rules,
 } from '@/lib/rules/types';
 import { Sheet } from './Sheet';
+import { romanOf } from '@/lib/terms';
+import { glossOf } from '@/lib/terms';
 
 /** The three ways a table usually splits a discard win. */
+/** The role word in lower case, for the middle of a sentence. */
+const LOWER_SHOOTER = glossOf('cheut_chung').toLowerCase();
+
 const DISCARD_SPLITS: {
   id: string;
   label: string;
@@ -27,21 +32,21 @@ const DISCARD_SPLITS: {
 }[] = [
   {
     id: 'shared',
-    label: 'Shooter pays double, others pay one each',
+    label: `${glossOf('cheut_chung')} pays double, others pay one each`,
     detail: 'The whole table pays, the shooter pays most',
     shooter: 2,
     others: 1,
   },
   {
     id: 'shooter_only',
-    label: 'Only the shooter pays, at double',
-    detail: 'The other two pay nothing',
+    label: `Only the ${LOWER_SHOOTER} pays, at double`,
+    detail: `The other two pay nothing`,
     shooter: 2,
     others: 0,
   },
   {
     id: 'shooter_all',
-    label: 'Only the shooter pays, the full amount',
+    label: `Only the ${LOWER_SHOOTER} pays, the full amount`,
     detail: 'The shooter covers what all three would have paid',
     shooter: 4,
     others: 0,
@@ -320,7 +325,7 @@ export function RulesSheet({
           />
 
           <NumberRow
-            label="Zaa Wu penalty"
+            label={`${romanOf('zaa_wu')} penalty`}
             hint={`Paid to each other player, so ${rules.zaaWuPenalty * 3} in total`}
             value={rules.zaaWuPenalty}
             min={0}
@@ -361,7 +366,7 @@ export function RulesSheet({
                     scope="col"
                     className="px-2 py-1.5 text-right font-semibold"
                   >
-                    Shooter
+                    {glossOf('cheut_chung')}
                   </th>
                   <th
                     scope="col"

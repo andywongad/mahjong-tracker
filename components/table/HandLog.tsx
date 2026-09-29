@@ -1,17 +1,13 @@
 'use client';
 
-import {
-  HAND_TYPE_LABELS,
-  SEATS,
-  type HandRow,
-  type Seat,
-} from '@/lib/scoring';
+import { SEATS, type HandRow, type Seat } from '@/lib/scoring';
 import type { GameRecord } from '@/lib/game/types';
 import { Wind } from '@/components/ui/Wind';
 import { formatSigned } from '@/components/ui/Score';
 import { Term } from '@/components/ui/Term';
 import { PlayerColumns } from './PlayerColumns';
 import { describeHand } from '@/lib/game/describe';
+import { termForHandType } from '@/lib/terms';
 
 /** Which glossary entry explains each way a hand can end. */
 const GLOSSARY_FOR_TYPE: Record<string, string> = {
@@ -35,7 +31,11 @@ function RowBody({
     return <div className="min-w-0 flex-1 py-2 text-left">{children}</div>;
   }
   return (
-    <button type="button" onClick={onEdit} className="touch min-w-0 flex-1 py-2 text-left">
+    <button
+      type="button"
+      onClick={onEdit}
+      className="touch min-w-0 flex-1 py-2 text-left"
+    >
       {children}
     </button>
   );
@@ -88,17 +88,22 @@ export function HandLog({
       <PlayerColumns
         players={game.players}
         className="px-1 py-2"
-        style={{ background: 'var(--surface)', borderBottom: '1px solid var(--line)' }}
+        style={{
+          background: 'var(--surface)',
+          borderBottom: '1px solid var(--line)',
+        }}
       />
 
       <ul>
         {[...rows].reverse().map((row, index) => {
-          const label = HAND_TYPE_LABELS[row.hand.type];
+          const label = termForHandType(row.hand.type);
           return (
             <li
               key={row.index}
               className="flex items-stretch gap-1 pr-3"
-              style={index > 0 ? { borderTop: '1px solid var(--line)' } : undefined}
+              style={
+                index > 0 ? { borderTop: '1px solid var(--line)' } : undefined
+              }
             >
               {/* The tag and the row are separate controls: one explains the
                 term, the other opens the hand. Nesting them would be invalid. */}
@@ -111,7 +116,7 @@ export function HandLog({
                   className="hanzi text-sm leading-none"
                   aria-hidden="true"
                 >
-                  {label.hanzi}
+                  {label.zh}
                 </span>
                 <span
                   className="mt-0.5 text-center text-[0.55rem] leading-tight"
@@ -150,7 +155,9 @@ export function HandLog({
                               : 'var(--loss)',
                       }}
                     >
-                      {row.deltas[seat] === 0 ? '0' : formatSigned(row.deltas[seat])}
+                      {row.deltas[seat] === 0
+                        ? '0'
+                        : formatSigned(row.deltas[seat])}
                     </span>
                   ))}
                 </span>

@@ -18,7 +18,11 @@ function makeGame(
     players,
     rules: OUR_TABLE,
     shareSlug: `slug-${counter}`,
-    hands: hands.map((hand, index) => ({ ...hand, id: `h-${index}`, seq: index })),
+    hands: hands.map((hand, index) => ({
+      ...hand,
+      id: `h-${index}`,
+      seq: index,
+    })),
     createdAt: `2026-01-01T00:00:${String(counter).padStart(2, '0')}.000Z`,
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
@@ -37,8 +41,16 @@ describe('standings', () => {
 
   it('groups the same player across games', () => {
     const games = [
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0)], '2026-01-01'),
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0)], '2026-01-02'),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0)],
+        '2026-01-01',
+      ),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0)],
+        '2026-01-02',
+      ),
     ];
     const rows = standings(games);
     expect(rows).toHaveLength(4);
@@ -50,9 +62,21 @@ describe('standings', () => {
 
   it('groups names without regard to case or surrounding space', () => {
     const games = [
-      makeGame(['Player C', 'Player B', 'Player A', 'Player D'], [ziMo(0)], '2026-01-01'),
-      makeGame([' player c ', 'Player B', 'Player A', 'Player D'], [ziMo(0)], '2026-01-02'),
-      makeGame(['PLAYER C', 'Player B', 'Player A', 'Player D'], [ziMo(0)], '2026-01-03'),
+      makeGame(
+        ['Player C', 'Player B', 'Player A', 'Player D'],
+        [ziMo(0)],
+        '2026-01-01',
+      ),
+      makeGame(
+        [' player c ', 'Player B', 'Player A', 'Player D'],
+        [ziMo(0)],
+        '2026-01-02',
+      ),
+      makeGame(
+        ['PLAYER C', 'Player B', 'Player A', 'Player D'],
+        [ziMo(0)],
+        '2026-01-03',
+      ),
     ];
     const rows = standings(games);
     expect(rows.filter((row) => row.key === 'player c')).toHaveLength(1);
@@ -61,21 +85,35 @@ describe('standings', () => {
 
   it('keeps the most recent spelling as the display name', () => {
     const games = [
-      makeGame(['player c', 'Player B', 'Player A', 'Player D'], [], '2026-01-01'),
-      makeGame(['Player C', 'Player B', 'Player A', 'Player D'], [], '2026-01-02'),
+      makeGame(
+        ['player c', 'Player B', 'Player A', 'Player D'],
+        [],
+        '2026-01-01',
+      ),
+      makeGame(
+        ['Player C', 'Player B', 'Player A', 'Player D'],
+        [],
+        '2026-01-02',
+      ),
     ];
-    expect(standings(games).find((row) => row.key === 'player c')?.name).toBe('Player C');
+    expect(standings(games).find((row) => row.key === 'player c')?.name).toBe(
+      'Player C',
+    );
   });
 
   it('counts a top finish for the highest final score', () => {
-    const games = [makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(2)])];
+    const games = [
+      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(2)]),
+    ];
     const rows = standings(games);
     expect(rows.find((row) => row.key === 'player c')?.topFinishes).toBe(1);
     expect(rows.find((row) => row.key === 'player a')?.topFinishes).toBe(0);
   });
 
   it('counts a top finish for everyone tied at the top', () => {
-    const games = [makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [])];
+    const games = [
+      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], []),
+    ];
     expect(standings(games).every((row) => row.topFinishes === 1)).toBe(true);
   });
 
@@ -83,7 +121,10 @@ describe('standings', () => {
     const games = [
       makeGame(
         ['Player A', 'Player B', 'Player C', 'Player D'],
-        [ziMo(0), { type: 'ceot_cung', winnerSeat: 0, discarderSeat: 1, faan: 4 }],
+        [
+          ziMo(0),
+          { type: 'ceot_cung', winnerSeat: 0, discarderSeat: 1, faan: 4 },
+        ],
       ),
       makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0)]),
     ];
@@ -95,7 +136,9 @@ describe('standings', () => {
   });
 
   it('orders by net score, best first', () => {
-    const games = [makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(2)])];
+    const games = [
+      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(2)]),
+    ];
     const rows = standings(games);
     expect(rows[0].key).toBe('player c');
     expect(rows[0].net).toBeGreaterThan(rows[1].net);
@@ -103,7 +146,10 @@ describe('standings', () => {
 
   it('nets to zero across all players', () => {
     const games = [
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0), ziMo(2)]),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0), ziMo(2)],
+      ),
       makeGame(['Player A', 'Player B', 'Player C', 'Player E'], [ziMo(1)]),
     ];
     const total = standings(games).reduce((acc, row) => acc + row.net, 0);
@@ -112,13 +158,19 @@ describe('standings', () => {
 
   it('ignores blank seats', () => {
     const games = [makeGame(['Player A', '', '  ', 'Player D'], [])];
-    expect(standings(games).map((row) => row.key).sort()).toEqual(['player a', 'player d']);
+    expect(
+      standings(games)
+        .map((row) => row.key)
+        .sort(),
+    ).toEqual(['player a', 'player d']);
   });
 });
 
 describe('summarise', () => {
   it('reports final scores, hand count, and completion per game', () => {
-    const rows = summarise([makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0, 3)])]);
+    const rows = summarise([
+      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0, 3)]),
+    ]);
     expect(rows[0].scores).toEqual([18, -6, -6, -6]);
     expect(rows[0].handCount).toBe(1);
     expect(rows[0].isComplete).toBe(false);
@@ -134,23 +186,42 @@ describe('all time rates and patterns', () => {
 
   it('counts hands played across every game', () => {
     const rows = standings([
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0), ziMo(1)], '2026-01-01'),
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0)], '2026-01-02'),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0), ziMo(1)],
+        '2026-01-01',
+      ),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0)],
+        '2026-01-02',
+      ),
     ]);
     expect(rows.find((r) => r.key === 'player a')?.hands).toBe(3);
   });
 
   it('computes a win rate over all hands played', () => {
     const rows = standings([
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0), ziMo(0), ziMo(1), ziMo(2)]),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0), ziMo(0), ziMo(1), ziMo(2)],
+      ),
     ]);
     expect(rows.find((r) => r.key === 'player a')?.winRate).toBeCloseTo(0.5);
   });
 
   it('takes the best streak from any single game, not across games', () => {
     const rows = standings([
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0), ziMo(0)], '2026-01-01'),
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0)], '2026-01-02'),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0), ziMo(0)],
+        '2026-01-01',
+      ),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0)],
+        '2026-01-02',
+      ),
     ]);
     // Two in a row in the first game, one in the second: the best run is two.
     expect(rows.find((r) => r.key === 'player a')?.longestWinStreak).toBe(2);
@@ -158,13 +229,21 @@ describe('all time rates and patterns', () => {
 
   it('adds up dealer holds', () => {
     const rows = standings([
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0), ziMo(0)], '2026-01-01'),
-      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0)], '2026-01-02'),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0), ziMo(0)],
+        '2026-01-01',
+      ),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player D'],
+        [ziMo(0)],
+        '2026-01-02',
+      ),
     ]);
     expect(rows.find((r) => r.key === 'player a')?.dealerHolds).toBe(3);
   });
 
-  it('ranks a player\'s most used patterns', () => {
+  it("ranks a player's most used patterns", () => {
     const rows = standings([
       makeGame(
         ['Player A', 'Player B', 'Player C', 'Player D'],
@@ -199,14 +278,17 @@ describe('all time rates and patterns', () => {
   });
 
   it('leaves the signature empty when nobody used the builder', () => {
-    const rows = standings([makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0, 13)])]);
+    const rows = standings([
+      makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0, 13)]),
+    ]);
     expect(rows.find((r) => r.key === 'player a')?.signatureHand).toBeNull();
     expect(rows.find((r) => r.key === 'player a')?.topPatterns).toEqual([]);
   });
 });
 
 describe('finishing a game', () => {
-  const game = () => makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0)]);
+  const game = () =>
+    makeGame(['Player A', 'Player B', 'Player C', 'Player D'], [ziMo(0)]);
 
   it('is unfinished while the rounds are still running', () => {
     const [row] = summarise([game()]);
@@ -216,7 +298,10 @@ describe('finishing a game', () => {
   });
 
   it('is finished once the scorekeeper calls it', () => {
-    const called: GameRecord = { ...game(), endedAt: '2026-01-01T22:00:00.000Z' };
+    const called: GameRecord = {
+      ...game(),
+      endedAt: '2026-01-01T22:00:00.000Z',
+    };
     const [row] = summarise([called]);
     expect(row.isComplete).toBe(false);
     expect(row.endedEarly).toBe(true);
@@ -225,12 +310,18 @@ describe('finishing a game', () => {
 
   it('does not change any score', () => {
     const before = summarise([game()])[0].scores;
-    const called: GameRecord = { ...game(), endedAt: '2026-01-01T22:00:00.000Z' };
+    const called: GameRecord = {
+      ...game(),
+      endedAt: '2026-01-01T22:00:00.000Z',
+    };
     expect(summarise([called])[0].scores).toEqual(before);
   });
 
   it('still counts toward the all time standings', () => {
-    const called: GameRecord = { ...game(), endedAt: '2026-01-01T22:00:00.000Z' };
+    const called: GameRecord = {
+      ...game(),
+      endedAt: '2026-01-01T22:00:00.000Z',
+    };
     const rows = standings([called]);
     expect(rows.find((r) => r.key === 'player a')?.games).toBe(1);
     expect(rows.find((r) => r.key === 'player a')?.wins).toBe(1);

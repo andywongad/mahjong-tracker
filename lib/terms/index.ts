@@ -1,29 +1,37 @@
+import type { HandType } from '@/lib/scoring';
 import { PATTERNS } from '@/lib/patterns/catalog';
 
 /**
- * Plain English explanations of the terms the app uses.
+ * Every term the app says, defined once.
  *
- * Definitions are written for this app. The romanisation is Jyutping except
- * where the group spells a term their own way, which is noted in
- * TODO_GLOSSARY_ROMANISATION for checking.
+ * Labels, table headers, tags, tooltips and the glossary all read from here, so
+ * a term cannot be spelled one way on one screen and another way on the next.
+ * Nothing outside this file should contain a romanisation or a gloss.
+ *
+ * Romanisation is Jyutping throughout, with one deliberate exception: 出銃 is
+ * written Cheut Chung, which is how the group that uses this app writes it.
+ * Jyutping would be Ceot Cung. Do not "fix" it. The terms still waiting on a
+ * native speaker are listed in TODO_ROMANISATION at the bottom.
  */
-export interface GlossaryEntry {
+export interface Term {
   id: string;
   /** The name shown everywhere in the app. */
-  term: string;
+  roman: string;
   zh: string;
-  /** A two or three word gloss. */
+  /** A two or three word gloss. One per term, used on every screen. */
   english: string;
   /** One or two sentences, in plain English. */
   definition: string;
   related?: string[];
   group: 'scoring' | 'play' | 'table' | 'pattern';
+  /** Set on the four terms that are also a kind of hand the engine records. */
+  handType?: HandType;
 }
 
-const CORE: GlossaryEntry[] = [
+const CORE: Term[] = [
   {
     id: 'faan',
-    term: 'Faan',
+    roman: 'Faan',
     zh: '番',
     english: 'Hand value',
     definition:
@@ -33,7 +41,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'sik_wu',
-    term: 'Sik Wu',
+    roman: 'Sik Wu',
     zh: '食糊',
     english: 'To win a hand',
     definition:
@@ -43,9 +51,10 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'zi_mo',
-    term: 'Zi Mo',
+    handType: 'zi_mo',
+    roman: 'Zi Mo',
     zh: '自摸',
-    english: 'Self drawn win',
+    english: 'Self pick',
     definition:
       'Winning on a tile you drew yourself rather than one someone discarded. Nobody is at fault, so all three losers pay, and at most tables they pay more than they would on a discard.',
     related: ['sik_wu', 'cheut_chung', 'faan'],
@@ -53,7 +62,8 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'cheut_chung',
-    term: 'Cheut Chung',
+    handType: 'ceot_cung',
+    roman: 'Cheut Chung',
     zh: '出銃',
     english: 'Shooter',
     definition:
@@ -63,7 +73,8 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'zaa_wu',
-    term: 'Zaa Wu',
+    handType: 'zaa_wu',
+    roman: 'Zaa Wu',
     zh: '詐糊',
     english: 'False win',
     definition:
@@ -73,7 +84,8 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'lau_guk',
-    term: 'Lau Guk',
+    handType: 'draw',
+    roman: 'Lau Guk',
     zh: '流局',
     english: 'Draw',
     definition:
@@ -83,7 +95,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'zong',
-    term: 'Zong',
+    roman: 'Zong',
     zh: '莊',
     english: 'Dealer',
     definition:
@@ -93,7 +105,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'lin_zong',
-    term: 'Lin Zong',
+    roman: 'Lin Zong',
     zh: '連莊',
     english: 'Dealer repeats',
     definition:
@@ -103,7 +115,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'hyun_fung',
-    term: 'Hyun Fung',
+    roman: 'Hyun Fung',
     zh: '圈風',
     english: 'Round wind',
     definition:
@@ -113,7 +125,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'mun_fung',
-    term: 'Mun Fung',
+    roman: 'Mun Fung',
     zh: '門風',
     english: 'Seat wind',
     definition:
@@ -123,7 +135,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'teng_paai',
-    term: 'Teng Paai',
+    roman: 'Teng Paai',
     zh: '聽牌',
     english: 'Ready hand',
     definition:
@@ -133,7 +145,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'pung',
-    term: 'Pung',
+    roman: 'Pung',
     zh: '碰',
     english: 'Claim a triplet',
     definition:
@@ -143,7 +155,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'gong',
-    term: 'Gong',
+    roman: 'Gong',
     zh: '槓',
     english: 'Four of a kind',
     definition:
@@ -153,7 +165,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'soeng',
-    term: 'Soeng',
+    roman: 'Soeng',
     zh: '上',
     english: 'Claim a sequence',
     definition:
@@ -163,7 +175,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'gai_wu',
-    term: 'Gai Wu',
+    roman: 'Gai Wu',
     zh: '雞糊',
     english: 'Chicken hand',
     definition:
@@ -173,7 +185,7 @@ const CORE: GlossaryEntry[] = [
   },
   {
     id: 'baau_paang',
-    term: 'Baau Paang',
+    roman: 'Baau Paang',
     zh: '爆棚',
     english: 'Hitting the limit',
     definition:
@@ -184,9 +196,9 @@ const CORE: GlossaryEntry[] = [
 ];
 
 /** Every pattern in the hand builder is also a glossary entry. */
-const FROM_PATTERNS: GlossaryEntry[] = PATTERNS.map((pattern) => ({
+const FROM_PATTERNS: Term[] = PATTERNS.map((pattern) => ({
   id: `pattern:${pattern.id}`,
-  term: pattern.jyutping,
+  roman: pattern.jyutping,
   zh: pattern.zh,
   english: pattern.nameEn,
   definition: patternDefinition(pattern.id, pattern.faan, pattern.limit),
@@ -247,13 +259,13 @@ function patternDefinition(id: string, faan: number, limit?: boolean): string {
   return `${what[id] ?? ''} ${worth}`.trim();
 }
 
-export const GLOSSARY: GlossaryEntry[] = [...CORE, ...FROM_PATTERNS];
+export const TERMS: Term[] = [...CORE, ...FROM_PATTERNS];
 
-export const GLOSSARY_BY_ID: Record<string, GlossaryEntry> = Object.fromEntries(
-  GLOSSARY.map((entry) => [entry.id, entry]),
+export const TERM_BY_ID: Record<string, Term> = Object.fromEntries(
+  TERMS.map((entry) => [entry.id, entry]),
 );
 
-export const GROUP_LABELS: Record<GlossaryEntry['group'], string> = {
+export const GROUP_LABELS: Record<Term['group'], string> = {
   play: 'Playing a hand',
   table: 'The table',
   scoring: 'Scoring',
@@ -264,7 +276,7 @@ export const GROUP_LABELS: Record<GlossaryEntry['group'], string> = {
  * Romanisations worth checking. The pattern names have their own list in the
  * catalog; these are the terms that only appear here.
  */
-export const TODO_GLOSSARY_ROMANISATION: { id: string; note: string }[] = [
+export const TODO_ROMANISATION: { id: string; note: string }[] = [
   {
     id: 'cheut_chung',
     note: 'Spelled the group’s way. Jyutping would be Ceot Cung.',
@@ -294,3 +306,23 @@ export const TODO_GLOSSARY_ROMANISATION: { id: string; note: string }[] = [
     note: '連莊 as Lin Zong. Some tables count a repeat differently, which the app does not track yet.',
   },
 ];
+
+/** The four terms that are also a kind of hand, keyed the way the engine keys them. */
+export const HAND_TYPE_TERMS = Object.fromEntries(
+  TERMS.filter((term) => term.handType).map((term) => [term.handType, term]),
+) as Record<HandType, Term>;
+
+/** The term for a kind of hand. The engine stores the id; this says it out loud. */
+export function termForHandType(type: HandType): Term {
+  return HAND_TYPE_TERMS[type];
+}
+
+/** The romanisation of a term, for prose that names it. */
+export function romanOf(id: string): string {
+  return TERM_BY_ID[id]?.roman ?? id;
+}
+
+/** The English gloss of a term, for prose and for labels built around it. */
+export function glossOf(id: string): string {
+  return TERM_BY_ID[id]?.english ?? id;
+}

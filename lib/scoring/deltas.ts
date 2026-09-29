@@ -1,6 +1,12 @@
 import { effectiveFaan, unitFor } from '@/lib/rules/curve';
 import type { Rules } from '@/lib/rules/types';
-import { SEATS, type Deltas, type Hand, type HandType, type Seat } from './types';
+import {
+  SEATS,
+  type Deltas,
+  type Hand,
+  type HandType,
+  type Seat,
+} from './types';
 
 export class ScoringError extends Error {
   constructor(message: string) {
@@ -110,7 +116,13 @@ export function deltas(hand: Hand, rules: Rules, dealerSeat?: Seat): Deltas {
               ? rules.discardShooterMult
               : rules.discardOthersMult;
 
-        const amount = payment(unit * multiplier, seat, winner, rules, dealerSeat);
+        const amount = payment(
+          unit * multiplier,
+          seat,
+          winner,
+          rules,
+          dealerSeat,
+        );
         out[seat] -= amount;
         collected += amount;
       }
@@ -121,7 +133,9 @@ export function deltas(hand: Hand, rules: Rules, dealerSeat?: Seat): Deltas {
 
     default: {
       const exhaustive: never = hand;
-      throw new ScoringError(`Unknown hand type: ${JSON.stringify(exhaustive)}`);
+      throw new ScoringError(
+        `Unknown hand type: ${JSON.stringify(exhaustive)}`,
+      );
     }
   }
 

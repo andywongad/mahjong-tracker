@@ -17,7 +17,8 @@ import { seatColor } from '@/lib/game/seats';
 import { AppHeader } from '@/components/ui/AppHeader';
 import { formatSigned } from '@/components/ui/Score';
 import { formatMoney } from '@/lib/game/settle';
-import { Term } from '@/components/ui/Term';
+import { Term, TermStack } from '@/components/ui/Term';
+import { glossOf } from '@/lib/terms';
 import { ScoreChart } from './ScoreChart';
 
 export function StatsScreen({ gameId }: { gameId: string }) {
@@ -95,58 +96,19 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                     scope="col"
                     className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
                   >
-                    <Term id="zi_mo">
-                      <span className="flex flex-col items-end leading-none">
-                        <span
-                          lang="zh-Hant"
-                          className="hanzi"
-                          aria-hidden="true"
-                        >
-                          自摸
-                        </span>
-                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                          Self pick
-                        </span>
-                      </span>
-                    </Term>
+                    <TermStack id="zi_mo" />
                   </th>
                   <th
                     scope="col"
                     className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
                   >
-                    <Term id="cheut_chung">
-                      <span className="flex flex-col items-end leading-none">
-                        <span
-                          lang="zh-Hant"
-                          className="hanzi"
-                          aria-hidden="true"
-                        >
-                          出銃
-                        </span>
-                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                          Shooter
-                        </span>
-                      </span>
-                    </Term>
+                    <TermStack id="cheut_chung" />
                   </th>
                   <th
                     scope="col"
                     className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
                   >
-                    <Term id="zaa_wu">
-                      <span className="flex flex-col items-end leading-none">
-                        <span
-                          lang="zh-Hant"
-                          className="hanzi"
-                          aria-hidden="true"
-                        >
-                          詐糊
-                        </span>
-                        <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                          False win
-                        </span>
-                      </span>
-                    </Term>
+                    <TermStack id="zaa_wu" />
                   </th>
                   <th
                     scope="col"
@@ -269,7 +231,7 @@ export function StatsScreen({ gameId }: { gameId: string }) {
         />
 
         <ByFaanTable
-          title="Shooter by faan"
+          title={`${glossOf('cheut_chung')} by faan`}
           values={faanValues(game.rules)}
           players={summary.players.map((player) => ({
             seat: player.seat,
@@ -365,46 +327,19 @@ function FormSection({ players }: { players: PlayerStats[] }) {
                 scope="col"
                 className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
               >
-                <Term id="cheut_chung">
-                  <span className="flex flex-col items-end leading-none">
-                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">
-                      出銃
-                    </span>
-                    <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                      Shooter rate
-                    </span>
-                  </span>
-                </Term>
+                <TermStack id="cheut_chung" suffix="rate" />
               </th>
               <th
                 scope="col"
                 className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
               >
-                <Term id="zong">
-                  <span className="flex flex-col items-end leading-none">
-                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">
-                      莊
-                    </span>
-                    <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                      Dealer wins
-                    </span>
-                  </span>
-                </Term>
+                <TermStack id="zong" suffix="wins" />
               </th>
               <th
                 scope="col"
                 className="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap"
               >
-                <Term id="zi_mo">
-                  <span className="flex flex-col items-end leading-none">
-                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">
-                      自摸
-                    </span>
-                    <span className="mt-0.5 text-[0.6rem] leading-none font-normal">
-                      Self pick share
-                    </span>
-                  </span>
-                </Term>
+                <TermStack id="zi_mo" suffix="share" />
               </th>
             </tr>
           </thead>

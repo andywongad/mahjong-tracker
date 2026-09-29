@@ -31,7 +31,11 @@ export function Wind({
   if (!label) {
     return (
       <>
-        <span className={`hanzi ${className}`} lang="zh-Hant" aria-hidden="true">
+        <span
+          className={`hanzi ${className}`}
+          lang="zh-Hant"
+          aria-hidden="true"
+        >
           {WIND_CHARS[wind]}
         </span>
         <span className="sr-only">{WIND_NAMES[wind]}</span>

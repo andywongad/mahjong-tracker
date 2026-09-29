@@ -9,7 +9,11 @@ function game(hands: readonly Hand[], rules: Rules = OUR_TABLE) {
   return { players: PLAYERS, rules, hands };
 }
 
-const ziMo = (winnerSeat: Seat, faan = 3): Hand => ({ type: 'zi_mo', winnerSeat, faan });
+const ziMo = (winnerSeat: Seat, faan = 3): Hand => ({
+  type: 'zi_mo',
+  winnerSeat,
+  faan,
+});
 const draw = (): Hand => ({ type: 'draw' });
 const zaaWu = (offenderSeat: Seat): Hand => ({ type: 'zaa_wu', offenderSeat });
 
@@ -100,7 +104,10 @@ describe('replay', () => {
     ] as const)(
       'sits in the %s round after %i full dealer cycles',
       (cycles, expectedRound, expectedComplete) => {
-        const hands = Array.from({ length: cycles * 4 }, (_, n) => oneFullCycle[n % 4]);
+        const hands = Array.from(
+          { length: cycles * 4 },
+          (_, n) => oneFullCycle[n % 4],
+        );
         const result = replay(game(hands));
         expect(result.currentRound).toBe(expectedRound);
         expect(result.currentRoundIndex).toBe(cycles);
@@ -126,14 +133,19 @@ describe('replay', () => {
     });
 
     it('does not advance the round when the dealer keeps winning', () => {
-      const result = replay(game([ziMo(0), ziMo(0), ziMo(0), ziMo(0), ziMo(0)]));
+      const result = replay(
+        game([ziMo(0), ziMo(0), ziMo(0), ziMo(0), ziMo(0)]),
+      );
       expect(result.currentRound).toBe('east');
       expect(result.currentDealerSeat).toBe(0);
     });
   });
 
   describe('completion', () => {
-    const sixteenHands = Array.from({ length: 16 }, (_, n) => oneFullCycle[n % 4]);
+    const sixteenHands = Array.from(
+      { length: 16 },
+      (_, n) => oneFullCycle[n % 4],
+    );
 
     it('is complete once the North round ends, after four cycles', () => {
       expect(replay(game(sixteenHands.slice(0, 15))).isComplete).toBe(false);

@@ -40,12 +40,13 @@ export function seatSolid(seat: Seat): string {
  * chair: East at the bottom, South on the right, West at the top, North on the
  * left.
  */
-export const SEAT_POSITION: Record<Seat, 'bottom' | 'right' | 'top' | 'left'> = {
-  0: 'bottom',
-  1: 'right',
-  2: 'top',
-  3: 'left',
-};
+export const SEAT_POSITION: Record<Seat, 'bottom' | 'right' | 'top' | 'left'> =
+  {
+    0: 'bottom',
+    1: 'right',
+    2: 'top',
+    3: 'left',
+  };
 
 /** Grid area names matching the table layout. */
 export const SEAT_GRID_AREA: Record<Seat, string> = {

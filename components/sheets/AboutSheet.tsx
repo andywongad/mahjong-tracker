@@ -1,7 +1,8 @@
 'use client';
 
-import { HAND_TYPE_LABELS } from '@/lib/scoring';
 import { Sheet } from './Sheet';
+import { termForHandType } from '@/lib/terms';
+import { glossOf } from '@/lib/terms';
 
 /**
  * What the app is and how to drive it, in one read.
@@ -60,9 +61,10 @@ export function AboutSheet({
             <li>Tap the faan. Save.</li>
           </ol>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
-            Nobody won? Use <strong>Draw</strong> under the table. Someone
-            declared a win they did not have? Use <strong>False win</strong>.
-            Neither has a winner, which is why neither is in the winner sheet.
+            Nobody won? Use <strong>{glossOf('lau_guk')}</strong> under the
+            table. Someone declared a win they did not have? Use{' '}
+            <strong>{glossOf('zaa_wu')}</strong>. Neither has a winner, which is
+            why neither is in the winner sheet.
           </p>
         </Section>
 
@@ -137,11 +139,11 @@ function Section({
 
 /** A term the way the rest of the app writes it: characters, name, plain English. */
 function Term({ type }: { type: 'ceot_cung' | 'zi_mo' }) {
-  const label = HAND_TYPE_LABELS[type];
+  const label = termForHandType(type);
   return (
     <span className="font-semibold">
       <span lang="zh-Hant" className="hanzi" aria-hidden="true">
-        {label.hanzi}
+        {label.zh}
       </span>{' '}
       {label.roman}
     </span>

@@ -22,7 +22,8 @@ export function AppShell() {
   // With no game chosen, fall to the most recent one, or to the games list.
   useEffect(() => {
     if (storageError) return;
-    if (loading || view === 'games' || view === 'settle' || view === 'glossary') return;
+    if (loading || view === 'games' || view === 'settle' || view === 'glossary')
+      return;
     const known = gameId && games.some((game) => game.id === gameId);
     if (known) return;
     if (games.length > 0) go('table', games[0].id);

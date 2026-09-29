@@ -10,7 +10,11 @@ import {
 
 const sum = (d: readonly number[]) => d.reduce((a, b) => a + b, 0);
 
-const ceotCung = (winnerSeat: Seat, discarderSeat: Seat, faan: number): Hand => ({
+const ceotCung = (
+  winnerSeat: Seat,
+  discarderSeat: Seat,
+  faan: number,
+): Hand => ({
   type: 'ceot_cung',
   winnerSeat,
   discarderSeat,
@@ -57,7 +61,12 @@ describe('HK standard', () => {
 
   it('pays the cap for a limit hand, self drawn, at a 10 faan cap', () => {
     const cappedAtTen: Rules = { ...HK_STANDARD, faanCap: 10 };
-    const limitHand: Hand = { type: 'zi_mo', winnerSeat: 0, faan: 13, isLimit: true };
+    const limitHand: Hand = {
+      type: 'zi_mo',
+      winnerSeat: 0,
+      faan: 13,
+      isLimit: true,
+    };
     // Unit at 10 faan is 128: losers -128 each, winner +384.
     expect(deltas(limitHand, cappedAtTen)).toEqual([384, -128, -128, -128]);
   });
@@ -143,7 +152,9 @@ describe('payout curves', () => {
 
   it('follows the published table on the doubling curve', () => {
     for (const faan of faanValues(HK_STANDARD)) {
-      expect(deltas(ziMo(0, faan), HK_STANDARD)[0]).toBe(DOUBLING_CURVE[faan] * 3);
+      expect(deltas(ziMo(0, faan), HK_STANDARD)[0]).toBe(
+        DOUBLING_CURVE[faan] * 3,
+      );
     }
   });
 
@@ -173,7 +184,9 @@ describe('validation', () => {
 
   it('rejects a negative false win penalty', () => {
     const bad: Rules = { ...OUR_TABLE, zaaWuPenalty: -1 };
-    expect(() => deltas({ type: 'zaa_wu', offenderSeat: 0 }, bad)).toThrow(ScoringError);
+    expect(() => deltas({ type: 'zaa_wu', offenderSeat: 0 }, bad)).toThrow(
+      ScoringError,
+    );
   });
 });
 
@@ -182,8 +195,14 @@ describe('every hand sums to zero', () => {
     ['our table', OUR_TABLE],
     ['hk standard', HK_STANDARD],
     ['dealer bonus', { ...OUR_TABLE, dealerMult: 1.5 }],
-    ['shooter pays all', { ...OUR_TABLE, discardShooterMult: 4, discardOthersMult: 0 }],
-    ['half shooter', { ...OUR_TABLE, discardShooterMult: 2, discardOthersMult: 1 }],
+    [
+      'shooter pays all',
+      { ...OUR_TABLE, discardShooterMult: 4, discardOthersMult: 0 },
+    ],
+    [
+      'half shooter',
+      { ...OUR_TABLE, discardShooterMult: 2, discardOthersMult: 1 },
+    ],
     ['limit pays own faan', { ...HK_STANDARD, limitPaysCap: false }],
   ];
 
@@ -194,10 +213,14 @@ describe('every hand sums to zero', () => {
           expect(sum(deltas(ziMo(winner, faan), rules, dealer))).toBe(0);
           for (const shooter of SEATS) {
             if (shooter === winner) continue;
-            expect(sum(deltas(ceotCung(winner, shooter, faan), rules, dealer))).toBe(0);
+            expect(
+              sum(deltas(ceotCung(winner, shooter, faan), rules, dealer)),
+            ).toBe(0);
           }
         }
-        expect(sum(deltas({ type: 'zaa_wu', offenderSeat: winner }, rules, 0))).toBe(0);
+        expect(
+          sum(deltas({ type: 'zaa_wu', offenderSeat: winner }, rules, 0)),
+        ).toBe(0);
       }
     }
   });
@@ -205,7 +228,12 @@ describe('every hand sums to zero', () => {
   it('holds for limit hands too', () => {
     for (const rules of [OUR_TABLE, HK_STANDARD]) {
       for (const dealer of SEATS) {
-        const hand: Hand = { type: 'zi_mo', winnerSeat: 1, faan: 13, isLimit: true };
+        const hand: Hand = {
+          type: 'zi_mo',
+          winnerSeat: 1,
+          faan: 13,
+          isLimit: true,
+        };
         expect(sum(deltas(hand, rules, dealer))).toBe(0);
       }
     }
@@ -218,8 +246,12 @@ describe('isCompleteHand', () => {
   });
 
   it('needs a winner and faan for a self drawn win', () => {
-    expect(isCompleteHand({ type: 'zi_mo', winnerSeat: 0 }, OUR_TABLE)).toBe(false);
-    expect(isCompleteHand({ type: 'zi_mo', winnerSeat: 0, faan: 3 }, OUR_TABLE)).toBe(true);
+    expect(isCompleteHand({ type: 'zi_mo', winnerSeat: 0 }, OUR_TABLE)).toBe(
+      false,
+    );
+    expect(
+      isCompleteHand({ type: 'zi_mo', winnerSeat: 0, faan: 3 }, OUR_TABLE),
+    ).toBe(true);
   });
 
   it('needs a winner, a discarder and faan for a discard win', () => {
@@ -245,7 +277,9 @@ describe('isCompleteHand', () => {
 
   it('needs only an offender for a false win', () => {
     expect(isCompleteHand({ type: 'zaa_wu' }, OUR_TABLE)).toBe(false);
-    expect(isCompleteHand({ type: 'zaa_wu', offenderSeat: 3 }, OUR_TABLE)).toBe(true);
+    expect(isCompleteHand({ type: 'zaa_wu', offenderSeat: 3 }, OUR_TABLE)).toBe(
+      true,
+    );
   });
 
   it('needs nothing further for a draw', () => {
@@ -253,15 +287,15 @@ describe('isCompleteHand', () => {
   });
 
   it('rejects faan below the table minimum', () => {
-    expect(isCompleteHand({ type: 'zi_mo', winnerSeat: 0, faan: 2 }, OUR_TABLE)).toBe(
-      false,
-    );
+    expect(
+      isCompleteHand({ type: 'zi_mo', winnerSeat: 0, faan: 2 }, OUR_TABLE),
+    ).toBe(false);
   });
 
   it('follows a table that allows lower faan', () => {
     const oneFaanMin: Rules = { ...OUR_TABLE, minFaan: 1 };
-    expect(isCompleteHand({ type: 'zi_mo', winnerSeat: 0, faan: 1 }, oneFaanMin)).toBe(
-      true,
-    );
+    expect(
+      isCompleteHand({ type: 'zi_mo', winnerSeat: 0, faan: 1 }, oneFaanMin),
+    ).toBe(true);
   });
 });

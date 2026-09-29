@@ -45,7 +45,10 @@ export function ShareScreen({ slug }: { slug: string }) {
     [game],
   );
 
-  const result = useMemo(() => (asRecord ? replay(asRecord) : null), [asRecord]);
+  const result = useMemo(
+    () => (asRecord ? replay(asRecord) : null),
+    [asRecord],
+  );
 
   if (!hasBackend()) {
     return (
@@ -63,8 +66,8 @@ export function ShareScreen({ slug }: { slug: string }) {
   if (notFound) {
     return (
       <Message title="No game here">
-        That link does not match a game. It may have been deleted, or the link may
-        be incomplete.
+        That link does not match a game. It may have been deleted, or the link
+        may be incomplete.
       </Message>
     );
   }
@@ -108,7 +111,9 @@ export function ShareScreen({ slug }: { slug: string }) {
             rows={result.rows}
             game={asRecord}
             readOnly
-            footer={result.handCount > 0 ? <TallySummary game={asRecord} /> : null}
+            footer={
+              result.handCount > 0 ? <TallySummary game={asRecord} /> : null
+            }
           />
         </section>
 
@@ -126,7 +131,13 @@ export function ShareScreen({ slug }: { slug: string }) {
   );
 }
 
-function Message({ title, children }: { title: string; children: React.ReactNode }) {
+function Message({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <main
       id="main"

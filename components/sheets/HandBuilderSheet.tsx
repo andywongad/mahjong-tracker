@@ -15,6 +15,7 @@ import type { Pattern } from '@/lib/patterns/catalog';
 import type { Rules } from '@/lib/rules/types';
 import type { HandPattern } from '@/lib/scoring';
 import { Sheet } from './Sheet';
+import { romanOf } from '@/lib/terms';
 
 /**
  * Build a hand from its patterns instead of tapping a faan number.
@@ -49,7 +50,10 @@ export function HandBuilderSheet({
     () => availablePatterns(rules, selfDraw),
     [rules, selfDraw],
   );
-  const groups = useMemo(() => groupedByFaan(patterns, rules), [patterns, rules]);
+  const groups = useMemo(
+    () => groupedByFaan(patterns, rules),
+    [patterns, rules],
+  );
   const total = useMemo(() => totalFor(picks, rules), [picks, rules]);
 
   function change(id: string, count: number) {
@@ -100,7 +104,9 @@ export function HandBuilderSheet({
               }}
             >
               <p className="text-xs" style={{ color: 'var(--ink)' }}>
-                Below the {rules.minFaan} faan minimum. Record as Zaa Wu instead?
+                Below the {rules.minFaan} faan minimum. Record as{' '}
+                {romanOf('zaa_wu')}
+                instead?
               </p>
               {onRecordZaaWu && (
                 <button
@@ -110,9 +116,12 @@ export function HandBuilderSheet({
                     onClose();
                   }}
                   className="touch rounded-lg px-3 text-xs font-semibold"
-                  style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}
+                  style={{
+                    background: 'var(--badge-bg)',
+                    color: 'var(--on-badge)',
+                  }}
                 >
-                  Switch to Zaa Wu
+                  Switch to {romanOf('zaa_wu')}
                 </button>
               )}
             </div>
@@ -128,7 +137,11 @@ export function HandBuilderSheet({
             className="touch w-full rounded-xl px-4 text-base font-semibold"
             style={
               total.belowMinimum
-                ? { background: 'var(--line)', color: 'var(--muted)', cursor: 'not-allowed' }
+                ? {
+                    background: 'var(--line)',
+                    color: 'var(--muted)',
+                    cursor: 'not-allowed',
+                  }
                 : { background: 'var(--tile-back)', color: '#fff' }
             }
           >
@@ -140,7 +153,10 @@ export function HandBuilderSheet({
       <div className="flex flex-col gap-5">
         {groups.map((group) => (
           <section key={group.faan} className="flex flex-col gap-2">
-            <h3 className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>
+            <h3
+              className="text-xs font-semibold"
+              style={{ color: 'var(--muted)' }}
+            >
               {group.faan} faan
             </h3>
             <ul className="flex flex-col gap-2">
@@ -200,7 +216,8 @@ function PatternRow({
         className="block text-xs"
         style={{ color: chosen ? 'var(--on-player-solid)' : 'var(--muted)' }}
       >
-        {blocked ?? `${pattern.jyutping} · ${faan} faan${max > 1 ? ' each' : ''}`}
+        {blocked ??
+          `${pattern.jyutping} · ${faan} faan${max > 1 ? ' each' : ''}`}
       </span>
     </span>
   );
@@ -222,7 +239,9 @@ function PatternRow({
           >
             &minus;
           </button>
-          <span className="tnum w-6 text-center text-sm font-bold">{count}</span>
+          <span className="tnum w-6 text-center text-sm font-bold">
+            {count}
+          </span>
           <button
             type="button"
             disabled={!!blocked || count >= max}
@@ -249,7 +268,11 @@ function PatternRow({
       }`}
       style={
         chosen
-          ? { background: 'var(--tile-back)', color: '#fff', borderColor: 'transparent' }
+          ? {
+              background: 'var(--tile-back)',
+              color: '#fff',
+              borderColor: 'transparent',
+            }
           : undefined
       }
     >

@@ -23,7 +23,8 @@ export interface BuilderTotal {
 
 /** Faan a pattern is worth, which for the self draw bonus comes from the rules. */
 export function faanOfPattern(pattern: Pattern, rules: Rules): number {
-  if (pattern.faanFromRules === 'selfDrawBonusFaan') return rules.selfDrawBonusFaan;
+  if (pattern.faanFromRules === 'selfDrawBonusFaan')
+    return rules.selfDrawBonusFaan;
   return pattern.faan;
 }
 
@@ -34,7 +35,10 @@ export function availablePatterns(rules: Rules, selfDraw: boolean): Pattern[] {
     if (pattern.set === 'house' && !rules.sevenPairs) return false;
     if (pattern.selfDrawOnly && !selfDraw) return false;
     // A self draw bonus of zero means the pattern would add nothing.
-    if (pattern.faanFromRules === 'selfDrawBonusFaan' && rules.selfDrawBonusFaan <= 0) {
+    if (
+      pattern.faanFromRules === 'selfDrawBonusFaan' &&
+      rules.selfDrawBonusFaan <= 0
+    ) {
       return false;
     }
     return true;
@@ -50,7 +54,10 @@ export function blockedReason(
     if (pick.id === pattern.id || pick.count <= 0) continue;
     const other = PATTERNS_BY_ID[pick.id];
     if (!other) continue;
-    if (pattern.excludes?.includes(other.id) || other.excludes?.includes(pattern.id)) {
+    if (
+      pattern.excludes?.includes(other.id) ||
+      other.excludes?.includes(pattern.id)
+    ) {
       return `Not with ${other.nameEn}`;
     }
   }
@@ -118,7 +125,8 @@ export function withSelfDrawBonus(
   if (!selfDraw || rules.selfDrawBonusFaan <= 0) return picks;
   if (picks.some((pick) => pick.id === 'self_drawn')) return picks;
   // Nothing to add when a pattern already stands in for the self draw.
-  if (picks.some((pick) => pick.id === 'fully_concealed_self_draw')) return picks;
+  if (picks.some((pick) => pick.id === 'fully_concealed_self_draw'))
+    return picks;
   return [...picks, { id: 'self_drawn', count: 1 }];
 }
 

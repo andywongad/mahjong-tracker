@@ -59,7 +59,9 @@ export function useSharedGame(slug: string): SharedGameState {
         setNotFound(false);
         setError(null);
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : 'Could not load this game.');
+        setError(
+          cause instanceof Error ? cause.message : 'Could not load this game.',
+        );
       } finally {
         inFlight.current = false;
         setLoading(false);

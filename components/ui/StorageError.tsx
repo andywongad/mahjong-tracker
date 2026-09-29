@@ -17,9 +17,9 @@ export function StorageError({ error }: { error: Error }) {
       <h1 className="text-lg font-bold">Your games could not be opened</h1>
 
       <p className="text-sm">
-        The app keeps games in this browser, and the browser would not let it in.
-        Nothing has been deleted. The usual causes are private browsing, storage
-        being full, or site data being blocked.
+        The app keeps games in this browser, and the browser would not let it
+        in. Nothing has been deleted. The usual causes are private browsing,
+        storage being full, or site data being blocked.
       </p>
 
       <ul className="flex list-disc flex-col gap-1 pl-5 text-sm">

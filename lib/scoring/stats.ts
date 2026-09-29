@@ -79,13 +79,19 @@ function emptyFaanTally(values: number[]): Record<number, number> {
 
 /** The seat that won a hand, or null where nobody did. */
 function hand_winner(hand: GameRules['hands'][number]): Seat | null {
-  return hand.type === 'ceot_cung' || hand.type === 'zi_mo' ? hand.winnerSeat : null;
+  return hand.type === 'ceot_cung' || hand.type === 'zi_mo'
+    ? hand.winnerSeat
+    : null;
 }
 
 /** Note a win against the winner: the deal, the patterns, and the best hand. */
 function recordWin(
   player: PlayerStats,
-  hand: { faan: number; isLimit?: boolean; patterns?: { id: string; count: number }[] },
+  hand: {
+    faan: number;
+    isLimit?: boolean;
+    patterns?: { id: string; count: number }[];
+  },
   dealerSeat: Seat,
 ): void {
   if (player.seat === dealerSeat) player.dealerHolds += 1;
@@ -200,7 +206,8 @@ export function stats(game: GameRules): StatsResult {
     zaaWu: sum((player) => player.zaaWu),
     draws,
     score: sum((player) => player.score),
-    accountedFor: sum((player) => player.wins) + sum((player) => player.zaaWu) + draws,
+    accountedFor:
+      sum((player) => player.wins) + sum((player) => player.zaaWu) + draws,
     reconciles: false,
   };
   totals.reconciles = totals.accountedFor === handCount && totals.score === 0;

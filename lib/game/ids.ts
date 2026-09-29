@@ -15,7 +15,8 @@ export function newShareSlug(length = 10): string {
   if (typeof crypto !== 'undefined' && 'getRandomValues' in crypto) {
     crypto.getRandomValues(bytes);
   } else {
-    for (let i = 0; i < length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+    for (let i = 0; i < length; i += 1)
+      bytes[i] = Math.floor(Math.random() * 256);
   }
   let slug = '';
   for (const byte of bytes) slug += SLUG_ALPHABET[byte % SLUG_ALPHABET.length];

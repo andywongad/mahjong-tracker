@@ -57,9 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Covers signing in, signing out, token refresh, and the magic link
     // landing back on the page with a session in the URL.
-    const { data: subscription } = client.auth.onAuthStateChange((_event, next) => {
-      setSession(next);
-    });
+    const { data: subscription } = client.auth.onAuthStateChange(
+      (_event, next) => {
+        setSession(next);
+      },
+    );
 
     return () => {
       cancelled = true;
@@ -69,7 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async (email: string) => {
     const client = supabase();
-    if (!client) throw new Error('This copy of the app has no server configured.');
+    if (!client)
+      throw new Error('This copy of the app has no server configured.');
 
     const { error } = await client.auth.signInWithOtp({
       email: email.trim(),

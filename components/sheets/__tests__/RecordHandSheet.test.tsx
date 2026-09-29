@@ -57,7 +57,11 @@ describe('recording a hand', () => {
     const headings = screen
       .getAllByRole('heading')
       .map((heading) => heading.textContent);
-    expect(headings).toEqual(['Record hand 1', 'Who won?', 'How did they win?']);
+    expect(headings).toEqual([
+      'Record hand 1',
+      'Who won?',
+      'How did they win?',
+    ]);
   });
 
   it('saves a self drawn win', async () => {

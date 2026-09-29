@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import {
-  HAND_TYPE_LABELS,
   replay as replayGame,
   type Hand,
   type HandRow,
@@ -24,6 +23,7 @@ import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
 import { FalseWinSheet } from '@/components/sheets/FalseWinSheet';
 import { TallySummary } from './TallySummary';
 import { ScoreChart } from '@/components/stats/ScoreChart';
+import { termForHandType } from '@/lib/terms';
 
 /** What the undo toast is currently offering to take back. */
 interface Undoable {
@@ -200,16 +200,16 @@ export function GameScreen({ gameId }: { gameId: string }) {
               that records one. */}
                 <div className="grid grid-cols-2 gap-2">
                   <SecondaryAction
-                    hanzi={HAND_TYPE_LABELS.draw.hanzi}
-                    label={HAND_TYPE_LABELS.draw.english}
+                    hanzi={termForHandType('draw').zh}
+                    label={termForHandType('draw').english}
                     onClick={() => {
                       setUndoable(null);
                       void record({ type: 'draw' });
                     }}
                   />
                   <SecondaryAction
-                    hanzi={HAND_TYPE_LABELS.zaa_wu.hanzi}
-                    label={HAND_TYPE_LABELS.zaa_wu.english}
+                    hanzi={termForHandType('zaa_wu').zh}
+                    label={termForHandType('zaa_wu').english}
                     onClick={() => {
                       setUndoable(null);
                       setFalseWinOpen(true);

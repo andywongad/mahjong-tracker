@@ -18,7 +18,9 @@ export function useWakeLock(active: boolean): void {
     if (!active) return;
     const wakeLock = (
       navigator as Navigator & {
-        wakeLock?: { request: (type: 'screen') => Promise<WakeLockSentinelLike> };
+        wakeLock?: {
+          request: (type: 'screen') => Promise<WakeLockSentinelLike>;
+        };
       }
     ).wakeLock;
     if (!wakeLock) return;
@@ -41,7 +43,10 @@ export function useWakeLock(active: boolean): void {
 
     // The lock drops when the tab is hidden, so take it again on return.
     function onVisibilityChange() {
-      if (document.visibilityState === 'visible' && (!sentinel || sentinel.released)) {
+      if (
+        document.visibilityState === 'visible' &&
+        (!sentinel || sentinel.released)
+      ) {
         void acquire();
       }
     }

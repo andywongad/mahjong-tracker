@@ -37,23 +37,6 @@ export const DEALER_CHAR = '莊';
 
 export type HandType = 'ceot_cung' | 'zi_mo' | 'zaa_wu' | 'draw';
 
-/**
- * Cantonese labels with the Chinese characters alongside, spelled the way the
- * group says them. Mostly Jyutping, except 出銃, which they write Cheut Chung.
- *
- * These are display strings only. The identifiers below (ceot_cung and friends)
- * are the stored values and deliberately do not move when a spelling changes.
- */
-export const HAND_TYPE_LABELS: Record<
-  HandType,
-  { roman: string; hanzi: string; english: string }
-> = {
-  ceot_cung: { roman: 'Cheut Chung', hanzi: '出銃', english: 'Shooter' },
-  zi_mo: { roman: 'Zi Mo', hanzi: '自摸', english: 'Self pick' },
-  zaa_wu: { roman: 'Zaa Wu', hanzi: '詐糊', english: 'False win' },
-  draw: { roman: 'Lau Guk', hanzi: '流局', english: 'Draw' },
-};
-
 /** Faan values a hand can be worth under a set of rules, for chips and columns. */
 export function faanValues(rules: Rules): number[] {
   const values: number[] = [];

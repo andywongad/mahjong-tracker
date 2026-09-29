@@ -47,7 +47,8 @@ export function formatMoney(cents: number, currency: string): string {
   const absolute = Math.abs(cents);
   const whole = Math.floor(absolute / 100);
   const part = absolute % 100;
-  const amount = part === 0 ? `${whole}` : `${whole}.${String(part).padStart(2, '0')}`;
+  const amount =
+    part === 0 ? `${whole}` : `${whole}.${String(part).padStart(2, '0')}`;
   return `${sign}${currency}${amount}`;
 }
 
@@ -66,7 +67,9 @@ export function settle(games: GameRecord[]): Settlement {
 
   // Oldest first, so the newest spelling of a name is the one kept.
   const ordered = [...games].sort((a, b) =>
-    a.date === b.date ? a.createdAt.localeCompare(b.createdAt) : a.date.localeCompare(b.date),
+    a.date === b.date
+      ? a.createdAt.localeCompare(b.createdAt)
+      : a.date.localeCompare(b.date),
   );
 
   for (const game of ordered) {
@@ -84,16 +87,25 @@ export function settle(games: GameRecord[]): Settlement {
       if (key === '') return;
 
       const points = result.scores[seat];
-      const existing = entries.get(key) ?? { key, name, points: 0, cents: null };
+      const existing = entries.get(key) ?? {
+        key,
+        name,
+        points: 0,
+        cents: null,
+      };
       const cents =
-        baseUnit > 0 ? (existing.cents ?? 0) + toCents(points, baseUnit) : existing.cents;
+        baseUnit > 0
+          ? (existing.cents ?? 0) + toCents(points, baseUnit)
+          : existing.cents;
 
       entries.set(key, { key, name, points: existing.points + points, cents });
     });
   }
 
   const players = [...entries.values()].sort(
-    (a, b) => (b.cents ?? b.points) - (a.cents ?? a.points) || a.name.localeCompare(b.name),
+    (a, b) =>
+      (b.cents ?? b.points) - (a.cents ?? a.points) ||
+      a.name.localeCompare(b.name),
   );
 
   return {
@@ -155,7 +167,10 @@ function transfersFor(players: SettleEntry[], useMoney: boolean): Transfer[] {
 }
 
 /** Plain text for pasting into a group chat. */
-export function settlementText(games: GameRecord[], settlement: Settlement): string {
+export function settlementText(
+  games: GameRecord[],
+  settlement: Settlement,
+): string {
   const lines: string[] = [];
 
   const dates = [...new Set(games.map((game) => formatGameDate(game.date)))];

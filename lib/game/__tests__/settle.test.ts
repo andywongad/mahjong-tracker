@@ -19,15 +19,27 @@ function makeGame(
     players,
     rules,
     shareSlug: `slug-${counter}`,
-    hands: hands.map((hand, index) => ({ ...hand, id: `h-${index}`, seq: index })),
+    hands: hands.map((hand, index) => ({
+      ...hand,
+      id: `h-${index}`,
+      seq: index,
+    })),
     createdAt: `2026-01-01T00:00:${String(counter).padStart(2, '0')}.000Z`,
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
 }
 
-const ziMo = (winnerSeat: Seat, faan = 3): Hand => ({ type: 'zi_mo', winnerSeat, faan });
+const ziMo = (winnerSeat: Seat, faan = 3): Hand => ({
+  type: 'zi_mo',
+  winnerSeat,
+  faan,
+});
 const FOUR: PlayerNames = ['Player A', 'Player B', 'Player C', 'Player D'];
-const staked = (baseUnit: number): Rules => ({ ...OUR_TABLE, baseUnit, currency: '$' });
+const staked = (baseUnit: number): Rules => ({
+  ...OUR_TABLE,
+  baseUnit,
+  currency: '$',
+});
 
 describe('netting', () => {
   it('nets a single game to zero', () => {
@@ -47,8 +59,16 @@ describe('netting', () => {
 
   it('groups the same player across games regardless of case', () => {
     const result = settle([
-      makeGame(['Player C', 'Player B', 'Player A', 'Player D'], [ziMo(0, 3)], '2026-01-01'),
-      makeGame([' player c ', 'Player B', 'Player A', 'Player D'], [ziMo(0, 3)], '2026-01-02'),
+      makeGame(
+        ['Player C', 'Player B', 'Player A', 'Player D'],
+        [ziMo(0, 3)],
+        '2026-01-01',
+      ),
+      makeGame(
+        [' player c ', 'Player B', 'Player A', 'Player D'],
+        [ziMo(0, 3)],
+        '2026-01-02',
+      ),
     ]);
     expect(result.players.filter((p) => p.key === 'player c')).toHaveLength(1);
     expect(result.players.find((p) => p.key === 'player c')?.points).toBe(36);
@@ -57,7 +77,11 @@ describe('netting', () => {
   it('handles a player who only appears in some games', () => {
     const result = settle([
       makeGame(FOUR, [ziMo(0, 3)], '2026-01-01'),
-      makeGame(['Player A', 'Player B', 'Player C', 'Player E'], [ziMo(0, 3)], '2026-01-02'),
+      makeGame(
+        ['Player A', 'Player B', 'Player C', 'Player E'],
+        [ziMo(0, 3)],
+        '2026-01-02',
+      ),
     ]);
     expect(result.players.map((p) => p.key).sort()).toEqual([
       'player a',
@@ -133,7 +157,9 @@ describe('money', () => {
       makeGame(FOUR, [ziMo(0, 3)], '2026-01-02', staked(1)),
     ]);
     // 18 points at 50c, then 18 points at a dollar.
-    expect(result.players.find((p) => p.key === 'player a')?.cents).toBe(900 + 1800);
+    expect(result.players.find((p) => p.key === 'player a')?.cents).toBe(
+      900 + 1800,
+    );
   });
 
   it('nets money to zero', () => {

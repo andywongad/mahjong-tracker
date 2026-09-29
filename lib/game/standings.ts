@@ -82,7 +82,9 @@ export function standings(games: GameRecord[]): StandingRow[] {
 
   // Oldest first, so the newest spelling of a name is the one that sticks.
   const oldestFirst = [...games].sort((a, b) =>
-    a.date === b.date ? a.createdAt.localeCompare(b.createdAt) : a.date.localeCompare(b.date),
+    a.date === b.date
+      ? a.createdAt.localeCompare(b.createdAt)
+      : a.date.localeCompare(b.date),
   );
 
   for (const game of oldestFirst) {
@@ -121,7 +123,8 @@ export function standings(games: GameRecord[]): StandingRow[] {
       // The best built hand stands across every game, not just the last one.
       const signature =
         player.signatureHand &&
-        (!existing.signatureHand || player.signatureHand.faan > existing.signatureHand.faan)
+        (!existing.signatureHand ||
+          player.signatureHand.faan > existing.signatureHand.faan)
           ? player.signatureHand
           : existing.signatureHand;
 
@@ -136,7 +139,10 @@ export function standings(games: GameRecord[]): StandingRow[] {
         net: existing.net + player.score,
         hands: existing.hands + summary.handCount,
         // A streak lives inside one game, so the all time figure is the best of them.
-        longestWinStreak: Math.max(existing.longestWinStreak, player.longestWinStreak),
+        longestWinStreak: Math.max(
+          existing.longestWinStreak,
+          player.longestWinStreak,
+        ),
         dealerHolds: existing.dealerHolds + player.dealerHolds,
         signatureHand: signature,
       });
@@ -154,5 +160,7 @@ export function standings(games: GameRecord[]): StandingRow[] {
       .slice(0, 3);
   }
 
-  return [...rows.values()].sort((a, b) => b.net - a.net || a.name.localeCompare(b.name));
+  return [...rows.values()].sort(
+    (a, b) => b.net - a.net || a.name.localeCompare(b.name),
+  );
 }

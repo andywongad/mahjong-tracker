@@ -61,7 +61,10 @@ function toHand(row: HandRow): Hand {
         patterns: row.patterns ?? undefined,
       };
     case 'zaa_wu':
-      return { type: 'zaa_wu', offenderSeat: row.offender_seat as 0 | 1 | 2 | 3 };
+      return {
+        type: 'zaa_wu',
+        offenderSeat: row.offender_seat as 0 | 1 | 2 | 3,
+      };
     case 'draw':
       return { type: 'draw' };
   }
@@ -95,9 +98,12 @@ export async function fetchSharedGame(
     return { game: null, unchanged: true };
   }
 
-  const { data: hands, error: handsError } = await client.rpc('shared_game_hands', {
-    slug,
-  });
+  const { data: hands, error: handsError } = await client.rpc(
+    'shared_game_hands',
+    {
+      slug,
+    },
+  );
   if (handsError) throw new ShareError(handsError.message);
 
   return {

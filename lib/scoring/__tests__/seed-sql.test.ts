@@ -19,9 +19,11 @@ describe('generated seed SQL', () => {
     'utf8',
   );
 
-  const rows = [...sql.matchAll(
-    /^\s{4}\((\d+), '(\w+)', (\d+|null), (\d+|null), (\d+|null), (\d+|null)\),?$/gm,
-  )].map(([, seq, type, winner, discarder, offender, faanText]) => ({
+  const rows = [
+    ...sql.matchAll(
+      /^\s{4}\((\d+), '(\w+)', (\d+|null), (\d+|null), (\d+|null), (\d+|null)\),?$/gm,
+    ),
+  ].map(([, seq, type, winner, discarder, offender, faanText]) => ({
     seq: Number(seq),
     type,
     winner: winner === 'null' ? null : Number(winner),
@@ -59,7 +61,11 @@ describe('generated seed SQL', () => {
   it('replays to the same final scores as the fixture', () => {
     const rebuilt: Hand[] = rows.map((row) =>
       row.type === 'zi_mo'
-        ? { type: 'zi_mo', winnerSeat: row.winner as Seat, faan: row.faan as number }
+        ? {
+            type: 'zi_mo',
+            winnerSeat: row.winner as Seat,
+            faan: row.faan as number,
+          }
         : {
             type: 'ceot_cung',
             winnerSeat: row.winner as Seat,
@@ -77,7 +83,9 @@ describe('generated seed SQL', () => {
   });
 
   it('records the players and penalty the fixture uses', () => {
-    expect(sql).toContain("array['Player A', 'Player B', 'Player C', 'Player D']");
+    expect(sql).toContain(
+      "array['Player A', 'Player B', 'Player C', 'Player D']",
+    );
     expect(sql).toContain('13,');
     expect(sql).toContain("date '2026-08-19'");
   });

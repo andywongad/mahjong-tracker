@@ -92,7 +92,7 @@ export function replay(game: GameRules): ReplayResult {
     // draw or a false declaration leaves it alone.
     const winner = winnerOf(hand);
     if (winner !== null && winner !== dealerSeat) {
-      dealerSeat = (((dealerSeat + 1) % 4) as Seat);
+      dealerSeat = ((dealerSeat + 1) % 4) as Seat;
       if (dealerSeat === 0) roundIndex += 1;
     }
   });

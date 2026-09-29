@@ -45,7 +45,10 @@ function write(events: LoggedEvent[]): void {
   }
 }
 
-export function logEvent(name: EventName, detail?: LoggedEvent['detail']): void {
+export function logEvent(
+  name: EventName,
+  detail?: LoggedEvent['detail'],
+): void {
   if (typeof window === 'undefined') return;
   write([...read(), { name, at: Date.now(), detail }]);
 }
@@ -123,7 +126,10 @@ export function summarise(events: LoggedEvent[] = allEvents()): Summary {
   const corrections = events.filter(
     (event) =>
       (event.name === 'hand_edited' || event.name === 'hand_deleted') &&
-      saves.some((savedAt) => event.at - savedAt >= 0 && event.at - savedAt <= TWO_MINUTES),
+      saves.some(
+        (savedAt) =>
+          event.at - savedAt >= 0 && event.at - savedAt <= TWO_MINUTES,
+      ),
   ).length;
 
   return {

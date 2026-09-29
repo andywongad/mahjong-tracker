@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { logEvent } from '@/lib/telemetry/events';
 import {
-  HAND_TYPE_LABELS,
   SEATS,
   deltas,
   faanValues,
@@ -22,6 +21,7 @@ import { HandBuilderSheet } from './HandBuilderSheet';
 import { TileChoice } from '@/components/ui/TileChoice';
 import { Wind } from '@/components/ui/Wind';
 import { formatSigned } from '@/components/ui/Score';
+import { termForHandType } from '@/lib/terms';
 
 /**
  * Recording starts from "this player won", so only the two ways of winning are
@@ -285,7 +285,7 @@ export function RecordHandSheet({
         both fit on one line and the targets stay large. */}
       <div className="grid grid-cols-2 gap-2">
         {(editing ? ALL_TYPES : WIN_TYPES).map((type) => {
-          const label = HAND_TYPE_LABELS[type];
+          const label = termForHandType(type);
           const selected = draft.type === type;
           return (
             <TileChoice
@@ -299,7 +299,7 @@ export function RecordHandSheet({
                 className="hanzi text-xl leading-none"
                 aria-hidden="true"
               >
-                {label.hanzi}
+                {label.zh}
               </span>
               <span className="text-sm leading-tight font-semibold">
                 {label.roman}

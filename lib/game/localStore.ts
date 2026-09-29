@@ -109,7 +109,9 @@ async function put(game: GameRecord): Promise<GameRecord> {
   const database = await db();
   const tx = database.transaction(['games', 'outbox'], 'readwrite');
   await tx.objectStore('games').put(saved);
-  await tx.objectStore('outbox').add({ gameId: saved.id, kind: 'game:upsert', at: now() });
+  await tx
+    .objectStore('outbox')
+    .add({ gameId: saved.id, kind: 'game:upsert', at: now() });
   await tx.done;
   return saved;
 }
@@ -163,7 +165,9 @@ export const localStore: GameStore = {
     const database = await db();
     const tx = database.transaction(['games', 'outbox'], 'readwrite');
     await tx.objectStore('games').delete(id);
-    await tx.objectStore('outbox').add({ gameId: id, kind: 'game:delete', at: now() });
+    await tx
+      .objectStore('outbox')
+      .add({ gameId: id, kind: 'game:delete', at: now() });
     await tx.done;
   },
 
@@ -176,14 +180,18 @@ export const localStore: GameStore = {
   async updateHand(gameId, handId, hand: Hand) {
     const game = await load(gameId);
     const hands = game.hands.map((existing) =>
-      existing.id === handId ? { ...hand, id: existing.id, seq: existing.seq } : existing,
+      existing.id === handId
+        ? { ...hand, id: existing.id, seq: existing.seq }
+        : existing,
     );
     return put({ ...game, hands });
   },
 
   async deleteHand(gameId, handId) {
     const game = await load(gameId);
-    const hands = resequence(game.hands.filter((existing) => existing.id !== handId));
+    const hands = resequence(
+      game.hands.filter((existing) => existing.id !== handId),
+    );
     return put({ ...game, hands });
   },
 };
@@ -239,5 +247,3 @@ export function ensureSeeded(): Promise<void> {
   }
   return seeding;
 }
-
-

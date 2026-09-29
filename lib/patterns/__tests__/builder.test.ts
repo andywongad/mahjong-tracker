@@ -28,7 +28,10 @@ describe('the catalog', () => {
   it('only excludes patterns that exist', () => {
     for (const pattern of PATTERNS) {
       for (const id of pattern.excludes ?? []) {
-        expect(PATTERNS_BY_ID[id], `${pattern.id} excludes ${id}`).toBeDefined();
+        expect(
+          PATTERNS_BY_ID[id],
+          `${pattern.id} excludes ${id}`,
+        ).toBeDefined();
       }
     }
   });
@@ -59,7 +62,9 @@ describe('which patterns are offered', () => {
   it('hides the New 6 unless the rules ask for them', () => {
     const ids = availablePatterns(OUR_TABLE, false).map((p) => p.id);
     expect(ids).not.toContain('single_wait');
-    expect(availablePatterns(HK_STANDARD, false).map((p) => p.id)).toContain('single_wait');
+    expect(availablePatterns(HK_STANDARD, false).map((p) => p.id)).toContain(
+      'single_wait',
+    );
   });
 
   it('hides seven pairs unless the house rule is on', () => {
@@ -76,13 +81,17 @@ describe('which patterns are offered', () => {
     const notSelfDrawn = availablePatterns(HK_STANDARD, false).map((p) => p.id);
     expect(notSelfDrawn).not.toContain('self_drawn');
     expect(notSelfDrawn).not.toContain('fully_concealed_self_draw');
-    expect(availablePatterns(HK_STANDARD, true).map((p) => p.id)).toContain('self_drawn');
+    expect(availablePatterns(HK_STANDARD, true).map((p) => p.id)).toContain(
+      'self_drawn',
+    );
   });
 
   it('hides the self draw bonus when the table does not give one', () => {
     // Our table has no self draw bonus, so the pattern would add nothing.
     expect(OUR_TABLE.selfDrawBonusFaan).toBe(0);
-    expect(availablePatterns(OUR_TABLE, true).map((p) => p.id)).not.toContain('self_drawn');
+    expect(availablePatterns(OUR_TABLE, true).map((p) => p.id)).not.toContain(
+      'self_drawn',
+    );
   });
 });
 
@@ -138,7 +147,9 @@ describe('exclusions', () => {
       'Not with Own flower',
     );
     const withNone = setPatternCount([], 'no_flowers', 1);
-    expect(blockedReason(PATTERNS_BY_ID.own_flower, withNone)).toBe('Not with No flowers');
+    expect(blockedReason(PATTERNS_BY_ID.own_flower, withNone)).toBe(
+      'Not with No flowers',
+    );
   });
 });
 
@@ -180,7 +191,9 @@ describe('totals', () => {
   it('marks a hand holding a limit pattern', () => {
     const picks = setPatternCount([], 'thirteen_orphans', 1);
     expect(totalFor(picks, OUR_TABLE).isLimit).toBe(true);
-    expect(totalFor(setPatternCount([], 'seat_wind', 1), OUR_TABLE).isLimit).toBe(false);
+    expect(
+      totalFor(setPatternCount([], 'seat_wind', 1), OUR_TABLE).isLimit,
+    ).toBe(false);
   });
 
   it('flags a total below the table minimum', () => {
@@ -227,14 +240,19 @@ describe('the self draw bonus', () => {
 
 describe('grouping for the list', () => {
   it('orders groups by faan, lowest first', () => {
-    const groups = groupedByFaan(availablePatterns(OUR_TABLE, false), OUR_TABLE);
+    const groups = groupedByFaan(
+      availablePatterns(OUR_TABLE, false),
+      OUR_TABLE,
+    );
     const faans = groups.map((g) => g.faan);
     expect(faans).toEqual([...faans].sort((a, b) => a - b));
   });
 
   it('puts every offered pattern in exactly one group', () => {
     const patterns = availablePatterns(HK_STANDARD, true);
-    const grouped = groupedByFaan(patterns, HK_STANDARD).flatMap((g) => g.patterns);
+    const grouped = groupedByFaan(patterns, HK_STANDARD).flatMap(
+      (g) => g.patterns,
+    );
     expect(grouped).toHaveLength(patterns.length);
   });
 });

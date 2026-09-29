@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { replay } from '../replay';
 import { AUG_19_2026_GAME } from '../fixtures/aug-19-2026';
-import { HK_STANDARD, OUR_TABLE, presetFor, withRuleChange } from '@/lib/rules/types';
+import {
+  HK_STANDARD,
+  OUR_TABLE,
+  presetFor,
+  withRuleChange,
+} from '@/lib/rules/types';
 
 /**
  * Scores are derived, never stored, so changing the rules must recalculate the
@@ -14,7 +19,7 @@ describe('switching a game between presets', () => {
   const ourTable = replay({ players, rules: OUR_TABLE, hands });
   const hkStandard = replay({ players, rules: HK_STANDARD, hands });
 
-  it('starts from the reference scores on the group\'s own table', () => {
+  it("starts from the reference scores on the group's own table", () => {
     expect(ourTable.scores).toEqual([-23, -39, 64, -2]);
   });
 

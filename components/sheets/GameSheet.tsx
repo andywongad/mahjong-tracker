@@ -10,6 +10,7 @@ import { todayIso } from '@/lib/game/ids';
 import { windLabel } from '@/components/ui/Wind';
 import type { GameRecord, NewGameInput } from '@/lib/game/types';
 import { Sheet } from './Sheet';
+import { romanOf } from '@/lib/terms';
 
 /**
  * New game, or edit an existing one. Names are entered by starting seat and
@@ -220,7 +221,7 @@ export function GameSheet({
                   className="block text-xs"
                   style={{ color: 'var(--muted)' }}
                 >
-                  {rules.minFaan} to {rules.faanCap} faan, Zaa Wu{' '}
+                  {rules.minFaan} to {rules.faanCap} faan, {romanOf('zaa_wu')}{' '}
                   {rules.zaaWuPenalty}
                   {rules.baseUnit
                     ? `, ${formatStake(rules.baseUnit, rules.currency)} a point`

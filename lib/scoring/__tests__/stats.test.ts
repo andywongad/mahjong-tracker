@@ -10,7 +10,11 @@ function game(hands: readonly Hand[], rules: Rules = OUR_TABLE) {
   return { players: PLAYERS, rules, hands };
 }
 
-const ziMo = (winnerSeat: Seat, faan = 3): Hand => ({ type: 'zi_mo', winnerSeat, faan });
+const ziMo = (winnerSeat: Seat, faan = 3): Hand => ({
+  type: 'zi_mo',
+  winnerSeat,
+  faan,
+});
 const ceotCung = (winnerSeat: Seat, discarderSeat: Seat, faan = 3): Hand => ({
   type: 'ceot_cung',
   winnerSeat,
@@ -23,7 +27,12 @@ describe('stats', () => {
     const result = stats(game([]));
 
     it('returns one row per seat, named and in seat order', () => {
-      expect(result.players.map((p) => p.name)).toEqual(['Player A', 'Player B', 'Player C', 'Player D']);
+      expect(result.players.map((p) => p.name)).toEqual([
+        'Player A',
+        'Player B',
+        'Player C',
+        'Player D',
+      ]);
       expect(result.players.map((p) => p.seat)).toEqual([0, 1, 2, 3]);
     });
 
@@ -40,8 +49,12 @@ describe('stats', () => {
 
     it('still lists every point value as a column', () => {
       for (const player of result.players) {
-        expect(Object.keys(player.winsByFaan).map(Number)).toEqual(faanValues(OUR_TABLE));
-        expect(Object.keys(player.dealtInByFaan).map(Number)).toEqual(faanValues(OUR_TABLE));
+        expect(Object.keys(player.winsByFaan).map(Number)).toEqual(
+          faanValues(OUR_TABLE),
+        );
+        expect(Object.keys(player.dealtInByFaan).map(Number)).toEqual(
+          faanValues(OUR_TABLE),
+        );
       }
     });
   });
@@ -75,7 +88,9 @@ describe('stats', () => {
     });
 
     it('tallies dealing in into the right point column', () => {
-      const result = stats(game([ceotCung(0, 1, 5), ceotCung(2, 1, 5), ceotCung(3, 1, 13)]));
+      const result = stats(
+        game([ceotCung(0, 1, 5), ceotCung(2, 1, 5), ceotCung(3, 1, 13)]),
+      );
       expect(result.players[1].dealtInByFaan[5]).toBe(2);
       expect(result.players[1].dealtInByFaan[13]).toBe(1);
       expect(result.players[1].ceotCung).toBe(3);
@@ -126,7 +141,12 @@ describe('stats', () => {
     });
 
     it('uses the game penalty', () => {
-      const result = stats(game([{ type: 'zaa_wu', offenderSeat: 1 }], { ...OUR_TABLE, zaaWuPenalty: 5 }));
+      const result = stats(
+        game([{ type: 'zaa_wu', offenderSeat: 1 }], {
+          ...OUR_TABLE,
+          zaaWuPenalty: 5,
+        }),
+      );
       expect(result.players[1].score).toBe(-15);
     });
   });
@@ -185,14 +205,22 @@ describe('audit totals', () => {
   });
 
   it('totals wins as self draws plus hands won on a discard', () => {
-    const result = stats(game([ziMo(0), ziMo(1), ceotCung(2, 3), ceotCung(3, 0)]));
+    const result = stats(
+      game([ziMo(0), ziMo(1), ceotCung(2, 3), ceotCung(3, 0)]),
+    );
     expect(result.totals.wins).toBe(4);
-    expect(result.totals.wins).toBe(result.totals.ziMo + result.totals.ceotCung);
+    expect(result.totals.wins).toBe(
+      result.totals.ziMo + result.totals.ceotCung,
+    );
   });
 
   it('sums the scores to zero', () => {
     const result = stats(
-      game([ziMo(0, 5), ceotCung(1, 2, 13), { type: 'zaa_wu', offenderSeat: 0 }]),
+      game([
+        ziMo(0, 5),
+        ceotCung(1, 2, 13),
+        { type: 'zaa_wu', offenderSeat: 0 },
+      ]),
     );
     expect(result.totals.score).toBe(0);
     expect(result.totals.reconciles).toBe(true);
@@ -235,9 +263,7 @@ describe('rates and streaks', () => {
 
   it('counts the longest run of wins, not the total', () => {
     // Seat 0 wins three in a row, then once more later.
-    const result = stats(
-      game([ziMo(0), ziMo(0), ziMo(0), ziMo(1), ziMo(0)]),
-    );
+    const result = stats(game([ziMo(0), ziMo(0), ziMo(0), ziMo(1), ziMo(0)]));
     expect(result.players[0].wins).toBe(4);
     expect(result.players[0].longestWinStreak).toBe(3);
   });
@@ -248,12 +274,16 @@ describe('rates and streaks', () => {
   });
 
   it('counts a deal in rate over hands played', () => {
-    const result = stats(game([ceotCung(0, 1), ceotCung(0, 1), ziMo(2), { type: 'draw' }]));
+    const result = stats(
+      game([ceotCung(0, 1), ceotCung(0, 1), ziMo(2), { type: 'draw' }]),
+    );
     expect(result.players[1].ceotCungRate).toBeCloseTo(0.5);
   });
 
-  it('reports the self drawn share of a player\'s own wins', () => {
-    const result = stats(game([ziMo(0), ceotCung(0, 1), ceotCung(0, 2), ceotCung(0, 3)]));
+  it("reports the self drawn share of a player's own wins", () => {
+    const result = stats(
+      game([ziMo(0), ceotCung(0, 1), ceotCung(0, 2), ceotCung(0, 3)]),
+    );
     expect(result.players[0].ziMoShare).toBeCloseTo(0.25);
   });
 
@@ -314,7 +344,9 @@ describe('patterns and signature hands', () => {
   });
 
   it('prefers a built hand even when a higher hand was tapped in', () => {
-    const result = stats(game([ziMo(0, 13), built(0, 4, [{ id: 'seven_pairs', count: 1 }])]));
+    const result = stats(
+      game([ziMo(0, 13), built(0, 4, [{ id: 'seven_pairs', count: 1 }])]),
+    );
     expect(result.players[0].signatureHand?.faan).toBe(4);
   });
 

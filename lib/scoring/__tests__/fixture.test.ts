@@ -26,7 +26,12 @@ describe('Aug 19 2026 reference game', () => {
   });
 
   it('names players by seat', () => {
-    expect(summary.players.map((p) => p.name)).toEqual(['Player A', 'Player B', 'Player C', 'Player D']);
+    expect(summary.players.map((p) => p.name)).toEqual([
+      'Player A',
+      'Player B',
+      'Player C',
+      'Player D',
+    ]);
   });
 
   it('plays hands 1 to 6 in the East round', () => {
@@ -95,7 +100,10 @@ describe('Aug 19 2026 reference game', () => {
 
   it('keeps the running totals zero sum at every point in the series', () => {
     for (let i = 0; i <= result.handCount; i += 1) {
-      const sum = SEATS.reduce<number>((acc, seat) => acc + result.series[seat][i], 0);
+      const sum = SEATS.reduce<number>(
+        (acc, seat) => acc + result.series[seat][i],
+        0,
+      );
       expect(sum, `after ${i} hands`).toBe(0);
     }
   });
@@ -105,7 +113,9 @@ describe('Aug 19 2026 reference game', () => {
       expect(result.series[seat]).toHaveLength(20);
       expect(result.series[seat][0]).toBe(0);
     }
-    expect(SEATS.map((s) => result.series[s].at(-1))).toEqual([-23, -39, 64, -2]);
+    expect(SEATS.map((s) => result.series[s].at(-1))).toEqual([
+      -23, -39, 64, -2,
+    ]);
   });
 
   it('tallies wins by points so they add up to each win count', () => {
@@ -117,7 +127,10 @@ describe('Aug 19 2026 reference game', () => {
 
   it('tallies dealt in by points so they add up to each dealt in count', () => {
     for (const player of summary.players) {
-      const total = Object.values(player.dealtInByFaan).reduce((a, b) => a + b, 0);
+      const total = Object.values(player.dealtInByFaan).reduce(
+        (a, b) => a + b,
+        0,
+      );
       expect(total, player.name).toBe(player.ceotCung);
     }
   });

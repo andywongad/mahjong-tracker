@@ -43,7 +43,12 @@ export const AUG_19_2026_HANDS: readonly Hand[] = RAW.map((row) =>
 );
 
 /** Players by seat: East, South, West, North. */
-export const AUG_19_2026_PLAYERS: PlayerNames = ['Player A', 'Player B', 'Player C', 'Player D'];
+export const AUG_19_2026_PLAYERS: PlayerNames = [
+  'Player A',
+  'Player B',
+  'Player C',
+  'Player D',
+];
 
 export const AUG_19_2026_PENALTY = 13;
 

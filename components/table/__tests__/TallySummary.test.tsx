@@ -17,7 +17,11 @@ function game(hands: readonly Hand[], rules: Rules = OUR_TABLE): GameRecord {
     players: AUG_19_2026_PLAYERS,
     rules,
     shareSlug: 'slug',
-    hands: hands.map((hand, index) => ({ ...hand, id: `h${index}`, seq: index })),
+    hands: hands.map((hand, index) => ({
+      ...hand,
+      id: `h${index}`,
+      seq: index,
+    })),
     createdAt: '2026-08-19T00:00:00.000Z',
     updatedAt: '2026-08-19T00:00:00.000Z',
   };
@@ -84,7 +88,9 @@ describe('the tally', () => {
   });
 
   it('is labelled, so the row is not four loose numbers', () => {
-    const { container } = render(<TallySummary game={game(AUG_19_2026_HANDS)} />);
+    const { container } = render(
+      <TallySummary game={game(AUG_19_2026_HANDS)} />,
+    );
     expect(within(container).getByText('Tally')).toBeVisible();
   });
 });

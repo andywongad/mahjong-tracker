@@ -1,6 +1,12 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useSyncExternalStore,
+} from 'react';
 
 /**
  * A tiny client side router.
@@ -62,13 +68,24 @@ function toUrl(route: Route): string {
 
 const NavigationContext = createContext<NavigationValue | null>(null);
 
-export function NavigationProvider({ children }: { children: React.ReactNode }) {
-  const search = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+export function NavigationProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const search = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
   const route = useMemo(() => parse(search), [search]);
 
   const go = useCallback((view: View, gameId?: string | null) => {
     const current = parse(window.location.search);
-    const next: Route = { view, gameId: gameId === undefined ? current.gameId : gameId };
+    const next: Route = {
+      view,
+      gameId: gameId === undefined ? current.gameId : gameId,
+    };
     if (next.view === current.view && next.gameId === current.gameId) return;
     window.history.pushState(null, '', toUrl(next));
     window.dispatchEvent(new Event(ROUTE_EVENT));
@@ -76,13 +93,21 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
 
   const back = useCallback(() => window.history.back(), []);
 
-  const value = useMemo<NavigationValue>(() => ({ ...route, go, back }), [route, go, back]);
+  const value = useMemo<NavigationValue>(
+    () => ({ ...route, go, back }),
+    [route, go, back],
+  );
 
-  return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>;
+  return (
+    <NavigationContext.Provider value={value}>
+      {children}
+    </NavigationContext.Provider>
+  );
 }
 
 export function useNavigation(): NavigationValue {
   const context = useContext(NavigationContext);
-  if (!context) throw new Error('useNavigation must be used inside NavigationProvider');
+  if (!context)
+    throw new Error('useNavigation must be used inside NavigationProvider');
   return context;
 }

@@ -1,7 +1,13 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { GLOSSARY_BY_ID, type GlossaryEntry } from './entries';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
+import { TERM_BY_ID, type Term } from '@/lib/terms';
 import { Sheet } from '@/components/sheets/Sheet';
 
 interface GlossaryValue {
@@ -21,14 +27,14 @@ export function GlossaryProvider({ children }: { children: React.ReactNode }) {
   const define = useCallback((id: string) => setOpenId(id), []);
   const value = useMemo<GlossaryValue>(() => ({ define }), [define]);
 
-  const entry = openId ? GLOSSARY_BY_ID[openId] : null;
+  const entry = openId ? TERM_BY_ID[openId] : null;
 
   return (
     <GlossaryContext.Provider value={value}>
       {children}
       <Sheet
         open={entry !== null}
-        title={entry ? `${entry.term} ${entry.zh}` : ''}
+        title={entry ? `${entry.roman} ${entry.zh}` : ''}
         onClose={() => setOpenId(null)}
       >
         {entry && <Definition entry={entry} onFollow={setOpenId} />}
@@ -41,12 +47,12 @@ function Definition({
   entry,
   onFollow,
 }: {
-  entry: GlossaryEntry;
+  entry: Term;
   onFollow: (id: string) => void;
 }) {
   const related = (entry.related ?? [])
-    .map((id) => GLOSSARY_BY_ID[id])
-    .filter((item): item is GlossaryEntry => Boolean(item));
+    .map((id) => TERM_BY_ID[id])
+    .filter((item): item is Term => Boolean(item));
 
   return (
     <div className="flex flex-col gap-3">
@@ -57,7 +63,10 @@ function Definition({
 
       {related.length > 0 && (
         <div className="flex flex-col gap-2">
-          <h3 className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>
+          <h3
+            className="text-xs font-semibold"
+            style={{ color: 'var(--muted)' }}
+          >
             See also
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -68,7 +77,7 @@ function Definition({
                 onClick={() => onFollow(item.id)}
                 className="tile-sm touch rounded-lg px-3 text-xs font-semibold"
               >
-                {item.term}{' '}
+                {item.roman}{' '}
                 <span lang="zh-Hant" className="hanzi" aria-hidden="true">
                   {item.zh}
                 </span>
@@ -83,6 +92,7 @@ function Definition({
 
 export function useGlossary(): GlossaryValue {
   const context = useContext(GlossaryContext);
-  if (!context) throw new Error('useGlossary must be used inside GlossaryProvider');
+  if (!context)
+    throw new Error('useGlossary must be used inside GlossaryProvider');
   return context;
 }
