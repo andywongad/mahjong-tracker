@@ -412,6 +412,8 @@ export function GamesScreen() {
         open={sheetOpen}
         editing={editing}
         lastPlayers={games[0]?.players}
+        lastRules={games[0]?.rules}
+        lastRuleSetName={games[0]?.ruleSetName}
         onClose={() => setSheetOpen(false)}
         onSave={async (input) => {
           if (editing) {

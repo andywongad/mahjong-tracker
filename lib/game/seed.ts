@@ -25,7 +25,7 @@ export function buildSeedGame(): GameRecord {
     date: AUG_19_2026_DATE,
     players: AUG_19_2026_PLAYERS,
     rules: AUG_19_2026_RULES,
-    ruleSetName: 'Our table',
+    ruleSetName: 'Everyone pays',
     shareSlug: SEED_SHARE_SLUG,
     hands: AUG_19_2026_HANDS.map((hand, index) => ({
       ...hand,

@@ -60,9 +60,10 @@ export const DOUBLING_CURVE: Record<number, number> = {
 };
 
 /**
- * The group's own table. Algebraically identical to the original engine:
- * a discard win pays 2 + 1 + 1 units, so the winner takes 4 faan worth, and a
- * self drawn win pays 2 units each, so the winner takes 6.
+ * Everyone pays on a discard, the shooter double. Algebraically identical to
+ * the original engine this app replaced: a discard win pays 2 + 1 + 1 units, so
+ * the winner takes 4 faan worth, and a self drawn win pays 2 units each, so the
+ * winner takes 6.
  */
 export const OUR_TABLE: Rules = {
   preset: 'our_table',

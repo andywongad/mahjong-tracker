@@ -70,7 +70,7 @@ function db() {
                 ...OUR_TABLE,
                 zaaWuPenalty: game.zaaWuPenalty ?? OUR_TABLE.zaaWuPenalty,
               };
-              game.ruleSetName = 'Our table';
+              game.ruleSetName = 'Everyone pays';
               delete game.zaaWuPenalty;
             }
             const hands = game.hands as LegacyHand[];

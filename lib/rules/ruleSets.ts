@@ -23,7 +23,8 @@ export interface RuleSet {
 export const BUILT_IN_RULE_SETS: RuleSet[] = [
   {
     id: 'builtin:our_table',
-    name: 'Our table',
+    // The id is a stored value and never moves; only the label does.
+    name: 'Everyone pays',
     rules: OUR_TABLE,
     builtIn: true,
   },
@@ -62,7 +63,10 @@ export async function listRuleSets(): Promise<RuleSet[]> {
   return [...BUILT_IN_RULE_SETS, ...saved];
 }
 
-export async function saveRuleSet(name: string, rules: Rules): Promise<RuleSet> {
+export async function saveRuleSet(
+  name: string,
+  rules: Rules,
+): Promise<RuleSet> {
   const now = new Date().toISOString();
   const set: RuleSet = {
     id: newId(),

@@ -471,7 +471,13 @@ function describeSet(rules: Rules): string {
       : rules.curve === 'doubling'
         ? 'Doubling'
         : 'Custom';
-  return `${curve}, ${rules.minFaan} to ${rules.faanCap} faan`;
+  const split =
+    rules.discardOthersMult === 0
+      ? 'only the shooter pays'
+      : rules.discardShooterMult > rules.discardOthersMult
+        ? 'everyone pays, shooter more'
+        : 'everyone pays the same';
+  return `${curve}, ${rules.minFaan} to ${rules.faanCap} faan · On a discard, ${split}`;
 }
 
 function Section({
