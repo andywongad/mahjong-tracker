@@ -13,6 +13,7 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AccountSheet } from '@/components/auth/AccountSheet';
 import { useAuth } from '@/lib/supabase/AuthProvider';
 import { GameSheet } from '@/components/sheets/GameSheet';
+import { AboutSheet } from '@/components/sheets/AboutSheet';
 import { formatSigned } from '@/components/ui/Score';
 import { formatMoney } from '@/lib/game/settle';
 import { PATTERNS_BY_ID } from '@/lib/patterns/catalog';
@@ -23,6 +24,7 @@ export function GamesScreen() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<GameRecord | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const { session, email, available } = useAuth();
 
   const summaries = useMemo(() => summarise(games), [games]);
@@ -70,37 +72,40 @@ export function GamesScreen() {
           Start a new game
         </button>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2">
           {games.length > 0 && (
             <button
               type="button"
               onClick={() => go('settle', null)}
-              className="tile-sm tile-pressable touch flex-1 rounded-xl py-3 text-sm font-semibold"
+              className="tile-sm tile-pressable touch w-full rounded-xl py-3 text-sm font-semibold"
             >
               Tally details
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => go('glossary', null)}
-            className="tile-sm tile-pressable touch flex-1 rounded-xl py-3 text-sm font-semibold"
-          >
-            Glossary
-          </button>
+          {/* Two things you read rather than use: a reference and a once ever
+            explanation. They pair up under the action that gets used. */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => go('glossary', null)}
+              className="tile-sm tile-pressable touch rounded-xl py-3 text-sm font-semibold"
+            >
+              Glossary
+            </button>
+            <button
+              type="button"
+              onClick={() => setAboutOpen(true)}
+              className="tile-sm tile-pressable touch rounded-xl py-3 text-sm font-semibold"
+            >
+              How this works
+            </button>
+          </div>
         </div>
 
         {available && !session && games.length > 0 && (
           <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            These games are on this device only.{' '}
-            <button
-              type="button"
-              onClick={() => setAccountOpen(true)}
-              className="underline underline-offset-2"
-              style={{ color: 'var(--accent)' }}
-            >
-              Sign in
-            </button>{' '}
-            to sync them and share a live link.
+            These games are on this device only. Syncing and share links are
+            still being built.
           </p>
         )}
 
@@ -395,6 +400,12 @@ export function GamesScreen() {
       {/* Keyed so the fields start from the game being edited, or from the last
           game's names for a new one, on every open. */}
       <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} />
+
+      <AboutSheet
+        open={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+        onOpenGlossary={() => go('glossary', null)}
+      />
 
       <GameSheet
         key={sheetOpen ? (editing ? editing.id : 'new') : 'closed'}

@@ -31,14 +31,20 @@ export function AccountSheet({
       await signIn(address);
       setSent(true);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not send the link.');
+      setError(
+        cause instanceof Error ? cause.message : 'Could not send the link.',
+      );
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Sheet open={open} title={session ? 'Account' : 'Sign in'} onClose={onClose}>
+    <Sheet
+      open={open}
+      title={session ? 'Account' : 'Sign in'}
+      onClose={onClose}
+    >
       {!available && (
         <p className="text-sm" style={{ color: 'var(--muted)' }}>
           This copy of the app has no server configured, so there is nothing to
@@ -52,8 +58,8 @@ export function AccountSheet({
             Signed in as <span className="font-semibold">{email}</span>.
           </p>
           <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            Games stay on this device as well, so nothing is lost if you sign out
-            or lose signal.
+            Games stay on this device as well, so nothing is lost if you sign
+            out or lose signal.
           </p>
           <button
             type="button"
@@ -62,7 +68,10 @@ export function AccountSheet({
               onClose();
             }}
             className="touch w-full rounded-xl px-4 py-3 text-sm font-semibold"
-            style={{ border: '1px solid var(--line-strong)', color: 'var(--accent)' }}
+            style={{
+              border: '1px solid var(--line-strong)',
+              color: 'var(--accent)',
+            }}
           >
             Sign out
           </button>
@@ -72,9 +81,9 @@ export function AccountSheet({
       {available && !session && !sent && (
         <div className="flex flex-col gap-4">
           <p className="text-sm">
-            Signing in lets your games sync and lets you share a live link with
-            the table. The app works without it; everything is kept on this
-            device either way.
+            An account is how syncing and share links will work once they are
+            built. Neither is live yet, so signing in changes nothing about your
+            games today: they are kept on this device either way.
           </p>
 
           <label className="flex flex-col gap-1.5">
@@ -99,7 +108,11 @@ export function AccountSheet({
           </label>
 
           {error && (
-            <p className="text-xs" style={{ color: 'var(--accent)' }} role="alert">
+            <p
+              className="text-xs"
+              style={{ color: 'var(--accent)' }}
+              role="alert"
+            >
               {error}
             </p>
           )}
@@ -134,7 +147,10 @@ export function AccountSheet({
             type="button"
             onClick={() => setSent(false)}
             className="touch w-full rounded-xl px-4 py-3 text-sm font-semibold"
-            style={{ border: '1px solid var(--line-strong)', color: 'var(--ink)' }}
+            style={{
+              border: '1px solid var(--line-strong)',
+              color: 'var(--ink)',
+            }}
           >
             Use a different address
           </button>

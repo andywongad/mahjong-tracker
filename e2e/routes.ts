@@ -44,7 +44,10 @@ export const ROUTES: Route[] = [
       await page.goto(`/?game=${GAME}`);
       await settle(page);
       // Tapping a seat is how a hand starts.
-      await page.getByRole('button', { name: /Record hand \d+ won by/ }).first().click();
+      await page
+        .getByRole('button', { name: /Record hand \d+ won by/ })
+        .first()
+        .click();
       await page.waitForTimeout(500);
     },
   },
@@ -60,6 +63,15 @@ export const ROUTES: Route[] = [
     go: async (page) => {
       await page.goto('/?view=settle');
       await settle(page);
+    },
+  },
+  {
+    name: 'about-sheet',
+    go: async (page) => {
+      await page.goto('/?view=games');
+      await settle(page);
+      await page.getByRole('button', { name: 'How this works' }).click();
+      await page.waitForTimeout(500);
     },
   },
   {
