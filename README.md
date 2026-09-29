@@ -96,15 +96,32 @@ written but has not been run against a live project, so treat it as a starting
 point rather than something proven.
 
 1. Create a Supabase project and add the variables above.
-2. Apply the migrations in order:
+2. Apply the migrations in order, either by pasting each into the dashboard's
+   SQL editor or with the CLI:
 
    ```bash
    supabase link --project-ref <ref>
    supabase db push
    ```
 
-   - `supabase/migrations/0001_schema.sql` tables, constraints, triggers
-   - `supabase/migrations/0002_rls.sql` row level security and the share functions
+   - `0001_schema.sql` tables, constraints, triggers
+   - `0002_rls.sql` row level security and the share functions
+   - `0003_align_schema_with_app.sql` rules per game, faan, patterns, ended_at
+   - `0004_realtime_and_indexes.sql` broadcast on change, drops a spare index
+
+   Every file is safe to run twice, so a half applied run can simply be run
+   again.
+
+   **If 0001 and 0002 were applied through the dashboard**, Supabase's migration
+   history does not know about them, and `supabase db push` would try to apply
+   them a second time. Tell it they are already in place first:
+
+   ```bash
+   supabase migration repair --status applied 0001
+   supabase migration repair --status applied 0002
+   ```
+
+   Use whatever version strings `supabase migration list` shows for them.
 
 3. Sign in once so the account exists, then seed the reference game against it:
 
@@ -118,7 +135,24 @@ point rather than something proven.
 
 Owners read and write only their own games. Share links go through two
 `security definer` functions rather than opening the tables to anonymous
-readers, so an unknown slug reveals nothing.
+readers, so an unknown slug reveals nothing and the owner id is never returned.
+
+### How a share link stays current
+
+Realtime's `postgres_changes` respects row level security, so anonymous viewers
+would never receive anything: by design they have no select on the tables. So
+`0004` has the database broadcast on a public topic named for the share slug
+instead.
+
+The payload is deliberately worthless, an event name and the game's
+`updated_at`, and the page never reads data out of it. A message means only
+"refetch", and the refetch goes back through the two share functions. A spoofed
+message on the public topic therefore costs a wasted request and can never put
+false scores on screen.
+
+The page also polls every 20 seconds and on regaining focus, skipping the hands
+query when `updated_at` has not moved, so a dropped socket or a phone that went
+to sleep does not leave it stale.
 
 ## Deploying to Vercel
 

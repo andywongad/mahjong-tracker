@@ -3,6 +3,7 @@ import { Sora } from 'next/font/google';
 import { GamesProvider } from '@/lib/game/GamesProvider';
 import { NavigationProvider } from '@/lib/game/navigation';
 import { GlossaryProvider } from '@/lib/glossary/GlossaryProvider';
+import { AuthProvider } from '@/lib/supabase/AuthProvider';
 import { ServiceWorker } from '@/components/ui/ServiceWorker';
 import { THEME_INIT_SCRIPT } from '@/components/ui/ThemeToggle';
 import './globals.css';
@@ -45,11 +46,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <GamesProvider>
-          <NavigationProvider>
-            <GlossaryProvider>{children}</GlossaryProvider>
-          </NavigationProvider>
-        </GamesProvider>
+        <AuthProvider>
+          <GamesProvider>
+            <NavigationProvider>
+              <GlossaryProvider>{children}</GlossaryProvider>
+            </NavigationProvider>
+          </GamesProvider>
+        </AuthProvider>
         <ServiceWorker />
       </body>
     </html>

@@ -20,6 +20,26 @@ const GLOSSARY_FOR_TYPE: Record<string, string> = {
   draw: 'lau_guk',
 };
 
+/** The row's content: a button when it opens an editor, plain text when not. */
+function RowBody({
+  readOnly,
+  onEdit,
+  children,
+}: {
+  readOnly: boolean;
+  onEdit: () => void;
+  children: React.ReactNode;
+}) {
+  if (readOnly) {
+    return <div className="min-w-0 flex-1 py-2 text-left">{children}</div>;
+  }
+  return (
+    <button type="button" onClick={onEdit} className="touch min-w-0 flex-1 py-2 text-left">
+      {children}
+    </button>
+  );
+}
+
 /** A one line description of what happened in a hand. */
 function describe(row: HandRow, players: GameRecord['players']): string {
   const { hand } = row;
@@ -41,10 +61,13 @@ export function HandLog({
   game,
   onEdit,
   footer,
+  readOnly = false,
 }: {
   rows: HandRow[];
   game: GameRecord;
-  onEdit: (row: HandRow) => void;
+  onEdit?: (row: HandRow) => void;
+  /** A shared game is watched, not edited. */
+  readOnly?: boolean;
   /** The running tally, shown as the closing row of the same card. */
   footer?: React.ReactNode;
 }) {
@@ -112,11 +135,7 @@ export function HandLog({
                 </span>
               </Term>
 
-              <button
-                type="button"
-                onClick={() => onEdit(row)}
-                className="touch min-w-0 flex-1 py-2 text-left"
-              >
+              <RowBody readOnly={readOnly} onEdit={() => onEdit?.(row)}>
                 <span className="flex items-baseline gap-2">
                   <span
                     className="tnum w-4 shrink-0 text-xs font-semibold"
@@ -149,7 +168,7 @@ export function HandLog({
                     </span>
                   ))}
                 </span>
-              </button>
+              </RowBody>
             </li>
           );
         })}

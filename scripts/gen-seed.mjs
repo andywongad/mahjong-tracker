@@ -61,17 +61,36 @@ begin
   delete from public.games
    where owner_id = v_owner and date = date '2026-08-19' and share_slug = 'aug19-2026';
 
-  insert into public.games (owner_id, date, player_names, zaa_wu_penalty, share_slug)
+  insert into public.games (owner_id, date, player_names, rules, rule_set_name, share_slug)
   values (
     v_owner,
     date '2026-08-19',
     array['Player A', 'Player B', 'Player C', 'Player D'],
-    13,
+    -- The group's own table: linear curve, 3 to 13 faan. These are the rules
+    -- the reference scores were produced under.
+    jsonb_build_object(
+      'preset', 'our_table',
+      'minFaan', 3,
+      'faanCap', 13,
+      'limitPaysCap', true,
+      'curve', 'linear',
+      'selfDrawEachMult', 2,
+      'discardShooterMult', 2,
+      'discardOthersMult', 1,
+      'dealerMult', 1,
+      'selfDrawBonusFaan', 0,
+      'zaaWuPenalty', 13,
+      'newSix', false,
+      'sevenPairs', false,
+      'baseUnit', 0,
+      'currency', '$'
+    ),
+    'Our table',
     'aug19-2026'
   )
   returning id into v_game;
 
-  insert into public.hands (game_id, seq, type, winner_seat, discarder_seat, offender_seat, points)
+  insert into public.hands (game_id, seq, type, winner_seat, discarder_seat, offender_seat, faan)
   -- In a multi row VALUES list the literals resolve to text, so the enum and
   -- the smallint seats need explicit casts on the way in.
   select
@@ -81,10 +100,10 @@ begin
     winner_seat::smallint,
     discarder_seat::smallint,
     offender_seat::smallint,
-    points
+    faan
   from (values
 ${values}
-  ) as h(seq, type, winner_seat, discarder_seat, offender_seat, points);
+  ) as h(seq, type, winner_seat, discarder_seat, offender_seat, faan);
 
   raise notice 'Seeded game % with % hands', v_game, (select count(*) from public.hands where game_id = v_game);
 end $$;
