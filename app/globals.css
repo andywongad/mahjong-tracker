@@ -178,6 +178,12 @@
   --font-hanzi: 'Noto Serif TC Subset', 'Noto Serif TC', 'Songti TC', serif;
 
   --radius-tile: var(--radius-tile);
+
+  /* Named breakpoints for the three moments the app is designed for: a phone in
+     one hand, a tablet shared across the table, a desktop after the game. The
+     default sm/md/lg scale is left alone so existing utilities do not move. */
+  --breakpoint-tablet: 600px;
+  --breakpoint-desktop: 1024px;
 }
 
 /* ---------------------------------------------------------------------------
@@ -310,6 +316,35 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Until the first hand is ever recorded, the seats say quietly that they are
+   the way in. Neutralised by the reduced-motion rule above. */
+@keyframes seat-pulse {
+  0%,
+  100% {
+    box-shadow: var(--shadow-tile);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-tile),
+      0 0 0 3px var(--tile-back);
+  }
+}
+
+.seat-pulse {
+  animation: seat-pulse 2.4s ease-in-out infinite;
+}
+
+/* Clears the pinned record bar and the undo toast on phones. */
+.pad-record-bar {
+  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 600px) {
+  .pad-record-bar {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 }
 

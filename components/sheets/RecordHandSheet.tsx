@@ -23,7 +23,14 @@ import { TileChoice } from '@/components/ui/TileChoice';
 import { Wind } from '@/components/ui/Wind';
 import { formatSigned } from '@/components/ui/Score';
 
-const HAND_TYPE_ORDER: HandType[] = ['ceot_cung', 'zi_mo', 'zaa_wu', 'draw'];
+/**
+ * Recording starts from "this player won", so only the two ways of winning are
+ * offered. A draw and a false win have no winner and live under the table
+ * instead. Editing can still reach all four, because a hand recorded as the
+ * wrong kind has to be correctable.
+ */
+const WIN_TYPES: HandType[] = ['ceot_cung', 'zi_mo'];
+const ALL_TYPES: HandType[] = ['ceot_cung', 'zi_mo', 'zaa_wu', 'draw'];
 
 interface Draft {
   type: HandType | null;
@@ -115,6 +122,7 @@ export function RecordHandSheet({
   onClose,
   onSave,
   onDelete,
+  onSwitchToFalseWin,
 }: {
   open: boolean;
   game: GameRecord;
@@ -129,6 +137,8 @@ export function RecordHandSheet({
   onClose: () => void;
   onSave: (hand: Hand) => void | Promise<void>;
   onDelete?: () => void | Promise<void>;
+  /** Offered when a built hand cannot reach the table minimum. */
+  onSwitchToFalseWin?: () => void;
 }) {
   // The parent remounts this sheet whenever it opens or switches hand, so the
   // draft can start from the hand being edited without resetting in an effect.
@@ -170,28 +180,61 @@ export function RecordHandSheet({
   function setType(type: HandType) {
     setDraft((current) => {
       if (current.type === type) return current;
-      // A false win is about the offender, a win about the winner, but either
-      // way it is the player who was tapped.
+      if (type === 'ceot_cung' || type === 'zi_mo') {
+        // Both are the same win by a different route, so the winner and a faan
+        // that was tapped by hand survive the switch. A built hand does not:
+        // its patterns were chosen for one route and may not apply to the other.
+        const built = (current.patterns?.length ?? 0) > 0;
+        return {
+          ...EMPTY_DRAFT,
+          type,
+          winnerSeat: current.winnerSeat ?? presetSeat ?? null,
+          faan: built ? null : current.faan,
+        };
+      }
+      // A draw or a false win is not about a winner at all.
       const keep =
-        presetSeat != null && !editing
-          ? { winnerSeat: presetSeat, offenderSeat: presetSeat }
-          : {};
+        type === 'zaa_wu' ? { offenderSeat: presetSeat ?? null } : {};
       return { ...EMPTY_DRAFT, ...keep, type };
     });
   }
 
-  // Which question is still open, so an abandoned attempt says where it stopped.
-  const pendingStep = !draft.type
-    ? 'type'
-    : needsWinner && draft.winnerSeat == null
-      ? 'winner'
-      : needsOffender && draft.offenderSeat == null
-        ? 'offender'
-        : needsDiscarder && draft.discarderSeat == null
-          ? 'discarder'
-          : needsFaan && draft.faan == null
-            ? 'faan'
-            : 'confirm';
+  // The questions still open, in the order they are asked. The first one names
+  // the step an abandoned attempt stopped at, and tells the save button what is
+  // missing rather than leaving it greyed out and silent.
+  const openQuestions: { key: string; missing: string }[] = [];
+  if (editing) {
+    if (draft.type === null) {
+      openQuestions.push({ key: 'type', missing: 'Pick how the hand ended' });
+    }
+    if (needsWinner && draft.winnerSeat == null) {
+      openQuestions.push({ key: 'winner', missing: 'Pick who won' });
+    }
+  } else {
+    if (draft.winnerSeat == null) {
+      openQuestions.push({ key: 'winner', missing: 'Pick who won' });
+    }
+    if (draft.type === null) {
+      openQuestions.push({ key: 'type', missing: 'Pick how they won' });
+    }
+  }
+  if (needsOffender && draft.offenderSeat == null) {
+    openQuestions.push({ key: 'offender', missing: 'Pick who called it' });
+  }
+  if (needsDiscarder && draft.discarderSeat == null) {
+    openQuestions.push({ key: 'shooter', missing: 'Pick the shooter' });
+  }
+  if (needsFaan && draft.faan == null) {
+    openQuestions.push({ key: 'faan', missing: 'Pick faan' });
+  }
+
+  const nextQuestion = openQuestions[0] ?? null;
+  const pendingStep = nextQuestion?.key ?? 'confirm';
+  const saveLabel = nextQuestion
+    ? nextQuestion.missing
+    : editing
+      ? 'Save changes'
+      : `Save hand ${handNumber}`;
 
   // Read at unmount, when the render that set it is long gone.
   const stepRef = useRef(pendingStep);
@@ -235,6 +278,70 @@ export function RecordHandSheet({
     logEvent('hand_deleted');
     onClose();
   }
+
+  const typePicker = (
+    <Step label={editing ? 'How did the hand end?' : 'How did they win?'}>
+      {/* Two across rather than four, so the name and its plain English reading
+        both fit on one line and the targets stay large. */}
+      <div className="grid grid-cols-2 gap-2">
+        {(editing ? ALL_TYPES : WIN_TYPES).map((type) => {
+          const label = HAND_TYPE_LABELS[type];
+          const selected = draft.type === type;
+          return (
+            <TileChoice
+              key={type}
+              selected={selected}
+              onClick={() => setType(type)}
+              className="gap-0.5 py-2.5"
+            >
+              <span
+                lang="zh-Hant"
+                className="hanzi text-xl leading-none"
+                aria-hidden="true"
+              >
+                {label.hanzi}
+              </span>
+              <span className="text-sm leading-tight font-semibold">
+                {label.roman}
+              </span>
+              <span
+                className="text-xs leading-tight"
+                style={{
+                  color: selected ? 'var(--on-player-solid)' : 'var(--muted)',
+                }}
+              >
+                {type === 'ceot_cung' && !editing
+                  ? 'Off a discard'
+                  : label.english}
+              </span>
+            </TileChoice>
+          );
+        })}
+      </div>
+    </Step>
+  );
+
+  const showWinnerPicker =
+    (needsWinner || (!editing && draft.type == null)) &&
+    (presetSeat == null || changingPlayer || editing);
+
+  const winnerPicker = showWinnerPicker ? (
+    <Step label="Who won?">
+      <SeatPicker
+        game={game}
+        value={draft.winnerSeat}
+        onChange={(seat) =>
+          setDraft((current) => ({
+            ...current,
+            winnerSeat: seat,
+            // The winner cannot also be the shooter.
+            discarderSeat:
+              current.discarderSeat === seat ? null : current.discarderSeat,
+          }))
+        }
+      />
+    </Step>
+  ) : null;
 
   return (
     <>
@@ -310,7 +417,7 @@ export function RecordHandSheet({
                       }
                 }
               >
-                {editing ? 'Save changes' : 'Save hand'}
+                {saveLabel}
               </button>
             </div>
           </div>
@@ -329,9 +436,7 @@ export function RecordHandSheet({
                 }}
               >
                 <span className="min-w-0 text-sm">
-                  <span style={{ color: 'var(--muted)' }}>
-                    {draft.type === 'zaa_wu' ? 'Called by ' : 'Won by '}
-                  </span>
+                  <span style={{ color: 'var(--muted)' }}>Won by </span>
                   <span className="font-semibold">
                     {game.players[chosenSeat]}
                   </span>
@@ -347,66 +452,8 @@ export function RecordHandSheet({
               </div>
             )}
 
-          <Step label="How did the hand end?">
-            {/* Two across rather than four, so the name and its plain English
-              reading both fit on one line and the targets stay large. */}
-            <div className="grid grid-cols-2 gap-2">
-              {HAND_TYPE_ORDER.map((type) => {
-                const label = HAND_TYPE_LABELS[type];
-                const selected = draft.type === type;
-                return (
-                  <TileChoice
-                    key={type}
-                    selected={selected}
-                    onClick={() => setType(type)}
-                    className="gap-0.5 py-2.5"
-                  >
-                    <span
-                      lang="zh-Hant"
-                      className="hanzi text-xl leading-none"
-                      aria-hidden="true"
-                    >
-                      {label.hanzi}
-                    </span>
-                    <span className="text-sm leading-tight font-semibold">
-                      {label.roman}
-                    </span>
-                    <span
-                      className="text-xs leading-tight"
-                      style={{
-                        color: selected
-                          ? 'var(--on-player-solid)'
-                          : 'var(--muted)',
-                      }}
-                    >
-                      {label.english}
-                    </span>
-                  </TileChoice>
-                );
-              })}
-            </div>
-          </Step>
-
-          {(needsWinner || (changingPlayer && draft.type == null)) &&
-            (presetSeat == null || changingPlayer || editing) && (
-              <Step label="Who won?">
-                <SeatPicker
-                  game={game}
-                  value={draft.winnerSeat}
-                  onChange={(seat) =>
-                    setDraft((current) => ({
-                      ...current,
-                      winnerSeat: seat,
-                      // The winner cannot also be the shooter.
-                      discarderSeat:
-                        current.discarderSeat === seat
-                          ? null
-                          : current.discarderSeat,
-                    }))
-                  }
-                />
-              </Step>
-            )}
+          {editing ? typePicker : winnerPicker}
+          {editing ? winnerPicker : typePicker}
 
           {needsDiscarder && (
             <Step label="Who was the shooter?">
@@ -503,8 +550,17 @@ export function RecordHandSheet({
         onUse={(faan, patterns, isLimit) =>
           setDraft((current) => ({ ...current, faan, patterns, isLimit }))
         }
-        onRecordZaaWu={() =>
-          setDraft({ ...EMPTY_DRAFT, type: 'zaa_wu', winnerSeat: null })
+        onRecordZaaWu={
+          editing
+            ? () =>
+                setDraft({ ...EMPTY_DRAFT, type: 'zaa_wu', winnerSeat: null })
+            : onSwitchToFalseWin
+              ? () => {
+                  // A false win has no winner, so it is recorded elsewhere.
+                  onClose();
+                  onSwitchToFalseWin();
+                }
+              : undefined
         }
       />
     </>

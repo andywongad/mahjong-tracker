@@ -11,6 +11,7 @@ import { Wind } from '@/components/ui/Wind';
 import { formatSigned } from '@/components/ui/Score';
 import { Term } from '@/components/ui/Term';
 import { PlayerColumns } from './PlayerColumns';
+import { describeHand } from '@/lib/game/describe';
 
 /** Which glossary entry explains each way a hand can end. */
 const GLOSSARY_FOR_TYPE: Record<string, string> = {
@@ -38,21 +39,6 @@ function RowBody({
       {children}
     </button>
   );
-}
-
-/** A one line description of what happened in a hand. */
-function describe(row: HandRow, players: GameRecord['players']): string {
-  const { hand } = row;
-  switch (hand.type) {
-    case 'ceot_cung':
-      return `${players[hand.winnerSeat]} won ${hand.faan} off ${players[hand.discarderSeat]}`;
-    case 'zi_mo':
-      return `${players[hand.winnerSeat]} self drew ${hand.faan}`;
-    case 'zaa_wu':
-      return `${players[hand.offenderSeat]} called a false win`;
-    case 'draw':
-      return 'Nobody won';
-  }
 }
 
 /** The hand log, newest first. Tapping a hand opens it for editing. */
@@ -146,7 +132,7 @@ export function HandLog({
                   <Wind wind={row.round} className="shrink-0 text-sm" />
                   <span className="sr-only">{label.roman}. </span>
                   <span className="min-w-0 flex-1 truncate text-sm">
-                    {describe(row, game.players)}
+                    {describeHand(row.hand, game.players)}
                   </span>
                 </span>
 

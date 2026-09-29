@@ -18,6 +18,7 @@ export function SeatCard({
   compact = false,
   onSelect,
   selectLabel,
+  pulse = false,
 }: {
   seat: Seat;
   name: string;
@@ -29,6 +30,8 @@ export function SeatCard({
   onSelect?: () => void;
   /** What tapping the card does, for screen readers. */
   selectLabel?: string;
+  /** Draws the eye to the seats before the first hand is ever recorded. */
+  pulse?: boolean;
 }) {
   const wind = SEAT_WINDS[seat];
   const color = seatColor(seat);
@@ -87,7 +90,7 @@ export function SeatCard({
       type="button"
       onClick={onSelect}
       aria-label={selectLabel ?? `Record a hand won by ${name}`}
-      className={`${className} tile-pressable touch`}
+      className={`${className} tile-pressable touch${pulse ? ' seat-pulse' : ''}`}
       style={style}
     >
       {inner}

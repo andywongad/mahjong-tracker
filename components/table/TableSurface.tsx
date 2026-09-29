@@ -17,6 +17,7 @@ export function TableSurface({
   replay,
   onSelectSeat,
   endedEarly = false,
+  pulseSeats = false,
 }: {
   game: GameRecord;
   replay: ReplayResult;
@@ -24,6 +25,8 @@ export function TableSurface({
   onSelectSeat?: (seat: Seat) => void;
   /** The scorekeeper called the game before the rounds ran out. */
   endedEarly?: boolean;
+  /** Nudges the seats until the first hand has ever been recorded. */
+  pulseSeats?: boolean;
 }) {
   return (
     <div
@@ -47,7 +50,8 @@ export function TableSurface({
               isDealer={replay.currentDealerSeat === seat}
               compact
               onSelect={onSelectSeat ? () => onSelectSeat(seat) : undefined}
-              selectLabel={`Record hand ${replay.handCount + 1} for ${game.players[seat]}`}
+              selectLabel={`Record hand ${replay.handCount + 1} won by ${game.players[seat]}`}
+              pulse={pulseSeats}
             />
           </div>
         ))}
@@ -85,7 +89,10 @@ export function TableSurface({
             {(replay.isComplete || endedEarly) && (
               <p
                 className="mt-0.5 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold tracking-wide uppercase"
-                style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}
+                style={{
+                  background: 'var(--badge-bg)',
+                  color: 'var(--on-badge)',
+                }}
               >
                 Final
               </p>
@@ -93,15 +100,6 @@ export function TableSurface({
           </div>
         </div>
       </div>
-
-      {onSelectSeat && (
-        <p
-          className="mt-2 text-center text-xs"
-          style={{ color: 'var(--muted-on-felt)' }}
-        >
-          Tap whoever won to record hand {replay.handCount + 1}
-        </p>
-      )}
     </div>
   );
 }

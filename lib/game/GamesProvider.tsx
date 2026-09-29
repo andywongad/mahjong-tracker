@@ -35,7 +35,8 @@ interface GamesContextValue {
     >,
   ) => Promise<void>;
   deleteGame: (id: string) => Promise<void>;
-  addHand: (gameId: string, hand: Hand) => Promise<void>;
+  /** Resolves with the new hand's id, so it can be undone by hand rather than by position. */
+  addHand: (gameId: string, hand: Hand) => Promise<string>;
   updateHand: (gameId: string, handId: string, hand: Hand) => Promise<void>;
   deleteHand: (gameId: string, handId: string) => Promise<void>;
 }
@@ -111,8 +112,9 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
         await refresh();
       },
       async addHand(gameId, hand) {
-        await localStore.addHand(gameId, hand);
+        const saved = await localStore.addHand(gameId, hand);
         await refresh();
+        return saved.hands[saved.hands.length - 1].id;
       },
       async updateHand(gameId, handId, hand) {
         await localStore.updateHand(gameId, handId, hand);

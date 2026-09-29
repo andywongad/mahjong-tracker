@@ -1,27 +1,46 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { replay as replayGame, type Hand, type HandRow, type Seat } from '@/lib/scoring';
+import {
+  HAND_TYPE_LABELS,
+  replay as replayGame,
+  type Hand,
+  type HandRow,
+  type Seat,
+} from '@/lib/scoring';
 import { useGame } from '@/lib/game/GamesProvider';
 import { useNavigation } from '@/lib/game/navigation';
 import { formatGameDate } from '@/lib/game/format';
+import { describeHand } from '@/lib/game/describe';
 import { useWakeLock } from '@/lib/hooks/useWakeLock';
+import { markRecorded, useFirstRecord } from '@/lib/hooks/useFirstRecord';
+import { logEvent } from '@/lib/telemetry/events';
 import { AppHeader, HeaderButton } from '@/components/ui/AppHeader';
 import { OfflineBadge } from '@/components/ui/OfflineBadge';
+import { UndoToast } from '@/components/ui/UndoToast';
 import { TableSurface } from './TableSurface';
 import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
+import { FalseWinSheet } from '@/components/sheets/FalseWinSheet';
 import { TallySummary } from './TallySummary';
 
+/** What the undo toast is currently offering to take back. */
+interface Undoable {
+  handId: string;
+  message: string;
+}
+
 export function GameScreen({ gameId }: { gameId: string }) {
-  const { game, loading, addHand, updateHand, deleteHand, updateGame } = useGame(gameId);
+  const { game, loading, addHand, updateHand, deleteHand, updateGame } =
+    useGame(gameId);
   const { go } = useNavigation();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [falseWinOpen, setFalseWinOpen] = useState(false);
   const [editing, setEditing] = useState<HandRow | null>(null);
   const [presetSeat, setPresetSeat] = useState<Seat | null>(null);
-  // A draw is one tap, so it needs a way back from a mis-tap.
-  const [lastDrawId, setLastDrawId] = useState<string | null>(null);
+  const [undoable, setUndoable] = useState<Undoable | null>(null);
   const [confirmingEnd, setConfirmingEnd] = useState(false);
+  const neverRecorded = useFirstRecord();
 
   // Keep the screen awake while a game is on the table.
   useWakeLock(Boolean(game));
@@ -32,7 +51,11 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const finished = Boolean(result?.isComplete) || endedEarly;
 
   if (loading) {
-    return <p className="p-6 text-sm" style={{ color: 'var(--muted)' }}>Loading…</p>;
+    return (
+      <p className="p-6 text-sm" style={{ color: 'var(--muted)' }}>
+        Loading…
+      </p>
+    );
   }
 
   if (!game || !result) {
@@ -50,38 +73,52 @@ export function GameScreen({ gameId }: { gameId: string }) {
     );
   }
 
+  const live = !endedEarly;
+  const nextHand = result.handCount + 1;
+
+  /** Tapping a seat says who won, before the sheet has asked anything. */
   function openForSeat(seat: Seat) {
     setEditing(null);
     setPresetSeat(seat);
-    setLastDrawId(null);
+    setUndoable(null);
+    setSheetOpen(true);
+  }
+
+  /** The same sheet with nobody chosen yet, for the button rather than the table. */
+  function openWithPicker() {
+    setEditing(null);
+    setPresetSeat(null);
+    setUndoable(null);
     setSheetOpen(true);
   }
 
   function openEdit(row: HandRow) {
     setEditing(row);
     setPresetSeat(null);
-    setLastDrawId(null);
+    setUndoable(null);
     setSheetOpen(true);
   }
 
-  async function recordDraw() {
-    await addHand(game!.id, { type: 'draw' });
-    // The new hand is last in the list, so it is the one to undo.
-    setLastDrawId('pending');
+  /** Every new hand lands the same way: saved, then undoable for six seconds. */
+  async function record(hand: Hand) {
+    const handId = await addHand(game!.id, hand);
+    markRecorded();
+    setUndoable({ handId, message: describeHand(hand, game!.players) });
   }
 
-  async function undoDraw() {
-    const last = game!.hands[game!.hands.length - 1];
-    if (last?.type === 'draw') await deleteHand(game!.id, last.id);
-    setLastDrawId(null);
+  async function undo() {
+    if (!undoable) return;
+    await deleteHand(game!.id, undoable.handId);
+    logEvent('undo_used');
+    setUndoable(null);
   }
 
   async function save(hand: Hand) {
     if (editing) {
       await updateHand(game!.id, game!.hands[editing.index].id, hand);
-    } else {
-      await addHand(game!.id, hand);
+      return;
     }
+    await record(hand);
   }
 
   async function remove() {
@@ -102,18 +139,28 @@ export function GameScreen({ gameId }: { gameId: string }) {
         }
       />
 
-      <main id="main" tabIndex={-1} className="flex flex-col gap-5 px-4 py-4 pad-safe-bottom">
+      <main
+        id="main"
+        tabIndex={-1}
+        className={`flex flex-col gap-5 px-4 py-4 ${live ? 'pad-record-bar' : 'pad-safe-bottom'}`}
+      >
         <TableSurface
           game={game}
           replay={result}
-          onSelectSeat={endedEarly ? undefined : openForSeat}
+          onSelectSeat={live ? openForSeat : undefined}
           endedEarly={endedEarly}
+          // Only on a game that has barely started: a nudge over a sample game
+          // already nineteen hands deep is noise, not help.
+          pulseSeats={live && neverRecorded && result.handCount < 3}
         />
 
         {endedEarly ? (
           <div
             className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"
-            style={{ background: 'var(--tile-face)', border: '1px solid var(--line-strong)' }}
+            style={{
+              background: 'var(--tile-face)',
+              border: '1px solid var(--line-strong)',
+            }}
           >
             <span className="text-sm">
               Game ended after {result.handCount}{' '}
@@ -128,36 +175,41 @@ export function GameScreen({ gameId }: { gameId: string }) {
               Reopen
             </button>
           </div>
-        ) : lastDrawId ? (
-          <div
-            className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"
-            style={{ background: 'var(--tile-face)', border: '1px solid var(--line-strong)' }}
-            role="status"
-          >
-            <span className="text-sm">
-              Hand {result.handCount} recorded as a draw.
-            </span>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {/* The table is the fast way in on a phone, where the pinned bar
+              carries the same action. With room beside it, the button is the
+              one that should be obvious. */}
             <button
               type="button"
-              onClick={undoDraw}
-              className="touch shrink-0 px-2 text-sm font-semibold underline"
-              style={{ color: 'var(--accent)' }}
+              onClick={openWithPicker}
+              className="touch hidden w-full rounded-xl py-3 text-sm font-semibold tablet:block"
+              style={{ background: 'var(--tile-back)', color: '#fff' }}
             >
-              Undo
+              Record hand {nextHand}
             </button>
+
+            {/* Neither of these has a winner, so neither belongs in the sheet
+              that records one. */}
+            <div className="grid grid-cols-2 gap-2">
+              <SecondaryAction
+                hanzi={HAND_TYPE_LABELS.draw.hanzi}
+                label={HAND_TYPE_LABELS.draw.english}
+                onClick={() => {
+                  setUndoable(null);
+                  void record({ type: 'draw' });
+                }}
+              />
+              <SecondaryAction
+                hanzi={HAND_TYPE_LABELS.zaa_wu.hanzi}
+                label={HAND_TYPE_LABELS.zaa_wu.english}
+                onClick={() => {
+                  setUndoable(null);
+                  setFalseWinOpen(true);
+                }}
+              />
+            </div>
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={recordDraw}
-            className="touch w-full rounded-xl py-3 text-sm font-semibold"
-            style={{ border: '1px solid var(--line-strong)', color: 'var(--ink)' }}
-          >
-            <span lang="zh-Hant" className="hanzi" aria-hidden="true">
-              流局
-            </span>{' '}
-            Nobody won, record a draw
-          </button>
         )}
 
         <OfflineBadge />
@@ -221,8 +273,42 @@ export function GameScreen({ gameId }: { gameId: string }) {
               : 'End game early'}
           </button>
         )}
-
       </main>
+
+      {/* Pinned to the bottom edge, where a thumb already is. The toast sits
+        above the bar so neither hides the other. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-2 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="flex w-full max-w-[36rem] flex-col gap-2">
+          {undoable && (
+            <UndoToast
+              key={undoable.handId}
+              message={undoable.message}
+              onUndo={undo}
+              onDismiss={() => setUndoable(null)}
+            />
+          )}
+
+          {live && (
+            <button
+              type="button"
+              onClick={openWithPicker}
+              className="touch pointer-events-auto w-full rounded-xl px-4 py-2.5 text-center tablet:hidden"
+              style={{
+                background: 'var(--tile-back)',
+                color: '#fff',
+                boxShadow: 'var(--shadow-sheet)',
+              }}
+            >
+              <span className="block text-sm font-semibold">
+                Record hand {nextHand}
+              </span>
+              <span className="block text-xs opacity-80">
+                or tap the winner on the table
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Keyed so each open starts from a clean draft, or from the hand being
           edited, without the sheet resetting itself after the fact. */}
@@ -234,14 +320,55 @@ export function GameScreen({ gameId }: { gameId: string }) {
         }
         open={sheetOpen}
         game={game}
-        handNumber={result.handCount + 1}
+        handNumber={nextHand}
         presetSeat={presetSeat}
         dealerSeat={result.currentDealerSeat}
         editing={editing}
         onClose={() => setSheetOpen(false)}
         onSave={save}
         onDelete={editing ? remove : undefined}
+        onSwitchToFalseWin={() => setFalseWinOpen(true)}
+      />
+
+      <FalseWinSheet
+        key={
+          falseWinOpen ? `false-win-${result.handCount}` : 'false-win-closed'
+        }
+        open={falseWinOpen}
+        game={game}
+        handNumber={nextHand}
+        onClose={() => setFalseWinOpen(false)}
+        onSave={record}
       />
     </>
+  );
+}
+
+/** A draw or a false win: equal weight, plainly secondary to recording a win. */
+function SecondaryAction({
+  hanzi,
+  label,
+  onClick,
+}: {
+  hanzi: string;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="touch flex items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-semibold"
+      style={{ border: '1px solid var(--line-strong)', color: 'var(--ink)' }}
+    >
+      <span
+        lang="zh-Hant"
+        className="hanzi text-base leading-none"
+        aria-hidden="true"
+      >
+        {hanzi}
+      </span>
+      {label}
+    </button>
   );
 }

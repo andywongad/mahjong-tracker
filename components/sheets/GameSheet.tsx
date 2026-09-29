@@ -115,8 +115,8 @@ export function GameSheet({
               color: 'var(--muted)',
             }}
           >
-            This is for the date, players and penalty. To record hands, close this
-            and use Record hand on the table.
+            This is for the date, players and penalty. To record a hand, close
+            this and tap whoever won, or use Record hand under the table.
           </p>
         )}
 
