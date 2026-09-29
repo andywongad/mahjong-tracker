@@ -23,6 +23,7 @@ import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
 import { FalseWinSheet } from '@/components/sheets/FalseWinSheet';
 import { TallySummary } from './TallySummary';
+import { ScoreChart } from '@/components/stats/ScoreChart';
 
 /** What the undo toast is currently offering to take back. */
 interface Undoable {
@@ -242,6 +243,21 @@ export function GameScreen({ gameId }: { gameId: string }) {
           </div>
 
           <aside className="flex flex-col gap-3 desktop:sticky desktop:top-20">
+            {/* The side column exists to hold what you read while scrolling the
+              log. On a phone the chart lives on Stats and this is skipped. */}
+            {result.handCount > 0 && (
+              <section className="hidden flex-col gap-2 desktop:flex">
+                <h2 className="text-base font-bold">Running score</h2>
+                <div className="tile-sm px-3 py-3">
+                  <ScoreChart
+                    series={result.series}
+                    players={game.players}
+                    rounds={result.rows.map((row) => row.round)}
+                  />
+                </div>
+              </section>
+            )}
+
             {result.handCount > 0 && (
               // Settling belongs where the game ends, not back on the games list.
               // It leads once the game is final, and waits quietly until then.

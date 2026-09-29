@@ -249,7 +249,11 @@ export function StatsScreen({ gameId }: { gameId: string }) {
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold">Running score</h2>
           <div className="tile px-3 py-3">
-            <ScoreChart series={result.series} players={game.players} />
+            <ScoreChart
+              series={result.series}
+              players={game.players}
+              rounds={result.rows.map((row) => row.round)}
+            />
           </div>
         </section>
 
