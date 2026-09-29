@@ -87,7 +87,7 @@ export function ShareScreen({ slug }: { slug: string }) {
       <main
         id="main"
         tabIndex={-1}
-        className="flex flex-col gap-5 px-4 py-4 pad-safe-bottom"
+        className="page-column flex flex-col gap-5 px-4 py-4 pad-safe-bottom"
       >
         {/* No onSelectSeat: a viewer cannot record anything. */}
         <TableSurface

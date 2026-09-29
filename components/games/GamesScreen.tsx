@@ -54,7 +54,7 @@ export function GamesScreen() {
       <main
         id="main"
         tabIndex={-1}
-        className="flex flex-col gap-6 px-4 py-4 pad-safe-bottom"
+        className="page-column flex flex-col gap-6 px-4 py-4 pad-safe-bottom"
       >
         <button
           type="button"
@@ -334,7 +334,7 @@ export function GamesScreen() {
                     >
                       <th
                         scope="row"
-                        className="px-3 py-2 text-left font-semibold"
+                        className="px-3 py-2 text-left font-semibold whitespace-nowrap"
                       >
                         {row.name}
                       </th>

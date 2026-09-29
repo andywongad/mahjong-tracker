@@ -319,6 +319,28 @@ body {
   }
 }
 
+/* One column of readable width, centred. At the body size 720px keeps a line of
+   prose near 75 characters, which is where reading speed stops improving. */
+.page-column {
+  width: 100%;
+  max-width: 45rem;
+  margin-inline: auto;
+}
+
+/* The game view on a desktop is two columns rather than one, so it is allowed
+   to be wider: a 640px table beside a 400px side column. */
+.page-wide {
+  width: 100%;
+  max-width: 45rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .page-wide {
+    max-width: 66rem;
+  }
+}
+
 /* Until the first hand is ever recorded, the seats say quietly that they are
    the way in. Neutralised by the reduced-motion rule above. */
 @keyframes seat-pulse {

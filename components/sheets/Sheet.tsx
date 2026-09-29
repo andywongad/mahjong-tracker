@@ -12,7 +12,8 @@ const FOCUSABLE = [
 ].join(',');
 
 /**
- * A bottom sheet. Opens from the bottom edge so it sits under the thumb.
+ * A bottom sheet on a phone, where it sits under the thumb; a centred dialog
+ * from 600px up, where the bottom edge is nowhere near the hand.
  *
  * Accessibility: it is a modal dialog, so focus moves into it on open, is kept
  * inside while it is open (WCAG 2.1.2, no keyboard trap beyond the dialog
@@ -91,7 +92,7 @@ export function Sheet({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end tablet:items-center tablet:justify-center tablet:p-6">
       <button
         type="button"
         aria-label="Close"
@@ -107,8 +108,11 @@ export function Sheet({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="pad-safe-bottom relative flex max-h-[90vh] flex-col rounded-t-2xl outline-none"
-        style={{ background: 'var(--surface)', boxShadow: 'var(--shadow-sheet)' }}
+        className="pad-safe-bottom relative flex max-h-[90vh] w-full flex-col rounded-t-2xl outline-none tablet:max-h-[85vh] tablet:max-w-[35rem] tablet:rounded-2xl tablet:pb-0"
+        style={{
+          background: 'var(--surface)',
+          boxShadow: 'var(--shadow-sheet)',
+        }}
       >
         <div
           className="flex items-center justify-between gap-3 border-b px-4 py-3"
@@ -127,10 +131,15 @@ export function Sheet({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+          {children}
+        </div>
 
         {footer && (
-          <div className="border-t px-4 py-3" style={{ borderColor: 'var(--line)' }}>
+          <div
+            className="border-t px-4 py-3"
+            style={{ borderColor: 'var(--line)' }}
+          >
             {footer}
           </div>
         )}

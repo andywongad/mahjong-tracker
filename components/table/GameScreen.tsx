@@ -129,6 +129,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
   return (
     <>
       <AppHeader
+        wide
         title={formatGameDate(game.date)}
         subtitle={game.players.join(' · ')}
         actions={
@@ -142,137 +143,155 @@ export function GameScreen({ gameId }: { gameId: string }) {
       <main
         id="main"
         tabIndex={-1}
-        className={`flex flex-col gap-5 px-4 py-4 ${live ? 'pad-record-bar' : 'pad-safe-bottom'}`}
+        className={`page-wide px-4 py-4 ${live ? 'pad-record-bar' : 'pad-safe-bottom'}`}
       >
-        <TableSurface
-          game={game}
-          replay={result}
-          onSelectSeat={live ? openForSeat : undefined}
-          endedEarly={endedEarly}
-          // Only on a game that has barely started: a nudge over a sample game
-          // already nineteen hands deep is noise, not help.
-          pulseSeats={live && neverRecorded && result.handCount < 3}
-        />
+        {/* One column until there is room for two. On a desktop the table and
+          the log take the left, and what you read while scrolling them stays
+          beside them instead of below. */}
+        <div className="flex flex-col gap-5 desktop:grid desktop:grid-cols-[minmax(0,40rem)_minmax(22.5rem,26.25rem)] desktop:items-start desktop:gap-6">
+          <div className="flex min-w-0 flex-col gap-5">
+            <TableSurface
+              game={game}
+              replay={result}
+              onSelectSeat={live ? openForSeat : undefined}
+              endedEarly={endedEarly}
+              // Only on a game that has barely started: a nudge over a sample game
+              // already nineteen hands deep is noise, not help.
+              pulseSeats={live && neverRecorded && result.handCount < 3}
+            />
 
-        {endedEarly ? (
-          <div
-            className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"
-            style={{
-              background: 'var(--tile-face)',
-              border: '1px solid var(--line-strong)',
-            }}
-          >
-            <span className="text-sm">
-              Game ended after {result.handCount}{' '}
-              {result.handCount === 1 ? 'hand' : 'hands'}.
-            </span>
-            <button
-              type="button"
-              onClick={() => updateGame(game!.id, { endedAt: undefined })}
-              className="touch shrink-0 px-2 text-sm font-semibold underline"
-              style={{ color: 'var(--accent)' }}
-            >
-              Reopen
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {/* The table is the fast way in on a phone, where the pinned bar
+            {endedEarly ? (
+              <div
+                className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"
+                style={{
+                  background: 'var(--tile-face)',
+                  border: '1px solid var(--line-strong)',
+                }}
+              >
+                <span className="text-sm">
+                  Game ended after {result.handCount}{' '}
+                  {result.handCount === 1 ? 'hand' : 'hands'}.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => updateGame(game!.id, { endedAt: undefined })}
+                  className="touch shrink-0 px-2 text-sm font-semibold underline"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  Reopen
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {/* The table is the fast way in on a phone, where the pinned bar
               carries the same action. With room beside it, the button is the
               one that should be obvious. */}
-            <button
-              type="button"
-              onClick={openWithPicker}
-              className="touch hidden w-full rounded-xl py-3 text-sm font-semibold tablet:block"
-              style={{ background: 'var(--tile-back)', color: '#fff' }}
-            >
-              Record hand {nextHand}
-            </button>
+                <button
+                  type="button"
+                  onClick={openWithPicker}
+                  className="touch hidden w-full rounded-xl py-3 text-sm font-semibold tablet:block"
+                  style={{ background: 'var(--tile-back)', color: '#fff' }}
+                >
+                  Record hand {nextHand}
+                </button>
 
-            {/* Neither of these has a winner, so neither belongs in the sheet
+                {/* Neither of these has a winner, so neither belongs in the sheet
               that records one. */}
-            <div className="grid grid-cols-2 gap-2">
-              <SecondaryAction
-                hanzi={HAND_TYPE_LABELS.draw.hanzi}
-                label={HAND_TYPE_LABELS.draw.english}
-                onClick={() => {
-                  setUndoable(null);
-                  void record({ type: 'draw' });
-                }}
+                <div className="grid grid-cols-2 gap-2">
+                  <SecondaryAction
+                    hanzi={HAND_TYPE_LABELS.draw.hanzi}
+                    label={HAND_TYPE_LABELS.draw.english}
+                    onClick={() => {
+                      setUndoable(null);
+                      void record({ type: 'draw' });
+                    }}
+                  />
+                  <SecondaryAction
+                    hanzi={HAND_TYPE_LABELS.zaa_wu.hanzi}
+                    label={HAND_TYPE_LABELS.zaa_wu.english}
+                    onClick={() => {
+                      setUndoable(null);
+                      setFalseWinOpen(true);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <OfflineBadge />
+
+            <section className="flex flex-col gap-2">
+              <div className="flex items-baseline justify-between">
+                <h2 className="text-base font-bold">Hands</h2>
+                <span
+                  className="tnum text-xs"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  {result.handCount} played
+                </span>
+              </div>
+              <HandLog
+                rows={result.rows}
+                game={game}
+                onEdit={openEdit}
+                footer={
+                  result.handCount > 0 ? <TallySummary game={game} /> : null
+                }
               />
-              <SecondaryAction
-                hanzi={HAND_TYPE_LABELS.zaa_wu.hanzi}
-                label={HAND_TYPE_LABELS.zaa_wu.english}
+            </section>
+          </div>
+
+          <aside className="flex flex-col gap-3 desktop:sticky desktop:top-20">
+            {result.handCount > 0 && (
+              // Settling belongs where the game ends, not back on the games list.
+              // It leads once the game is final, and waits quietly until then.
+              <button
+                type="button"
+                onClick={() => go('settle')}
+                className={`touch w-full rounded-xl py-3 text-sm font-semibold ${
+                  finished ? 'tile-pressable' : 'tile-sm tile-pressable'
+                }`}
+                style={
+                  finished
+                    ? {
+                        background: 'var(--tile-back)',
+                        color: '#fff',
+                        boxShadow: '0 3px 0 #0e4a38',
+                      }
+                    : undefined
+                }
+              >
+                Tally details
+              </button>
+            )}
+
+            {result.handCount > 0 && !endedEarly && !result.isComplete && (
+              <button
+                type="button"
                 onClick={() => {
-                  setUndoable(null);
-                  setFalseWinOpen(true);
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        <OfflineBadge />
-
-        <section className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-base font-bold">Hands</h2>
-            <span className="tnum text-xs" style={{ color: 'var(--muted)' }}>
-              {result.handCount} played
-            </span>
-          </div>
-          <HandLog
-            rows={result.rows}
-            game={game}
-            onEdit={openEdit}
-            footer={result.handCount > 0 ? <TallySummary game={game} /> : null}
-          />
-        </section>
-
-        {result.handCount > 0 && (
-          // Settling belongs where the game ends, not back on the games list.
-          // It leads once the game is final, and waits quietly until then.
-          <button
-            type="button"
-            onClick={() => go('settle')}
-            className={`touch w-full rounded-xl py-3 text-sm font-semibold ${
-              finished ? 'tile-pressable' : 'tile-sm tile-pressable'
-            }`}
-            style={
-              finished
-                ? {
-                    background: 'var(--tile-back)',
-                    color: '#fff',
-                    boxShadow: '0 3px 0 #0e4a38',
+                  if (!confirmingEnd) {
+                    setConfirmingEnd(true);
+                    return;
                   }
-                : undefined
-            }
-          >
-            Tally details
-          </button>
-        )}
-
-        {result.handCount > 0 && !endedEarly && !result.isComplete && (
-          <button
-            type="button"
-            onClick={() => {
-              if (!confirmingEnd) {
-                setConfirmingEnd(true);
-                return;
-              }
-              void updateGame(game!.id, { endedAt: new Date().toISOString() });
-              setConfirmingEnd(false);
-            }}
-            // A rare, deliberate, reversible action. Kept as a plain link so it
-            // does not compete with settling, which is the common next step.
-            className="touch mx-auto px-3 text-xs underline underline-offset-2"
-            style={{ color: confirmingEnd ? 'var(--accent)' : 'var(--muted)' }}
-          >
-            {confirmingEnd
-              ? `Tap again to end after ${result.handCount} hands`
-              : 'End game early'}
-          </button>
-        )}
+                  void updateGame(game!.id, {
+                    endedAt: new Date().toISOString(),
+                  });
+                  setConfirmingEnd(false);
+                }}
+                // A rare, deliberate, reversible action. Kept as a plain link so it
+                // does not compete with settling, which is the common next step.
+                className="touch mx-auto px-3 text-xs underline underline-offset-2"
+                style={{
+                  color: confirmingEnd ? 'var(--accent)' : 'var(--muted)',
+                }}
+              >
+                {confirmingEnd
+                  ? `Tap again to end after ${result.handCount} hands`
+                  : 'End game early'}
+              </button>
+            )}
+          </aside>
+        </div>
       </main>
 
       {/* Pinned to the bottom edge, where a thumb already is. The toast sits

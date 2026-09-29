@@ -4,7 +4,12 @@ import { useMemo, useState } from 'react';
 import { useGames } from '@/lib/game/GamesProvider';
 import { useNavigation } from '@/lib/game/navigation';
 import { formatGameDate } from '@/lib/game/format';
-import { formatMoney, formatStake, settle, settlementText } from '@/lib/game/settle';
+import {
+  formatMoney,
+  formatStake,
+  settle,
+  settlementText,
+} from '@/lib/game/settle';
 import { AppHeader } from '@/components/ui/AppHeader';
 import { formatSigned } from '@/components/ui/Score';
 
@@ -67,7 +72,11 @@ export function SettleScreen() {
         back={{ onClick: () => go('games', null), label: 'Games' }}
       />
 
-      <main id="main" tabIndex={-1} className="flex flex-col gap-6 px-4 py-4 pad-safe-bottom">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="page-column flex flex-col gap-6 px-4 py-4 pad-safe-bottom"
+      >
         {loading && (
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
             Loading…
@@ -102,7 +111,10 @@ export function SettleScreen() {
                       <span className="block text-sm font-semibold">
                         {formatGameDate(game.date)}
                       </span>
-                      <span className="block text-xs" style={{ color: 'var(--muted)' }}>
+                      <span
+                        className="block text-xs"
+                        style={{ color: 'var(--muted)' }}
+                      >
                         {game.players.join(' · ')}
                         {game.rules.baseUnit
                           ? ` · ${formatStake(game.rules.baseUnit, game.rules.currency)} a point`
@@ -126,8 +138,8 @@ export function SettleScreen() {
             }}
             role="alert"
           >
-            These games use different currencies, so the money below adds amounts
-            that are not the same thing. Settle them separately.
+            These games use different currencies, so the money below adds
+            amounts that are not the same thing. Settle them separately.
           </p>
         )}
 
@@ -140,14 +152,23 @@ export function SettleScreen() {
                   <caption className="sr-only">Net result per player</caption>
                   <thead>
                     <tr style={{ color: 'var(--muted)' }}>
-                      <th scope="col" className="px-3 py-2 text-left text-xs font-semibold">
+                      <th
+                        scope="col"
+                        className="px-3 py-2 text-left text-xs font-semibold"
+                      >
                         Player
                       </th>
-                      <th scope="col" className="px-2 py-2 text-right text-xs font-semibold">
+                      <th
+                        scope="col"
+                        className="px-2 py-2 text-right text-xs font-semibold"
+                      >
                         Points
                       </th>
                       {settlement.hasMoney && (
-                        <th scope="col" className="px-3 py-2 text-right text-xs font-semibold">
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-right text-xs font-semibold"
+                        >
                           Money
                         </th>
                       )}
@@ -155,8 +176,14 @@ export function SettleScreen() {
                   </thead>
                   <tbody>
                     {settlement.players.map((player) => (
-                      <tr key={player.key} style={{ borderTop: '1px solid var(--line)' }}>
-                        <th scope="row" className="px-3 py-2 text-left font-semibold">
+                      <tr
+                        key={player.key}
+                        style={{ borderTop: '1px solid var(--line)' }}
+                      >
+                        <th
+                          scope="row"
+                          className="px-3 py-2 text-left font-semibold whitespace-nowrap"
+                        >
                           {player.name}
                         </th>
                         <td
@@ -210,7 +237,8 @@ export function SettleScreen() {
                       className="tile flex items-center justify-between gap-3 px-3 py-2.5"
                     >
                       <span className="text-sm">
-                        <span className="font-semibold">{transfer.from}</span> pays{' '}
+                        <span className="font-semibold">{transfer.from}</span>{' '}
+                        pays{' '}
                         <span className="font-semibold">{transfer.to}</span>
                       </span>
                       <span className="tnum text-base font-bold">
@@ -224,8 +252,8 @@ export function SettleScreen() {
               )}
               {!settlement.hasMoney && settlement.transfers.length > 0 && (
                 <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                  Settling in points. Set money per point in the game rules to settle in
-                  cash.
+                  Settling in points. Set money per point in the game rules to
+                  settle in cash.
                 </p>
               )}
             </section>
@@ -243,14 +271,21 @@ export function SettleScreen() {
               >
                 {copied ? 'Copied' : 'Copy summary'}
               </button>
-              <p className="text-xs" style={{ color: 'var(--muted)' }} role="status">
+              <p
+                className="text-xs"
+                style={{ color: 'var(--muted)' }}
+                role="status"
+              >
                 {copied
                   ? 'Paste it into the group chat.'
                   : 'Copies the scores and payments as plain text.'}
               </p>
               <pre
                 className="tile overflow-x-auto px-3 py-2 text-xs"
-                style={{ fontFamily: 'ui-monospace, monospace', whiteSpace: 'pre' }}
+                style={{
+                  fontFamily: 'ui-monospace, monospace',
+                  whiteSpace: 'pre',
+                }}
               >
                 {settlementText(chosen, settlement)}
               </pre>

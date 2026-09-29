@@ -62,7 +62,7 @@ export function StatsScreen({ gameId }: { gameId: string }) {
       <main
         id="main"
         tabIndex={-1}
-        className="flex flex-col gap-6 px-4 py-4 pad-safe-bottom"
+        className="page-column flex flex-col gap-6 px-4 py-4 pad-safe-bottom"
       >
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold">Summary</h2>
@@ -78,6 +78,12 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                     className="px-3 py-2 text-left text-xs font-semibold"
                   >
                     Player
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-2 text-right text-xs font-semibold"
+                  >
+                    Score
                   </th>
                   <th
                     scope="col"
@@ -148,12 +154,6 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                   >
                     <Term id="baau_paang">High hand</Term>
                   </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-2 text-right text-xs font-semibold"
-                  >
-                    Score
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -162,7 +162,10 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                     key={player.seat}
                     style={{ borderTop: '1px solid var(--line)' }}
                   >
-                    <th scope="row" className="px-3 py-2 text-left font-normal">
+                    <th
+                      scope="row"
+                      className="px-3 py-2 text-left font-normal whitespace-nowrap"
+                    >
                       <span className="flex items-center gap-1.5">
                         <span
                           aria-hidden="true"
@@ -172,17 +175,6 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                         <span className="font-semibold">{player.name}</span>
                       </span>
                     </th>
-                    <td className="tnum px-2 py-2 text-right">{player.wins}</td>
-                    <td className="tnum px-2 py-2 text-right">{player.ziMo}</td>
-                    <td className="tnum px-2 py-2 text-right">
-                      {player.ceotCung}
-                    </td>
-                    <td className="tnum px-2 py-2 text-right">
-                      {player.zaaWu}
-                    </td>
-                    <td className="tnum px-2 py-2 text-right">
-                      {player.biggestHand}
-                    </td>
                     <td
                       className="tnum px-3 py-2 text-right font-bold"
                       style={{
@@ -205,6 +197,17 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                         </span>
                       )}
                     </td>
+                    <td className="tnum px-2 py-2 text-right">{player.wins}</td>
+                    <td className="tnum px-2 py-2 text-right">{player.ziMo}</td>
+                    <td className="tnum px-2 py-2 text-right">
+                      {player.ceotCung}
+                    </td>
+                    <td className="tnum px-2 py-2 text-right">
+                      {player.zaaWu}
+                    </td>
+                    <td className="tnum px-2 py-2 text-right">
+                      {player.biggestHand}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -215,6 +218,9 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                     style={{ color: 'var(--muted)' }}
                   >
                     All
+                  </td>
+                  <td className="tnum px-3 py-2 text-right font-bold">
+                    {summary.totals.score}
                   </td>
                   <td className="tnum px-2 py-2 text-right font-semibold">
                     {summary.totals.wins}
@@ -229,9 +235,6 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                     {summary.totals.zaaWu}
                   </td>
                   <td className="px-2 py-2" />
-                  <td className="tnum px-3 py-2 text-right font-bold">
-                    {summary.totals.score}
-                  </td>
                 </tr>
               </tfoot>
             </table>
@@ -407,7 +410,10 @@ function FormSection({ players }: { players: PlayerStats[] }) {
                 key={player.seat}
                 style={{ borderTop: '1px solid var(--line)' }}
               >
-                <th scope="row" className="px-3 py-2 text-left font-normal">
+                <th
+                  scope="row"
+                  className="px-3 py-2 text-left font-normal whitespace-nowrap"
+                >
                   <span className="flex items-center gap-1.5">
                     <span
                       aria-hidden="true"
@@ -561,7 +567,10 @@ function ByFaanTable({
                   key={player.seat}
                   style={{ borderTop: '1px solid var(--line)' }}
                 >
-                  <th scope="row" className="px-3 py-2 text-left font-normal">
+                  <th
+                    scope="row"
+                    className="px-3 py-2 text-left font-normal whitespace-nowrap"
+                  >
                     <span className="flex items-center gap-1.5">
                       <span
                         aria-hidden="true"

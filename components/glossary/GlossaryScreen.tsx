@@ -34,7 +34,7 @@ export function GlossaryScreen() {
         back={{ onClick: () => go('games', null), label: 'Games' }}
       />
 
-      <main id="main" tabIndex={-1} className="flex flex-col gap-5 px-4 py-4 pad-safe-bottom">
+      <main id="main" tabIndex={-1} className="page-column flex flex-col gap-5 px-4 py-4 pad-safe-bottom">
         <label className="flex flex-col gap-1.5">
           <span className="sr-only">Search the glossary</span>
           <input

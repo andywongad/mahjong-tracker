@@ -30,7 +30,7 @@ export function TableSurface({
 }) {
   return (
     <div
-      className="rounded-2xl p-3 sm:p-4"
+      className="mx-auto w-full max-w-[40rem] rounded-2xl p-3 sm:p-4"
       style={{ background: 'var(--felt)' }}
     >
       <div
