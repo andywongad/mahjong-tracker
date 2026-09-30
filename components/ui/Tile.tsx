@@ -147,7 +147,8 @@ function Face({ tile }: { tile: TileModel }) {
   }
 
   if (tile.suit === 'bamboo') {
-    // One bamboo is a bird on a real tile. A single stick reads the same here.
+    // One bamboo is a bird, not a stick, on every set of tiles there is.
+    if (tile.rank === 1) return <Bird />;
     return (
       <>
         {PIPS[tile.rank!].map(([column, row], index) => {
@@ -235,6 +236,40 @@ function Face({ tile }: { tile: TileModel }) {
     >
       {HONOUR_CHARS[tile.honour!]}
     </text>
+  );
+}
+
+/** The bird on the one of bamboo: green body, red beak and tail, on a branch. */
+function Bird() {
+  return (
+    <>
+      <ellipse
+        cx="12.4"
+        cy="16.4"
+        rx="3.7"
+        ry="5.6"
+        transform="rotate(-20 12.4 16.4)"
+        fill={BAMBOO}
+      />
+      <ellipse
+        cx="13.1"
+        cy="15.8"
+        rx="1.8"
+        ry="3.2"
+        transform="rotate(-20 13.1 15.8)"
+        fill={FACE}
+        opacity="0.5"
+      />
+      <circle cx="10" cy="9.6" r="2.9" fill={BAMBOO} />
+      <path d="M7.3 9.2 L4.3 10.6 L7.3 11.8 Z" fill={RED} />
+      <circle cx="10.9" cy="8.9" r="0.75" fill={FACE} />
+      <g stroke={RED} strokeWidth="1.5" strokeLinecap="round">
+        <path d="M15.4 19.6 L18.6 22.2" />
+        <path d="M14.6 21.2 L17.8 24.4" />
+        <path d="M13.4 22.2 L15.6 26" />
+      </g>
+      <rect x="5.5" y="26.4" width="13" height="1.8" rx="0.9" fill={BAMBOO} />
+    </>
   );
 }
 
