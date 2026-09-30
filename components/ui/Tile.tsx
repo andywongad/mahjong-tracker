@@ -26,70 +26,168 @@ const BAMBOO = '#17724a';
 const RED = '#b3261e';
 const INK = '#17211e';
 
-/** Pip positions in a three by three grid, counted the way the tiles are cut. */
-const PIPS: Record<number, [number, number][]> = {
-  1: [[1, 1]],
+/**
+ * Where the pips and sticks sit, as fractions of the usable face.
+ *
+ * These follow the arrangements a real set is cut with, which are not a plain
+ * grid: two is a vertical pair, three dots run on a diagonal, six dots stand in
+ * two columns of three while six bamboo lie in two rows of three, seven dots
+ * take a slanted row of three above a square of four, and eight dots stack in
+ * two columns of four.
+ */
+type Spot = [number, number];
+
+const DOT_LAYOUT: Record<number, Spot[]> = {
+  1: [[0.5, 0.5]],
   2: [
-    [1, 0],
-    [1, 2],
+    [0.5, 0.12],
+    [0.5, 0.88],
   ],
   3: [
-    [0, 0],
-    [1, 1],
-    [2, 2],
+    [0.13, 0.12],
+    [0.5, 0.5],
+    [0.87, 0.88],
   ],
   4: [
-    [0, 0],
-    [2, 0],
-    [0, 2],
-    [2, 2],
+    [0.2, 0.18],
+    [0.8, 0.18],
+    [0.2, 0.82],
+    [0.8, 0.82],
   ],
   5: [
-    [0, 0],
-    [2, 0],
-    [1, 1],
-    [0, 2],
-    [2, 2],
+    [0.17, 0.14],
+    [0.83, 0.14],
+    [0.5, 0.5],
+    [0.17, 0.86],
+    [0.83, 0.86],
   ],
   6: [
-    [0, 0],
-    [2, 0],
-    [0, 1],
-    [2, 1],
-    [0, 2],
-    [2, 2],
+    [0.26, 0.1],
+    [0.74, 0.1],
+    [0.26, 0.5],
+    [0.74, 0.5],
+    [0.26, 0.9],
+    [0.74, 0.9],
   ],
+  // A slanted row of three above a square of four.
   7: [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [0, 1],
-    [2, 1],
-    [0, 2],
-    [2, 2],
+    [0.15, 0.08],
+    [0.5, 0.17],
+    [0.85, 0.26],
+    [0.26, 0.62],
+    [0.74, 0.62],
+    [0.26, 0.92],
+    [0.74, 0.92],
   ],
   8: [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [0, 1],
-    [2, 1],
-    [0, 2],
-    [1, 2],
-    [2, 2],
+    [0.29, 0.06],
+    [0.71, 0.06],
+    [0.29, 0.35],
+    [0.71, 0.35],
+    [0.29, 0.65],
+    [0.71, 0.65],
+    [0.29, 0.94],
+    [0.71, 0.94],
   ],
   9: [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [0, 1],
-    [1, 1],
-    [2, 1],
-    [0, 2],
-    [1, 2],
-    [2, 2],
+    [0.12, 0.1],
+    [0.5, 0.1],
+    [0.88, 0.1],
+    [0.12, 0.5],
+    [0.5, 0.5],
+    [0.88, 0.5],
+    [0.12, 0.9],
+    [0.5, 0.9],
+    [0.88, 0.9],
   ],
 };
+
+const BAMBOO_LAYOUT: Record<number, Spot[]> = {
+  2: [
+    [0.5, 0.14],
+    [0.5, 0.86],
+  ],
+  // One over two, the way a set is cut.
+  3: [
+    [0.5, 0.15],
+    [0.24, 0.85],
+    [0.76, 0.85],
+  ],
+  4: [
+    [0.22, 0.16],
+    [0.78, 0.16],
+    [0.22, 0.84],
+    [0.78, 0.84],
+  ],
+  5: [
+    [0.17, 0.12],
+    [0.83, 0.12],
+    [0.5, 0.5],
+    [0.17, 0.88],
+    [0.83, 0.88],
+  ],
+  // Two rows of three, lying the other way to six dots.
+  6: [
+    [0.13, 0.2],
+    [0.5, 0.2],
+    [0.87, 0.2],
+    [0.13, 0.8],
+    [0.5, 0.8],
+    [0.87, 0.8],
+  ],
+  7: [
+    [0.5, 0.07],
+    [0.13, 0.5],
+    [0.5, 0.5],
+    [0.87, 0.5],
+    [0.13, 0.93],
+    [0.5, 0.93],
+    [0.87, 0.93],
+  ],
+  8: [
+    [0.1, 0.2],
+    [0.37, 0.2],
+    [0.63, 0.2],
+    [0.9, 0.2],
+    [0.1, 0.8],
+    [0.37, 0.8],
+    [0.63, 0.8],
+    [0.9, 0.8],
+  ],
+  9: [
+    [0.12, 0.08],
+    [0.5, 0.08],
+    [0.88, 0.08],
+    [0.12, 0.5],
+    [0.5, 0.5],
+    [0.88, 0.5],
+    [0.12, 0.92],
+    [0.5, 0.92],
+    [0.88, 0.92],
+  ],
+};
+
+/** The sticks a set paints red: the odd one out on five and seven, the middle row of nine. */
+const BAMBOO_RED: Record<number, number[]> = {
+  5: [2],
+  7: [0],
+  9: [3, 4, 5],
+};
+
+/** The usable area inside the 24 by 32 face, once the rounded edge is kept clear. */
+const BOX = { x: 4.4, y: 5.6, width: 15.2, height: 20.8 };
+
+function place([fx, fy]: Spot): [number, number] {
+  return [BOX.x + fx * BOX.width, BOX.y + fy * BOX.height];
+}
+
+/** Pips and sticks shrink as the count grows, the way they do on a real tile. */
+function scaleFor(count: number): number {
+  if (count === 1) return 1.85;
+  if (count <= 5) return 1;
+  if (count <= 6) return 0.92;
+  return 0.78;
+}
 
 const HONOUR_CHARS: Record<string, string> = {
   east: '東',
@@ -101,11 +199,6 @@ const HONOUR_CHARS: Record<string, string> = {
 };
 
 const NUMERALS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-
-/** Where a pip or stick sits inside the 24 by 32 face. */
-function at(column: number, row: number): [number, number] {
-  return [6 + column * 6, 8 + row * 6];
-}
 
 export function Tile({ tile, size = 34 }: { tile: TileModel; size?: number }) {
   const width = Math.round(size * 0.72);
@@ -136,11 +229,24 @@ export function Tile({ tile, size = 34 }: { tile: TileModel; size?: number }) {
 
 function Face({ tile }: { tile: TileModel }) {
   if (tile.suit === 'dots') {
+    const spots = DOT_LAYOUT[tile.rank!];
+    const r = 2.7 * scaleFor(spots.length);
     return (
       <>
-        {PIPS[tile.rank!].map(([column, row], index) => {
-          const [cx, cy] = at(column, row);
-          return <circle key={index} cx={cx} cy={cy} r="2.3" fill={DOTS} />;
+        {spots.map((spot, index) => {
+          const [cx, cy] = place(spot);
+          return (
+            <g key={index}>
+              <circle cx={cx} cy={cy} r={r} fill={DOTS} />
+              {/* The one of dots is a single large ring, not a plain pip. */}
+              {spots.length === 1 && (
+                <>
+                  <circle cx={cx} cy={cy} r={r * 0.62} fill={FACE} />
+                  <circle cx={cx} cy={cy} r={r * 0.3} fill={RED} />
+                </>
+              )}
+            </g>
+          );
         })}
       </>
     );
@@ -149,26 +255,33 @@ function Face({ tile }: { tile: TileModel }) {
   if (tile.suit === 'bamboo') {
     // One bamboo is a bird, not a stick, on every set of tiles there is.
     if (tile.rank === 1) return <Bird />;
+    const spots = BAMBOO_LAYOUT[tile.rank!];
+    const scale = scaleFor(spots.length);
+    // Long and thin, so a stick never reads as a pip.
+    const halfWidth = 1.25 * scale;
+    const halfHeight = 3.3 * scale;
+    const red = new Set(BAMBOO_RED[tile.rank!] ?? []);
     return (
       <>
-        {PIPS[tile.rank!].map(([column, row], index) => {
-          const [cx, cy] = at(column, row);
+        {spots.map((spot, index) => {
+          const [cx, cy] = place(spot);
+          const colour = red.has(index) ? RED : BAMBOO;
           return (
             <g key={index}>
               <rect
-                x={cx - 1.6}
-                y={cy - 2.7}
-                width="3.2"
-                height="5.4"
-                rx="1.6"
-                fill={BAMBOO}
+                x={cx - halfWidth}
+                y={cy - halfHeight}
+                width={halfWidth * 2}
+                height={halfHeight * 2}
+                rx={halfWidth}
+                fill={colour}
               />
               {/* The node, which is what tells a stick from a pip. */}
               <rect
-                x={cx - 1.6}
-                y={cy - 0.4}
-                width="3.2"
-                height="0.8"
+                x={cx - halfWidth}
+                y={cy - 0.4 * scale}
+                width={halfWidth * 2}
+                height={0.8 * scale}
                 fill={FACE}
                 opacity="0.85"
               />
