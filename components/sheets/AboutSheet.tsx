@@ -89,6 +89,14 @@ export function AboutSheet({
           </p>
         </Section>
 
+        <Section title="Sharing the result">
+          <p className="text-sm">
+            When the game is done, <strong>Tally details</strong> works out who
+            owes whom and sends the whole thing as a message. On a phone that
+            opens your share sheet, so it goes straight into the group chat.
+          </p>
+        </Section>
+
         <Section title="Fixing a mistake">
           <p className="text-sm">
             For six seconds after saving, <strong>Undo</strong> takes the hand
@@ -113,8 +121,8 @@ export function AboutSheet({
           </p>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
             They do not follow you to another device, and clearing this
-            site&rsquo;s data deletes them. Accounts and syncing are still being
-            built, so signing in does not back anything up yet.
+            site&rsquo;s data deletes them. There are no accounts: one person
+            keeps score, and sends the tally round at the end.
           </p>
         </Section>
       </div>

@@ -38,7 +38,9 @@ export function SettleScreen() {
   const [selected, setSelected] = useState<string[]>(() =>
     gameId ? [gameId] : games[0] ? [games[0].id] : [],
   );
-  const [copied, setCopied] = useState(false);
+  // 'shared' when the phone's own share sheet took it, 'copied' when it fell
+  // back to the clipboard. The two deserve different words afterwards.
+  const [sent, setSent] = useState<'shared' | 'copied' | null>(null);
 
   const chosen = useMemo(
     () => games.filter((game) => selected.includes(game.id)),
@@ -47,20 +49,36 @@ export function SettleScreen() {
   const settlement = useMemo(() => settle(chosen), [chosen]);
 
   function toggle(id: string) {
-    setCopied(false);
+    setSent(null);
     setSelected((current) =>
       current.includes(id) ? current.filter((x) => x !== id) : [...current, id],
     );
   }
 
-  async function copy() {
+  /**
+   * How a game gets out of this app: as a message.
+   *
+   * On a phone this opens the share sheet, so the tally goes straight into the
+   * group chat in one tap. Everywhere else it falls back to the clipboard, and
+   * if even that is refused the text is on screen to copy by hand.
+   */
+  async function share() {
     const text = settlementText(chosen, settlement);
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ text });
+        setSent('shared');
+        return;
+      } catch {
+        // Dismissing the share sheet is not a failure worth reporting.
+        return;
+      }
+    }
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
+      setSent('copied');
     } catch {
-      // Clipboard can be refused; the text is on screen to copy by hand.
-      setCopied(false);
+      setSent(null);
     }
   }
 
@@ -261,7 +279,7 @@ export function SettleScreen() {
             <section className="flex flex-col gap-2">
               <button
                 type="button"
-                onClick={copy}
+                onClick={share}
                 className="tile-pressable touch w-full rounded-xl py-4 text-base font-semibold"
                 style={{
                   background: 'var(--tile-back)',
@@ -269,16 +287,18 @@ export function SettleScreen() {
                   boxShadow: '0 3px 0 #0e4a38',
                 }}
               >
-                {copied ? 'Copied' : 'Copy summary'}
+                {sent === 'copied' ? 'Copied' : 'Send the tally'}
               </button>
               <p
                 className="text-xs"
                 style={{ color: 'var(--muted)' }}
                 role="status"
               >
-                {copied
-                  ? 'Paste it into the group chat.'
-                  : 'Copies the scores and payments as plain text.'}
+                {sent === 'shared'
+                  ? 'Sent.'
+                  : sent === 'copied'
+                    ? 'Paste it into the group chat.'
+                    : 'Sends the scores and payments as plain text.'}
               </p>
               <pre
                 className="tile overflow-x-auto px-3 py-2 text-xs"

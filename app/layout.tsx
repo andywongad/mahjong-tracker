@@ -3,7 +3,6 @@ import { Sora } from 'next/font/google';
 import { GamesProvider } from '@/lib/game/GamesProvider';
 import { NavigationProvider } from '@/lib/game/navigation';
 import { GlossaryProvider } from '@/lib/glossary/GlossaryProvider';
-import { AuthProvider } from '@/lib/supabase/AuthProvider';
 import { ServiceWorker } from '@/components/ui/ServiceWorker';
 import { DebugPanel } from '@/components/debug/DebugPanel';
 import { THEME_INIT_SCRIPT } from '@/components/ui/ThemeToggle';
@@ -37,9 +36,17 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={`${sora.variable} h-full`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${sora.variable} h-full`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
@@ -47,13 +54,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <AuthProvider>
-          <GamesProvider>
-            <NavigationProvider>
-              <GlossaryProvider>{children}</GlossaryProvider>
-            </NavigationProvider>
-          </GamesProvider>
-        </AuthProvider>
+        <GamesProvider>
+          <NavigationProvider>
+            <GlossaryProvider>{children}</GlossaryProvider>
+          </NavigationProvider>
+        </GamesProvider>
         <ServiceWorker />
         <DebugPanel />
       </body>

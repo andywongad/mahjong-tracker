@@ -8,10 +8,8 @@ import { standings, summarise } from '@/lib/game/standings';
 import { formatGameDate } from '@/lib/game/format';
 import { seatColor } from '@/lib/game/seats';
 import type { GameRecord } from '@/lib/game/types';
-import { AppHeader, HeaderButton } from '@/components/ui/AppHeader';
+import { AppHeader } from '@/components/ui/AppHeader';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { AccountSheet } from '@/components/auth/AccountSheet';
-import { useAuth } from '@/lib/supabase/AuthProvider';
 import { GameSheet } from '@/components/sheets/GameSheet';
 import { AboutSheet } from '@/components/sheets/AboutSheet';
 import { formatSigned } from '@/components/ui/Score';
@@ -24,9 +22,7 @@ export function GamesScreen() {
   const { go } = useNavigation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<GameRecord | null>(null);
-  const [accountOpen, setAccountOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
-  const { session, email, available } = useAuth();
 
   const summaries = useMemo(() => summarise(games), [games]);
   const table = useMemo(() => standings(games), [games]);
@@ -40,16 +36,7 @@ export function GamesScreen() {
             ? 'No games yet'
             : `${games.length} game${games.length === 1 ? '' : 's'}`
         }
-        actions={
-          <>
-            {available && (
-              <HeaderButton onClick={() => setAccountOpen(true)}>
-                {session ? 'Account' : 'Sign in'}
-              </HeaderButton>
-            )}
-            <ThemeToggle />
-          </>
-        }
+        actions={<ThemeToggle />}
       />
 
       <main
@@ -103,16 +90,9 @@ export function GamesScreen() {
           </div>
         </div>
 
-        {available && !session && games.length > 0 && (
+        {games.length > 0 && (
           <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            These games are on this device only. Syncing and share links are
-            still being built.
-          </p>
-        )}
-
-        {available && session && (
-          <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            Signed in as {email}.
+            Kept on this device. Send the tally to the group when you are done.
           </p>
         )}
 
@@ -378,8 +358,6 @@ export function GamesScreen() {
 
       {/* Keyed so the fields start from the game being edited, or from the last
           game's names for a new one, on every open. */}
-      <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} />
-
       <AboutSheet
         open={aboutOpen}
         onClose={() => setAboutOpen(false)}

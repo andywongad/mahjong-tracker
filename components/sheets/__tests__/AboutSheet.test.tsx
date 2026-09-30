@@ -31,8 +31,9 @@ describe('the how it works sheet', () => {
     });
     const section = where.closest('section');
     expect(section?.textContent).toMatch(/this device/i);
-    // Sync does not exist yet, so the sheet must not imply that it does.
-    expect(section?.textContent).toMatch(/still being built/i);
+    // There are no accounts, so nothing here may read as a backup.
+    expect(section?.textContent).toMatch(/no accounts/i);
+    expect(section?.textContent).not.toMatch(/sign in|synced|backed up/i);
   });
 
   it('hands off to the glossary and gets out of the way', async () => {
