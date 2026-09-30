@@ -82,6 +82,18 @@ export const ROUTES: Route[] = [
     },
   },
   {
+    name: 'glossary-pattern',
+    go: async (page) => {
+      await page.goto('/?view=glossary');
+      await settle(page);
+      await page
+        .getByRole('button', { name: /Ping Wu/ })
+        .first()
+        .click();
+      await page.waitForTimeout(500);
+    },
+  },
+  {
     name: 'game-settings',
     go: async (page) => {
       await page.goto('/?view=games');

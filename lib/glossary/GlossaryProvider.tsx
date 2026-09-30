@@ -9,6 +9,8 @@ import {
 } from 'react';
 import { TERM_BY_ID, type Term } from '@/lib/terms';
 import { Sheet } from '@/components/sheets/Sheet';
+import { TileHand } from '@/components/ui/Tile';
+import { PATTERN_EXAMPLES } from '@/lib/patterns/examples';
 
 interface GlossaryValue {
   /** Open the definition sheet for a term. */
@@ -54,12 +56,29 @@ function Definition({
     .map((id) => TERM_BY_ID[id])
     .filter((item): item is Term => Boolean(item));
 
+  // Patterns are shapes, and a shape is quicker to see than to read.
+  const example = entry.id.startsWith('pattern:')
+    ? PATTERN_EXAMPLES[entry.id.slice('pattern:'.length)]
+    : undefined;
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm font-semibold" style={{ color: 'var(--muted)' }}>
         {entry.english}
       </p>
       <p className="text-sm">{entry.definition}</p>
+
+      {example && (
+        <section className="flex flex-col gap-2">
+          <h3
+            className="text-xs font-semibold"
+            style={{ color: 'var(--muted)' }}
+          >
+            For example
+          </h3>
+          <TileHand notation={example.hand} caption={example.note} />
+        </section>
+      )}
 
       {related.length > 0 && (
         <div className="flex flex-col gap-2">
