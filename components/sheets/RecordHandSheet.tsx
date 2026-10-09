@@ -130,7 +130,7 @@ export function RecordHandSheet({
   handNumber: number;
   /** Who is dealing, so a dealer bonus previews correctly. */
   dealerSeat?: Seat;
-  /** The player tapped on the table: the winner, or the offender on a false win. */
+  /** The player tapped on the table, who won the hand. */
   presetSeat?: Seat | null;
   /** The hand being edited, or null when recording a new one. */
   editing: HandRow | null;
@@ -138,7 +138,7 @@ export function RecordHandSheet({
   onSave: (hand: Hand) => void | Promise<void>;
   onDelete?: () => void | Promise<void>;
   /** Offered when a built hand cannot reach the table minimum. */
-  onSwitchToFalseWin?: () => void;
+  onSwitchToFalseWin?: (offenderSeat: Seat) => void;
 }) {
   // The parent remounts this sheet whenever it opens or switches hand, so the
   // draft can start from the hand being edited without resetting in an effect.
@@ -148,7 +148,7 @@ export function RecordHandSheet({
     // even opens, so that step starts answered.
     return presetSeat == null
       ? EMPTY_DRAFT
-      : { ...EMPTY_DRAFT, winnerSeat: presetSeat, offenderSeat: presetSeat };
+      : { ...EMPTY_DRAFT, winnerSeat: presetSeat };
   });
   const [builderOpen, setBuilderOpen] = useState(false);
   // The chosen player is settled unless the scorekeeper says otherwise.
@@ -192,10 +192,9 @@ export function RecordHandSheet({
           faan: built ? null : current.faan,
         };
       }
-      // A draw or a false win is not about a winner at all.
-      const keep =
-        type === 'zaa_wu' ? { offenderSeat: presetSeat ?? null } : {};
-      return { ...EMPTY_DRAFT, ...keep, type };
+      // A draw or a false win is not about a winner at all. Only reachable
+      // while editing, where nothing was tapped on the table to carry over.
+      return { ...EMPTY_DRAFT, type };
     });
   }
 
@@ -554,11 +553,13 @@ export function RecordHandSheet({
           editing
             ? () =>
                 setDraft({ ...EMPTY_DRAFT, type: 'zaa_wu', winnerSeat: null })
-            : onSwitchToFalseWin
+            : onSwitchToFalseWin && draft.winnerSeat != null
               ? () => {
-                  // A false win has no winner, so it is recorded elsewhere.
+                  // The hand cannot reach the minimum, so whoever claimed it
+                  // called a false win. There is nothing left to ask.
+                  const offender = draft.winnerSeat as Seat;
                   onClose();
-                  onSwitchToFalseWin();
+                  onSwitchToFalseWin(offender);
                 }
               : undefined
         }

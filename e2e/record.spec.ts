@@ -109,9 +109,12 @@ test.describe('recording each kind of hand', () => {
   }) => {
     await startGame(page);
 
-    await page.getByRole('button', { name: 'False win', exact: true }).click();
-    await pick(page, 'Who called it?', 'Player D').click();
-    await page.getByRole('button', { name: 'Save hand 1' }).click();
+    // One tap, from the seat of whoever called it. No winner is involved.
+    await page
+      .getByRole('button', {
+        name: 'Record hand 1 as a false win called by Player D',
+      })
+      .click();
 
     // The penalty is a house rule, so the shape is asserted, not the amount.
     await expect
@@ -146,5 +149,24 @@ test.describe('recording each kind of hand', () => {
     const sheet = page.getByRole('dialog');
     await expect(sheet.getByRole('button', { name: /Lau Guk/ })).toHaveCount(0);
     await expect(sheet.getByRole('button', { name: /Zaa Wu/ })).toHaveCount(0);
+  });
+
+  test('a false win is one tap and never asks who won', async ({ page }) => {
+    await startGame(page);
+
+    await page
+      .getByRole('button', {
+        name: 'Record hand 1 as a false win called by Player B',
+      })
+      .click();
+
+    // Straight into the log, with no sheet in between, and undoable from the
+    // toast like any other hand.
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(
+      page.getByRole('status').getByText('Player B called a false win'),
+    ).toBeVisible();
+    await expect(seat(page, 2)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
   });
 });

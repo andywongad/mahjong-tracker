@@ -248,9 +248,13 @@ body {
     box-shadow 120ms ease;
 }
 
-.tile-pressable:active {
+.tile-pressable:active,
+/* A tile whose actions are buttons inside it still sinks as one object. */
+.tile-pressable:has(> button:active) {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--tile-back), 0 2px 4px #17211e1a;
+  box-shadow:
+    0 1px 0 var(--tile-back),
+    0 2px 4px #17211e1a;
 }
 
 .tile-selected {

@@ -20,7 +20,6 @@ import { UndoToast } from '@/components/ui/UndoToast';
 import { TableSurface } from './TableSurface';
 import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
-import { FalseWinSheet } from '@/components/sheets/FalseWinSheet';
 import { TallySummary } from './TallySummary';
 import { ScoreChart } from '@/components/stats/ScoreChart';
 import { termForHandType } from '@/lib/terms';
@@ -36,7 +35,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
     useGame(gameId);
   const { go } = useNavigation();
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [falseWinOpen, setFalseWinOpen] = useState(false);
   const [editing, setEditing] = useState<HandRow | null>(null);
   const [presetSeat, setPresetSeat] = useState<Seat | null>(null);
   const [undoable, setUndoable] = useState<Undoable | null>(null);
@@ -107,6 +105,18 @@ export function GameScreen({ gameId }: { gameId: string }) {
     setUndoable({ handId, message: describeHand(hand, game!.players) });
   }
 
+  /**
+   * A false win, straight from the seat of whoever called it.
+   *
+   * Nothing else is needed: there is no winner, and the penalty comes from the
+   * rules. Like a draw it is one tap, and like every other hand it is undoable
+   * for six seconds afterwards.
+   */
+  async function recordFalseWin(seat: Seat) {
+    setUndoable(null);
+    await record({ type: 'zaa_wu', offenderSeat: seat });
+  }
+
   async function undo() {
     if (!undoable) return;
     await deleteHand(game!.id, undoable.handId);
@@ -155,6 +165,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
               game={game}
               replay={result}
               onSelectSeat={live ? openForSeat : undefined}
+              onFalseWin={live ? recordFalseWin : undefined}
               endedEarly={endedEarly}
               // Only on a game that has barely started: a nudge over a sample game
               // already nineteen hands deep is noise, not help.
@@ -196,26 +207,16 @@ export function GameScreen({ gameId }: { gameId: string }) {
                   Record hand {nextHand}
                 </button>
 
-                {/* Neither of these has a winner, so neither belongs in the sheet
-              that records one. */}
-                <div className="grid grid-cols-2 gap-2">
-                  <SecondaryAction
-                    hanzi={termForHandType('draw').zh}
-                    label={termForHandType('draw').english}
-                    onClick={() => {
-                      setUndoable(null);
-                      void record({ type: 'draw' });
-                    }}
-                  />
-                  <SecondaryAction
-                    hanzi={termForHandType('zaa_wu').zh}
-                    label={termForHandType('zaa_wu').english}
-                    onClick={() => {
-                      setUndoable(null);
-                      setFalseWinOpen(true);
-                    }}
-                  />
-                </div>
+                {/* A draw belongs to nobody, so it is the one hand still
+              recorded from under the table rather than from a seat. */}
+                <SecondaryAction
+                  hanzi={termForHandType('draw').zh}
+                  label={termForHandType('draw').english}
+                  onClick={() => {
+                    setUndoable(null);
+                    void record({ type: 'draw' });
+                  }}
+                />
               </div>
             )}
 
@@ -362,18 +363,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
         onClose={() => setSheetOpen(false)}
         onSave={save}
         onDelete={editing ? remove : undefined}
-        onSwitchToFalseWin={() => setFalseWinOpen(true)}
-      />
-
-      <FalseWinSheet
-        key={
-          falseWinOpen ? `false-win-${result.handCount}` : 'false-win-closed'
-        }
-        open={falseWinOpen}
-        game={game}
-        handNumber={nextHand}
-        onClose={() => setFalseWinOpen(false)}
-        onSave={record}
+        onSwitchToFalseWin={recordFalseWin}
       />
     </>
   );
@@ -393,7 +383,7 @@ function SecondaryAction({
     <button
       type="button"
       onClick={onClick}
-      className="touch flex items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-semibold"
+      className="touch flex w-full items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-semibold"
       style={{ border: '1px solid var(--line-strong)', color: 'var(--ink)' }}
     >
       <span

@@ -62,9 +62,9 @@ export function AboutSheet({
           </ol>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
             Nobody won? Use <strong>{glossOf('lau_guk')}</strong> under the
-            table. Someone declared a win they did not have? Use{' '}
-            <strong>{glossOf('zaa_wu')}</strong>. Neither has a winner, which is
-            why neither is in the winner sheet.
+            table. Someone declared a win they did not have? Use the{' '}
+            <strong>{glossOf('zaa_wu')}</strong> strip on their own tile. Both
+            are one tap, and neither asks who won, because neither has a winner.
           </p>
         </Section>
 
