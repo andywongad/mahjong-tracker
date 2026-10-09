@@ -17,15 +17,24 @@ import { formatMoney } from '@/lib/game/settle';
 import { PATTERNS_BY_ID } from '@/lib/patterns/catalog';
 import { TermStack } from '@/components/ui/Term';
 
+/** Games listed before the first "Show more", and how many each tap adds. */
+const FIRST_PAGE = 5;
+const MORE_PAGE = 10;
+
 export function GamesScreen() {
   const { games, loading, createGame, updateGame, deleteGame } = useGames();
   const { go } = useNavigation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<GameRecord | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
+  // History grows a game a night. Enough to recognise the last few sessions,
+  // then more on request, rather than a list that runs off the screen.
+  const [shown, setShown] = useState(FIRST_PAGE);
 
   const summaries = useMemo(() => summarise(games), [games]);
   const table = useMemo(() => standings(games), [games]);
+  const visible = useMemo(() => summaries.slice(0, shown), [summaries, shown]);
+  const hidden = summaries.length - visible.length;
 
   return (
     <>
@@ -116,7 +125,7 @@ export function GamesScreen() {
             </p>
           )}
           <ul className="flex flex-col gap-2">
-            {summaries.map((summary) => (
+            {visible.map((summary) => (
               <li key={summary.id} className="tile relative">
                 {/* The whole card opens the game, which is where hands are
                     recorded. Settings is a separate, smaller action so the two
@@ -220,6 +229,28 @@ export function GamesScreen() {
               </li>
             ))}
           </ul>
+
+          {hidden > 0 && (
+            <button
+              type="button"
+              onClick={() => setShown((count) => count + MORE_PAGE)}
+              className="tile-sm tile-pressable touch w-full rounded-xl py-3 text-sm font-semibold"
+            >
+              Show {Math.min(hidden, MORE_PAGE)} more
+              {hidden > MORE_PAGE ? ` of ${hidden}` : ''}
+            </button>
+          )}
+
+          {shown > FIRST_PAGE && hidden === 0 && (
+            <button
+              type="button"
+              onClick={() => setShown(FIRST_PAGE)}
+              className="touch mx-auto px-3 text-xs underline underline-offset-2"
+              style={{ color: 'var(--muted)' }}
+            >
+              Show fewer
+            </button>
+          )}
         </section>
 
         {table.length > 0 && (

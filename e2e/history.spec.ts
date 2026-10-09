@@ -1,0 +1,51 @@
+import { expect, test, type Page } from '@playwright/test';
+
+/**
+ * History is paged, because a group that plays weekly has a long list by the
+ * end of a year and only ever looks at the last few nights.
+ */
+
+const FIRST_PAGE = 5;
+
+async function startGames(page: Page, count: number): Promise<void> {
+  for (let i = 0; i < count; i += 1) {
+    await page.getByRole('button', { name: 'Start a new game' }).click();
+    await page.getByRole('button', { name: 'Start game' }).click();
+    await page.getByRole('button', { name: 'Games' }).click();
+  }
+}
+
+function listed(page: Page) {
+  return page.locator('section:has(h2:text-is("History")) li');
+}
+
+test('history shows a few games, then more on request', async ({ page }) => {
+  await page.goto('/?view=games');
+  await page.waitForLoadState('networkidle');
+
+  // The seeded game plus seven, so there is more than one page but not two.
+  await startGames(page, 7);
+  await expect(listed(page)).toHaveCount(FIRST_PAGE);
+
+  const more = page.getByRole('button', { name: /Show \d+ more/ });
+  await expect(more).toHaveText('Show 3 more');
+  await more.click();
+
+  await expect(listed(page)).toHaveCount(8);
+  await expect(more).toHaveCount(0);
+
+  // And back again, so a long list can be put away.
+  await page.getByRole('button', { name: 'Show fewer' }).click();
+  await expect(listed(page)).toHaveCount(FIRST_PAGE);
+});
+
+test('a short history has nothing to expand', async ({ page }) => {
+  await page.goto('/?view=games');
+  await page.waitForLoadState('networkidle');
+
+  await expect(listed(page)).toHaveCount(1);
+  await expect(page.getByRole('button', { name: /Show \d+ more/ })).toHaveCount(
+    0,
+  );
+  await expect(page.getByRole('button', { name: 'Show fewer' })).toHaveCount(0);
+});

@@ -37,8 +37,8 @@ export function AppHeader({
             <span aria-hidden="true">&larr;</span> {back.label}
           </button>
         )}
-        <div className="flex items-end justify-between gap-3">
-          <div className="min-w-0">
+        <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
+          <div className="min-w-0 flex-1 basis-32">
             <h1 className="truncate text-lg leading-tight font-semibold">
               {title}
             </h1>
@@ -52,7 +52,7 @@ export function AppHeader({
             )}
           </div>
           {(actions || onClose) && (
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="ml-auto flex shrink-0 items-center gap-2">
               {actions}
               {onClose && (
                 <button

@@ -20,6 +20,7 @@ import { UndoToast } from '@/components/ui/UndoToast';
 import { TableSurface } from './TableSurface';
 import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
+import { RulesSheet } from '@/components/sheets/RulesSheet';
 import { TallySummary } from './TallySummary';
 import { ScoreChart } from '@/components/stats/ScoreChart';
 import { termForHandType } from '@/lib/terms';
@@ -39,6 +40,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const [presetSeat, setPresetSeat] = useState<Seat | null>(null);
   const [undoable, setUndoable] = useState<Undoable | null>(null);
   const [confirmingEnd, setConfirmingEnd] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const neverRecorded = useFirstRecord();
 
   // Keep the screen awake while a game is on the table.
@@ -145,6 +147,11 @@ export function GameScreen({ gameId }: { gameId: string }) {
         subtitle={game.players.join(' · ')}
         actions={
           <>
+            {/* A table settles its rules at the table, usually a few hands in
+              when someone says "that is not how we play it". */}
+            <HeaderButton onClick={() => setRulesOpen(true)}>
+              Rules
+            </HeaderButton>
             <HeaderButton onClick={() => go('stats')}>Stats</HeaderButton>
             <HeaderButton onClick={() => go('games', null)}>Games</HeaderButton>
           </>
@@ -364,6 +371,24 @@ export function GameScreen({ gameId }: { gameId: string }) {
         onSave={save}
         onDelete={editing ? remove : undefined}
         onSwitchToFalseWin={recordFalseWin}
+      />
+
+      {/* Applied straight to this game, which replays every hand against the
+        new rules. The faan recorded never moves; only what it is worth does. */}
+      <RulesSheet
+        key={rulesOpen ? `rules-${game.updatedAt}` : 'rules-closed'}
+        open={rulesOpen}
+        rules={game.rules}
+        ruleSetName={game.ruleSetName}
+        handCount={result.handCount}
+        onClose={() => setRulesOpen(false)}
+        onApply={async (rules, set) => {
+          await updateGame(game!.id, {
+            rules,
+            ruleSetId: set?.id,
+            ruleSetName: set?.name,
+          });
+        }}
       />
     </>
   );
