@@ -70,6 +70,10 @@ const PAIRS = [
   ['focus ring on page', 'accent', 'page', 'ui'],
   ['focus ring on tile face', 'accent', 'tile-face', 'ui'],
   ['tile back edge on page', 'tile-back', 'page', 'ui'],
+  // A seat's two actions: an outlined chip at rest, filled under the pointer.
+  ['seat action label', 'ink', 'tile-face', 'text'],
+  ['seat action outline', 'ink', 'tile-face', 'ui'],
+  ['seat action label, hovered', 'tile-face', 'ink', 'text'],
 ];
 
 // Marks are graphics (3:1); solid fills carry white text (4.5:1).

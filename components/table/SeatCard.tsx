@@ -72,20 +72,15 @@ export function SeatCard({
     </>
   );
 
+  const pad = compact ? 'px-2' : 'px-2.5';
   const infoClass = `flex w-full flex-col justify-between text-left ${
-    compact ? 'gap-1 px-2.5 py-2' : 'gap-1.5 px-3 py-2.5'
+    compact ? 'gap-1 px-2.5 pt-2 pb-1.5' : 'gap-1.5 px-3 pt-2.5 pb-2'
   }`;
   // The two things a player can do to a hand are peers, so they are drawn as
-  // peers: same height, same fill, same ink. What separates them is which one
-  // the rest of the tile belongs to.
+  // peers: the same outlined chip, the same size, one above the other.
   const barClass =
-    'flex w-full items-center justify-center gap-1 px-2 text-[0.7rem] leading-none font-semibold';
-  const barStyle = {
-    minHeight: 34,
-    background: 'var(--line)',
-    color: 'var(--ink)',
-    borderTop: '1px solid var(--line-strong)',
-  };
+    'seat-action flex w-full items-center justify-center gap-1 overflow-hidden px-1 text-[0.7rem] leading-none font-semibold whitespace-nowrap';
+  const barStyle = { minHeight: 30 };
   const style = { borderTopColor: color, borderTopWidth: 3 };
 
   const badge = isDealer && (
@@ -126,11 +121,17 @@ export function SeatCard({
         className="flex w-full flex-col"
       >
         <span className={infoClass}>{inner}</span>
-        <span className={barClass} style={barStyle}>
-          <span lang="zh-Hant" className="hanzi" aria-hidden="true">
-            {sikWu.zh}
+        <span className={`w-full ${pad} pb-1.5`}>
+          <span className={barClass} style={barStyle}>
+            <span
+              lang="zh-Hant"
+              className="hanzi hidden shrink-0 min-[390px]:inline"
+              aria-hidden="true"
+            >
+              {sikWu.zh}
+            </span>
+            Won
           </span>
-          Won
         </span>
       </button>
 
@@ -139,16 +140,19 @@ export function SeatCard({
           type="button"
           onClick={onFalseWin}
           aria-label={falseWinLabel ?? `Record a false win called by ${name}`}
-          // Quiet, and the full width of the tile, so it is clearly this
-          // player's but never competes with the win above it. Deliberately a
-          // smaller target than the win: it is rare, and it costs points.
-          className={`${barClass} rounded-b-[inherit]`}
-          style={barStyle}
+          // Its own button, below the one that covers the rest of the tile.
+          className={`w-full ${pad} pb-2`}
         >
-          <span lang="zh-Hant" className="hanzi" aria-hidden="true">
-            {zaaWu.zh}
+          <span className={barClass} style={barStyle}>
+            <span
+              lang="zh-Hant"
+              className="hanzi hidden shrink-0 min-[390px]:inline"
+              aria-hidden="true"
+            >
+              {zaaWu.zh}
+            </span>
+            <span className="truncate">{zaaWu.english}</span>
           </span>
-          <span className="truncate">{zaaWu.english}</span>
         </button>
       )}
     </div>

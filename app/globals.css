@@ -345,6 +345,63 @@ body {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Pointer feedback
+   A finger has no hover state and a mouse does, so none of this applies to a
+   touch screen, where a stray :hover would stick after a tap. Browsers also
+   give a button the arrow cursor by default, which is why nothing in the app
+   looked clickable on a desktop until now.
+--------------------------------------------------------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled),
+  summary,
+  a[href],
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* A tile lifts under the pointer and sinks when pressed, so the two states
+     read as opposite halves of the same gesture. */
+  .tile-pressable:hover:not(:active):not(:has(> button:active)) {
+    transform: translateY(-1px);
+    box-shadow:
+      0 4px 0 var(--tile-back),
+      0 6px 14px #17211e26;
+  }
+
+  .tile-sm.tile-pressable:hover:not(:active) {
+    box-shadow:
+      0 3px 0 var(--tile-back),
+      0 4px 10px #17211e21;
+  }
+
+  /* An outlined action fills in under the pointer. The win bar lives inside the
+     larger button that covers the top of a seat, so hovering anywhere on that
+     tile lights its own bar and not the one below it. */
+  .seat-action:hover,
+  button:hover > .seat-action,
+  button:hover > * > .seat-action {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--tile-face);
+  }
+}
+
+/* The two things a player can do to a hand, drawn as peers. */
+.seat-action {
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  background: var(--tile-face);
+  color: var(--ink);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
 /* Until the first hand is ever recorded, the seats say quietly that they are
    the way in. Neutralised by the reduced-motion rule above. */
 @keyframes seat-pulse {

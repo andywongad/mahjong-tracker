@@ -33,14 +33,17 @@ export function TableSurface({
 }) {
   return (
     <div
-      className="mx-auto w-full max-w-[40rem] rounded-2xl p-3 sm:p-4"
+      className="mx-auto w-full max-w-[40rem] rounded-2xl p-2.5 sm:p-4"
       style={{ background: 'var(--felt)' }}
     >
       <div
-        className="grid gap-2 sm:gap-3"
+        className="grid gap-1.5 sm:gap-3"
         style={{
           gridTemplateAreas: '". top ." "left center right" ". bottom ."',
-          gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr)',
+          // Even columns: the seats are controls now, so the side two need as
+          // much width as the middle, which only carries the round and the
+          // hand number.
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
         }}
       >
         {SEATS.map((seat: Seat) => (
