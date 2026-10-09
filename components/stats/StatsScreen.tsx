@@ -301,7 +301,7 @@ function FormSection({ players }: { players: PlayerStats[] }) {
       <div className="tile overflow-x-auto">
         <table className="w-full text-sm">
           <caption className="sr-only">
-            Win rates, streaks and dealer holds
+            Win rates, streaks, dealer holds and self picks
           </caption>
           <thead>
             <tr style={{ color: 'var(--muted)' }}>
@@ -334,6 +334,14 @@ function FormSection({ players }: { players: PlayerStats[] }) {
                 className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
               >
                 <TermStack id="zong" suffix="wins" />
+              </th>
+              {/* The count and the share answer different questions: how many
+                they drew themselves, and how much of their winning that was. */}
+              <th
+                scope="col"
+                className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+              >
+                <TermStack id="zi_mo" />
               </th>
               <th
                 scope="col"
@@ -374,6 +382,7 @@ function FormSection({ players }: { players: PlayerStats[] }) {
                 <td className="tnum px-2 py-2 text-right">
                   {player.dealerHolds}
                 </td>
+                <td className="tnum px-2 py-2 text-right">{player.ziMo}</td>
                 <td className="tnum px-3 py-2 text-right">
                   {player.wins > 0 ? percent(player.ziMoShare) : '·'}
                 </td>
