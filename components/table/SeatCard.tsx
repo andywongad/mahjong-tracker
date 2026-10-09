@@ -2,7 +2,7 @@
 
 import { DEALER_CHAR, type Seat } from '@/lib/scoring';
 import { SEAT_WINDS, seatColor } from '@/lib/game/seats';
-import { termForHandType } from '@/lib/terms';
+import { TERM_BY_ID, termForHandType } from '@/lib/terms';
 import { Wind } from '@/components/ui/Wind';
 import { Delta } from '@/components/ui/Score';
 
@@ -46,6 +46,7 @@ export function SeatCard({
   const wind = SEAT_WINDS[seat];
   const color = seatColor(seat);
   const zaaWu = termForHandType('zaa_wu');
+  const sikWu = TERM_BY_ID.sik_wu;
 
   const inner = (
     <>
@@ -71,9 +72,20 @@ export function SeatCard({
     </>
   );
 
-  const bodyClass = `flex w-full flex-col justify-between text-left ${
+  const infoClass = `flex w-full flex-col justify-between text-left ${
     compact ? 'gap-1 px-2.5 py-2' : 'gap-1.5 px-3 py-2.5'
   }`;
+  // The two things a player can do to a hand are peers, so they are drawn as
+  // peers: same height, same fill, same ink. What separates them is which one
+  // the rest of the tile belongs to.
+  const barClass =
+    'flex w-full items-center justify-center gap-1 px-2 text-[0.7rem] leading-none font-semibold';
+  const barStyle = {
+    minHeight: 34,
+    background: 'var(--line)',
+    color: 'var(--ink)',
+    borderTop: '1px solid var(--line-strong)',
+  };
   const style = { borderTopColor: color, borderTopWidth: 3 };
 
   const badge = isDealer && (
@@ -92,7 +104,7 @@ export function SeatCard({
     return (
       <div className="tile relative w-full" style={style}>
         {badge}
-        <div className={bodyClass}>{inner}</div>
+        <div className={infoClass}>{inner}</div>
       </div>
     );
   }
@@ -104,13 +116,22 @@ export function SeatCard({
     >
       {badge}
 
+      {/* The whole upper half is the button, so the win stays the easiest thing
+        to hit, but it now says so rather than leaving the scorekeeper to guess
+        that a card full of numbers is also a control. */}
       <button
         type="button"
         onClick={onSelect}
         aria-label={selectLabel ?? `Record a hand won by ${name}`}
-        className={`${bodyClass} touch`}
+        className="flex w-full flex-col"
       >
-        {inner}
+        <span className={infoClass}>{inner}</span>
+        <span className={barClass} style={barStyle}>
+          <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+            {sikWu.zh}
+          </span>
+          Won
+        </span>
       </button>
 
       {onFalseWin && (
@@ -121,13 +142,8 @@ export function SeatCard({
           // Quiet, and the full width of the tile, so it is clearly this
           // player's but never competes with the win above it. Deliberately a
           // smaller target than the win: it is rare, and it costs points.
-          className="flex w-full items-center justify-center gap-1 rounded-b-[inherit] px-2 text-[0.7rem] leading-none font-semibold"
-          style={{
-            minHeight: 32,
-            borderTop: '1px solid var(--line)',
-            background: 'var(--line)',
-            color: 'var(--muted)',
-          }}
+          className={`${barClass} rounded-b-[inherit]`}
+          style={barStyle}
         >
           <span lang="zh-Hant" className="hanzi" aria-hidden="true">
             {zaaWu.zh}

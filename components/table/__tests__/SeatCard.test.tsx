@@ -37,6 +37,13 @@ describe('a seat at the table', () => {
     ).toBeVisible();
   });
 
+  it('says on the tile what each half of it does', () => {
+    setup();
+    // A card of numbers does not read as a control, so both halves are labelled.
+    expect(screen.getByText('Won')).toBeVisible();
+    expect(screen.getByText('False win')).toBeVisible();
+  });
+
   it('never nests one action inside the other', () => {
     const { container } = render(
       <SeatCard
