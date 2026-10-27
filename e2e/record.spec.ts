@@ -183,12 +183,29 @@ test.describe('reading the running score', () => {
     const box = await chart.boundingBox();
     if (!box) throw new Error('No chart');
 
-    // Tapping holds the readout, so it survives lifting a finger off a phone.
-    await page.mouse.click(box.x + box.width * 0.42, box.y + box.height * 0.5);
+    // Dragging sideways runs along the game, and lifting leaves it where it
+    // was left: a finger cannot hover, so holding is the only way to read it.
+    const y = box.y + box.height * 0.5;
+    await page.mouse.move(box.x + box.width * 0.25, y);
+    await page.mouse.down();
+    const caption = page.locator('figcaption');
+    await expect(caption).toContainText(/Showing hand \d+/);
+    const atStart = await caption.innerText();
+
+    await page.mouse.move(box.x + box.width * 0.7, y, { steps: 10 });
+    // Which hand depends on how wide the chart is; that it moved does not.
+    await expect(caption).not.toHaveText(atStart);
+    await expect(caption).toContainText(/Showing hand \d+/);
+    await page.mouse.up();
+
     const readout = page.getByRole('status').filter({ hasText: /After hand/ });
     await expect(readout).toBeVisible();
-    await page.mouse.move(box.x + box.width * 0.1, box.y + box.height * 0.5);
+    await page.mouse.move(box.x + box.width * 0.1, y);
     await expect(readout).toBeVisible();
+
+    // Tapping the hand being held is how you let it go.
+    await page.mouse.click(box.x + box.width * 0.7, y);
+    await expect(readout).toHaveCount(0);
 
     // One player on their own has room for a figure at every hand.
     const fig = page.locator('figure').first();

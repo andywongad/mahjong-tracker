@@ -83,6 +83,11 @@ export function ScoreChart({
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const drag = useRef<{
+    from: number;
+    moved: boolean;
+    wasHeld: boolean;
+  } | null>(null);
   const [width, setWidth] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   // A hover readout vanishes the moment you look away, which is no use on a
@@ -247,19 +252,45 @@ export function ScoreChart({
     return Math.min(handCount, Math.max(0, Math.round(position * handCount)));
   }
 
-  function hover(event: React.PointerEvent<SVGSVGElement>) {
-    if (pinned) return;
-    const index = indexAt(event.clientX);
-    if (index !== null) setActiveIndex(index);
-  }
-
-  function tap(event: React.PointerEvent<SVGSVGElement>) {
+  /**
+   * Pressing shows a hand and holds it, dragging runs along the game, and
+   * lifting leaves the readout where you left it. A finger cannot hover, so
+   * holding is the only way the scores survive letting go.
+   */
+  function press(event: React.PointerEvent<SVGSVGElement>) {
     const index = indexAt(event.clientX);
     if (index === null) return;
-    // Tapping the hand already held lets it go; tapping another moves to it.
-    const release = pinned && index === activeIndex;
-    setPinned(!release);
-    setActiveIndex(release ? null : index);
+    // Captured so a drag keeps tracking after it leaves the chart.
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    drag.current = {
+      from: index,
+      moved: false,
+      wasHeld: pinned && index === activeIndex,
+    };
+    setActiveIndex(index);
+    setPinned(true);
+  }
+
+  function move(event: React.PointerEvent<SVGSVGElement>) {
+    const index = indexAt(event.clientX);
+    if (index === null) return;
+    if (drag.current) {
+      if (index !== drag.current.from) drag.current.moved = true;
+      setActiveIndex(index);
+      return;
+    }
+    // A mouse reads by hovering, until something is being held.
+    if (!pinned) setActiveIndex(index);
+  }
+
+  function release() {
+    const gesture = drag.current;
+    drag.current = null;
+    // Tapping the hand already held is how you let it go again.
+    if (gesture && !gesture.moved && gesture.wasHeld) {
+      setPinned(false);
+      setActiveIndex(null);
+    }
   }
 
   function step(event: React.KeyboardEvent<SVGSVGElement>) {
@@ -374,14 +405,16 @@ export function ScoreChart({
             ref={svgRef}
             width={width}
             height={height}
-            className="touch-none outline-none"
+            className="touch-pan-y outline-none"
             role="img"
-            aria-label={`Running score across ${handCount} hands. ${summary}.`}
+            aria-label={`Running score across ${handCount} hands. ${summary}. Use the arrow keys to read each hand.`}
             tabIndex={0}
-            onPointerMove={hover}
-            onPointerDown={tap}
+            onPointerDown={press}
+            onPointerMove={move}
+            onPointerUp={release}
+            onPointerCancel={release}
             onPointerLeave={() => {
-              if (!pinned) setActiveIndex(null);
+              if (!pinned && !drag.current) setActiveIndex(null);
             }}
             onKeyDown={step}
             onBlur={() => {
@@ -613,11 +646,28 @@ export function ScoreChart({
 
       {view === 'chart' && (
         <figcaption className="text-xs" style={{ color: 'var(--muted)' }}>
-          {onlySeat !== null
-            ? `Every hand ${players[onlySeat]} played. Tap their name again for the whole table.`
-            : pinned
-              ? 'Holding that hand. Tap it again to let go, or use the arrow keys.'
-              : 'Running score after each hand. Tap a name for one player, or a hand to hold its scores.'}
+          {onlySeat !== null ? (
+            <>
+              Every hand {players[onlySeat]} played, with their score after each
+              one. Tap their name again to bring the other three back.
+            </>
+          ) : activeIndex !== null ? (
+            <>
+              Showing{' '}
+              <span className="font-semibold">
+                {activeIndex === 0 ? 'the start' : `hand ${activeIndex}`}
+              </span>
+              . Keep dragging sideways to move through the game, or tap the same
+              hand again to let it go.
+            </>
+          ) : (
+            <>
+              Drag sideways across the chart to watch the scores change hand by
+              hand. Tap a name above to follow one player and see their score at
+              every hand, or <span className="font-semibold">Values</span> to
+              read the whole game as numbers.
+            </>
+          )}
         </figcaption>
       )}
     </figure>
