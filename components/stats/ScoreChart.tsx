@@ -16,6 +16,7 @@ import {
 } from '@/lib/scoring';
 import { seatColor } from '@/lib/game/seats';
 import { formatSigned } from '@/components/ui/Score';
+import { ScoreTable } from './ScoreTable';
 
 /**
  * Height is a property of the device, not of the container: the chart in a
@@ -84,6 +85,10 @@ export function ScoreChart({
   const svgRef = useRef<SVGSVGElement>(null);
   const [width, setWidth] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  // A hover readout vanishes the moment you look away, which is no use on a
+  // phone. Tapping holds it until you tap again.
+  const [pinned, setPinned] = useState(false);
+  const [view, setView] = useState<'chart' | 'values'>('chart');
 
   const height = useSyncExternalStore(
     subscribeToWidth,
@@ -201,14 +206,62 @@ export function ScoreChart({
     };
   }, [width, height, series, players, handCount, rounds]);
 
-  function readPointer(event: React.PointerEvent<SVGSVGElement>) {
+  function indexAt(clientX: number): number | null {
     const svg = svgRef.current;
-    if (!svg || !chart || handCount === 0) return;
+    if (!svg || !chart || handCount === 0) return null;
     const rect = svg.getBoundingClientRect();
-    const position = (event.clientX - rect.left - PAD.left) / chart.plotW;
-    const index = Math.round(position * handCount);
-    setActiveIndex(Math.min(handCount, Math.max(0, index)));
+    const position = (clientX - rect.left - PAD.left) / chart.plotW;
+    return Math.min(handCount, Math.max(0, Math.round(position * handCount)));
   }
+
+  function hover(event: React.PointerEvent<SVGSVGElement>) {
+    if (pinned) return;
+    const index = indexAt(event.clientX);
+    if (index !== null) setActiveIndex(index);
+  }
+
+  function tap(event: React.PointerEvent<SVGSVGElement>) {
+    const index = indexAt(event.clientX);
+    if (index === null) return;
+    // Tapping the hand already held lets it go; tapping another moves to it.
+    const release = pinned && index === activeIndex;
+    setPinned(!release);
+    setActiveIndex(release ? null : index);
+  }
+
+  function step(event: React.KeyboardEvent<SVGSVGElement>) {
+    if (handCount === 0) return;
+    const current = activeIndex ?? handCount;
+    const moves: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1 };
+    if (event.key in moves) {
+      event.preventDefault();
+      setPinned(true);
+      setActiveIndex(
+        Math.min(handCount, Math.max(0, current + moves[event.key])),
+      );
+      return;
+    }
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      setPinned(true);
+      setActiveIndex(event.key === 'Home' ? 0 : handCount);
+      return;
+    }
+    if (event.key === 'Escape') {
+      setPinned(false);
+      setActiveIndex(null);
+    }
+  }
+
+  /** The four players at the hand being read, best first. */
+  const readout =
+    activeIndex === null
+      ? null
+      : SEATS.map((seat: Seat) => ({
+          seat,
+          name: players[seat],
+          value: series[seat][activeIndex],
+        })).sort((a, b) => b.value - a.value);
 
   const summary = SEATS.map(
     (seat: Seat) => `${players[seat]} ${formatSigned(series[seat][handCount])}`,
@@ -216,32 +269,76 @@ export function ScoreChart({
 
   return (
     <figure className="m-0 flex flex-col gap-2">
-      {/* Identity is never only a colour: the legend names every line. */}
-      <ul className="flex flex-wrap gap-x-3 gap-y-1">
-        {SEATS.map((seat: Seat) => (
-          <li key={seat} className="flex items-center gap-1.5 text-xs">
-            <span
-              aria-hidden="true"
-              className="inline-block h-2.5 w-2.5 rounded-full"
-              style={{ background: seatColor(seat) }}
-            />
-            <span>{players[seat]}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        {/* Identity is never only a colour: the legend names every line. */}
+        <ul className="flex flex-wrap gap-x-3 gap-y-1">
+          {SEATS.map((seat: Seat) => (
+            <li key={seat} className="flex items-center gap-1.5 text-xs">
+              <span
+                aria-hidden="true"
+                className="inline-block h-2.5 w-2.5 rounded-full"
+                style={{ background: seatColor(seat) }}
+              />
+              <span>{players[seat]}</span>
+            </li>
+          ))}
+        </ul>
 
-      <div ref={wrapRef} style={{ height }}>
+        {/* A line tells you the shape of a game. When you want the figure at
+          hand eleven, you want it written down. */}
+        <div
+          className="flex shrink-0 overflow-hidden rounded-lg"
+          style={{ border: '1px solid var(--line-strong)' }}
+          role="group"
+          aria-label="How to show the running score"
+        >
+          {(['chart', 'values'] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setView(option)}
+              aria-pressed={view === option}
+              className="px-2.5 py-1 text-xs font-semibold capitalize"
+              style={
+                view === option
+                  ? { background: 'var(--ink)', color: 'var(--tile-face)' }
+                  : { color: 'var(--muted)' }
+              }
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {view === 'values' && (
+        <ScoreTable series={series} players={players} rounds={rounds} />
+      )}
+
+      <div
+        ref={wrapRef}
+        className="relative"
+        style={{ height, display: view === 'chart' ? undefined : 'none' }}
+      >
         {chart && (
           <svg
             ref={svgRef}
             width={width}
             height={height}
-            className="touch-none"
+            className="touch-none outline-none"
             role="img"
             aria-label={`Running score across ${handCount} hands. ${summary}.`}
-            onPointerMove={readPointer}
-            onPointerDown={readPointer}
-            onPointerLeave={() => setActiveIndex(null)}
+            tabIndex={0}
+            onPointerMove={hover}
+            onPointerDown={tap}
+            onPointerLeave={() => {
+              if (!pinned) setActiveIndex(null);
+            }}
+            onKeyDown={step}
+            onBlur={() => {
+              if (pinned) return;
+              setActiveIndex(null);
+            }}
           >
             {/* Alternate rounds get a wash, so the bands read without a border. */}
             {chart.bands.map((band, index) =>
@@ -374,31 +471,71 @@ export function ScoreChart({
               ))}
           </svg>
         )}
+
+        {chart && readout && activeIndex !== null && (
+          <div
+            className="pointer-events-none absolute z-10 max-w-[60%] rounded-lg px-2 py-1.5"
+            style={{
+              top: PAD.top,
+              // Flips to the other side of the crosshair near the right edge,
+              // so the readout is never half off the chart.
+              ...(chart.xOf(activeIndex) > width * 0.55
+                ? { right: width - chart.xOf(activeIndex) + 10 }
+                : { left: chart.xOf(activeIndex) + 10 }),
+              background: 'var(--tile-face)',
+              border: '1px solid var(--line-strong)',
+              boxShadow: 'var(--shadow-tile-sm)',
+            }}
+            role="status"
+            aria-live="polite"
+          >
+            <p
+              className="mb-1 text-[0.7rem] font-semibold"
+              style={{ color: 'var(--muted)' }}
+            >
+              {activeIndex === 0 ? 'Start' : `After hand ${activeIndex}`}
+            </p>
+            <ul className="flex flex-col gap-0.5">
+              {readout.map((entry) => (
+                <li
+                  key={entry.seat}
+                  className="flex items-center justify-between gap-2.5 text-[0.7rem] whitespace-nowrap"
+                >
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <span
+                      aria-hidden="true"
+                      className="inline-block h-2 w-2 shrink-0 rounded-full"
+                      style={{ background: seatColor(entry.seat) }}
+                    />
+                    <span className="truncate">{entry.name}</span>
+                  </span>
+                  <span
+                    className="tnum font-semibold"
+                    style={{
+                      color:
+                        entry.value === 0
+                          ? 'var(--muted)'
+                          : entry.value > 0
+                            ? 'var(--gain)'
+                            : 'var(--loss)',
+                    }}
+                  >
+                    {entry.value === 0 ? '0' : formatSigned(entry.value)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
-      <figcaption className="text-xs" style={{ color: 'var(--muted)' }}>
-        {activeIndex === null ? (
-          <>Running score after each hand. Touch the chart to read a hand.</>
-        ) : (
-          <span className="flex flex-wrap gap-x-3">
-            <span className="font-semibold">
-              {activeIndex === 0 ? 'Start' : `Hand ${activeIndex}`}
-            </span>
-            {SEATS.map((seat: Seat) => (
-              <span key={seat} className="flex items-center gap-1">
-                <span
-                  aria-hidden="true"
-                  className="inline-block h-2 w-2 rounded-full"
-                  style={{ background: seatColor(seat) }}
-                />
-                <span className="tnum">
-                  {formatSigned(series[seat][activeIndex])}
-                </span>
-              </span>
-            ))}
-          </span>
-        )}
-      </figcaption>
+      {view === 'chart' && (
+        <figcaption className="text-xs" style={{ color: 'var(--muted)' }}>
+          {pinned
+            ? 'Holding that hand. Tap it again to let go, or use the arrow keys.'
+            : 'Running score after each hand. Tap a hand to hold its scores, or switch to Values for every number.'}
+        </figcaption>
+      )}
     </figure>
   );
 }

@@ -170,3 +170,30 @@ test.describe('recording each kind of hand', () => {
     await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
   });
 });
+
+test.describe('reading the running score', () => {
+  test('a hand can be held open, and every figure is one tap away', async ({
+    page,
+  }) => {
+    await page.goto('/?view=stats&game=seed-aug-19-2026');
+    await page.waitForLoadState('networkidle');
+
+    const chart = page.locator('figure svg').first();
+    await chart.scrollIntoViewIfNeeded();
+    const box = await chart.boundingBox();
+    if (!box) throw new Error('No chart');
+
+    // Tapping holds the readout, so it survives lifting a finger off a phone.
+    await page.mouse.click(box.x + box.width * 0.42, box.y + box.height * 0.5);
+    const readout = page.getByRole('status').filter({ hasText: /After hand/ });
+    await expect(readout).toBeVisible();
+    await page.mouse.move(box.x + box.width * 0.1, box.y + box.height * 0.5);
+    await expect(readout).toBeVisible();
+
+    // Values is the answer to "what was the score at hand eleven".
+    await page.getByRole('button', { name: 'values' }).click();
+    const rows = page.locator('figure tbody tr');
+    await expect(rows).toHaveCount(19);
+    await expect(rows.last()).toContainText('+64');
+  });
+});
