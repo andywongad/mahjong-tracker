@@ -661,12 +661,22 @@ export function ScoreChart({
               hand again to let it go.
             </>
           ) : (
-            <>
-              Drag sideways across the chart to watch the scores change hand by
-              hand. Tap a name above to follow one player and see their score at
-              every hand, or <span className="font-semibold">Values</span> to
-              read the whole game as numbers.
-            </>
+            // Three separate things you can do, so three lines rather than
+            // one sentence to pick them out of.
+            <ul className="flex list-disc flex-col gap-1 pl-4">
+              <li>
+                Drag sideways across the chart to watch the scores change hand
+                by hand.
+              </li>
+              <li>
+                Tap a name above to follow one player and see their score at
+                every hand.
+              </li>
+              <li>
+                Switch to <span className="font-semibold">Values</span> to read
+                the whole game as numbers.
+              </li>
+            </ul>
           )}
         </figcaption>
       )}
