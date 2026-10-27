@@ -89,6 +89,9 @@ export function ScoreChart({
   // phone. Tapping holds it until you tap again.
   const [pinned, setPinned] = useState(false);
   const [view, setView] = useState<'chart' | 'values'>('chart');
+  // One line on its own has room for a figure at every hand, which four lines
+  // never do. Tapping a name in the legend is how you ask for that.
+  const [onlySeat, setOnlySeat] = useState<Seat | null>(null);
 
   const height = useSyncExternalStore(
     subscribeToWidth,
@@ -122,8 +125,11 @@ export function ScoreChart({
       ),
     );
     const wanted = Math.min(longest * CHAR_W + 14, width * 0.4);
-    const showEndLabels = width - PAD.left - wanted >= MIN_PLOT_W;
-    const right = showEndLabels ? wanted : 8;
+    // With one player the last point carries its own figure, so the gutter the
+    // end labels needed goes back to the plot.
+    const showEndLabels =
+      onlySeat === null && width - PAD.left - wanted >= MIN_PLOT_W;
+    const right = showEndLabels ? wanted : 12;
 
     const plotW = Math.max(width - PAD.left - right, 1);
     const plotH = Math.max(height - PAD.top - PAD.bottom, 1);
@@ -192,9 +198,36 @@ export function ScoreChart({
     const underflow = PAD.top - endLabels[0].y;
     if (underflow > 0) for (const label of endLabels) label.y += underflow;
 
+    // Every hand's figure, for the one player being read on their own. Odd
+    // hands sit above the line and even ones below, so neighbours never share
+    // a row; anything that still collides is dropped rather than overlapped.
+    const pointLabels: { x: number; y: number; text: string }[] = [];
+    if (onlySeat !== null) {
+      const placed: { x1: number; x2: number; y: number }[] = [];
+      for (let hand = 1; hand <= handCount; hand += 1) {
+        const value = series[onlySeat][hand];
+        const text = value === 0 ? '0' : formatSigned(value);
+        const halfWidth = (text.length * CHAR_W + 8) / 2;
+        const x = xOf(hand);
+        const y = yOf(value) + (hand % 2 ? -11 : 15);
+        const clash = placed.some(
+          (other) =>
+            x - halfWidth < other.x2 &&
+            x + halfWidth > other.x1 &&
+            Math.abs(y - other.y) < LABEL_SIZE + 2,
+        );
+        if (clash) continue;
+        // Never let a figure sit outside the plot it belongs to.
+        if (y < PAD.top + LABEL_SIZE || y > PAD.top + plotH) continue;
+        placed.push({ x1: x - halfWidth, x2: x + halfWidth, y });
+        pointLabels.push({ x, y, text });
+      }
+    }
+
     return {
       xOf,
       yOf,
+      pointLabels,
       plotW,
       plotH,
       paths,
@@ -204,7 +237,7 @@ export function ScoreChart({
       endLabels,
       showEndLabels,
     };
-  }, [width, height, series, players, handCount, rounds]);
+  }, [width, height, series, players, handCount, rounds, onlySeat]);
 
   function indexAt(clientX: number): number | null {
     const svg = svgRef.current;
@@ -271,17 +304,33 @@ export function ScoreChart({
     <figure className="m-0 flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         {/* Identity is never only a colour: the legend names every line. */}
-        <ul className="flex flex-wrap gap-x-3 gap-y-1">
-          {SEATS.map((seat: Seat) => (
-            <li key={seat} className="flex items-center gap-1.5 text-xs">
-              <span
-                aria-hidden="true"
-                className="inline-block h-2.5 w-2.5 rounded-full"
-                style={{ background: seatColor(seat) }}
-              />
-              <span>{players[seat]}</span>
-            </li>
-          ))}
+        <ul className="flex flex-wrap gap-x-1 gap-y-1">
+          {SEATS.map((seat: Seat) => {
+            const selected = onlySeat === seat;
+            return (
+              <li key={seat}>
+                <button
+                  type="button"
+                  onClick={() => setOnlySeat(selected ? null : seat)}
+                  aria-pressed={selected}
+                  className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs"
+                  style={{
+                    background: selected ? 'var(--line)' : undefined,
+                    opacity: onlySeat === null || selected ? 1 : 0.5,
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ background: seatColor(seat) }}
+                  />
+                  <span className={selected ? 'font-semibold' : undefined}>
+                    {players[seat]}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
 
         {/* A line tells you the shape of a game. When you want the figure at
@@ -431,7 +480,40 @@ export function ScoreChart({
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                opacity={onlySeat === null || onlySeat === seat ? 1 : 0.16}
               />
+            ))}
+
+            {/* A dot for every hand, so each figure has something to sit on. */}
+            {onlySeat !== null &&
+              series[onlySeat].map((value, hand) =>
+                hand === 0 ? null : (
+                  <circle
+                    key={hand}
+                    cx={chart.xOf(hand)}
+                    cy={chart.yOf(value)}
+                    r={2.5}
+                    fill={seatColor(onlySeat)}
+                  />
+                ),
+              )}
+
+            {chart.pointLabels.map((label) => (
+              <text
+                key={label.x}
+                x={label.x}
+                y={label.y}
+                textAnchor="middle"
+                className="tnum"
+                fontSize={LABEL_SIZE}
+                fontWeight={600}
+                fill="var(--ink)"
+                stroke="var(--tile-face)"
+                strokeWidth={3}
+                paintOrder="stroke"
+              >
+                {label.text}
+              </text>
             ))}
 
             {activeIndex !== null &&
@@ -531,9 +613,11 @@ export function ScoreChart({
 
       {view === 'chart' && (
         <figcaption className="text-xs" style={{ color: 'var(--muted)' }}>
-          {pinned
-            ? 'Holding that hand. Tap it again to let go, or use the arrow keys.'
-            : 'Running score after each hand. Tap a hand to hold its scores, or switch to Values for every number.'}
+          {onlySeat !== null
+            ? `Every hand ${players[onlySeat]} played. Tap their name again for the whole table.`
+            : pinned
+              ? 'Holding that hand. Tap it again to let go, or use the arrow keys.'
+              : 'Running score after each hand. Tap a name for one player, or a hand to hold its scores.'}
         </figcaption>
       )}
     </figure>

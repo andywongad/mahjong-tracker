@@ -190,6 +190,17 @@ test.describe('reading the running score', () => {
     await page.mouse.move(box.x + box.width * 0.1, box.y + box.height * 0.5);
     await expect(readout).toBeVisible();
 
+    // One player on their own has room for a figure at every hand.
+    const fig = page.locator('figure').first();
+    await fig.getByRole('button', { name: 'Player A' }).click();
+    await expect(fig.getByText('+18')).toBeVisible();
+    await expect(fig.getByText('-85')).toBeVisible();
+    await expect(fig.getByText(/Every hand Player A played/)).toBeVisible();
+
+    // And back to all four, where those figures cannot fit.
+    await fig.getByRole('button', { name: 'Player A' }).click();
+    await expect(fig.getByText('+18')).toHaveCount(0);
+
     // Values is the answer to "what was the score at hand eleven".
     await page.getByRole('button', { name: 'values' }).click();
     const rows = page.locator('figure tbody tr');
