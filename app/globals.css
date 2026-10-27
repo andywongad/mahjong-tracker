@@ -59,6 +59,11 @@
   --gain: #14674c;
   --loss: #c23128;
 
+  /* The shooter's payment, filled rather than a third hue: a loss is still a
+     loss, so the colour stays and the shape is what marks it out. */
+  --shooter: #c23128;
+  --on-shooter: #ffffff;
+
   --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 10px #17211e1f;
   --shadow-tile-sm: 0 2px 0 var(--tile-back), 0 3px 6px #17211e1a;
   --shadow-sheet: 0 -8px 40px #17211e2e;
@@ -104,6 +109,11 @@
     --gain: #3fbb8b;
     --loss: #e9594d;
 
+    /* Picked to clear two bars at once: 3:1 against the card it sits on, so
+       the chip is findable, and 4.5:1 for the white number on it. */
+    --shooter: #d6372c;
+    --on-shooter: #ffffff;
+
     --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 12px #00000066;
     --shadow-tile-sm: 0 2px 0 var(--tile-back), 0 3px 8px #00000059;
     --shadow-sheet: 0 -8px 40px #00000073;
@@ -143,6 +153,9 @@
   --gain: #3fbb8b;
   --loss: #e9594d;
 
+  --shooter: #d6372c;
+  --on-shooter: #ffffff;
+
   --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 12px #00000066;
   --shadow-tile-sm: 0 2px 0 var(--tile-back), 0 3px 8px #00000059;
   --shadow-sheet: 0 -8px 40px #00000073;
@@ -173,6 +186,7 @@
   --color-badge-bg: var(--badge-bg);
   --color-gain: var(--gain);
   --color-loss: var(--loss);
+  --color-shooter: var(--shooter);
 
   --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
   --font-hanzi: 'Noto Serif TC Subset', 'Noto Serif TC', 'Songti TC', serif;

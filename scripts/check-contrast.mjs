@@ -74,6 +74,10 @@ const PAIRS = [
   ['seat action label', 'ink', 'tile-face', 'text'],
   ['seat action outline', 'ink', 'tile-face', 'ui'],
   ['seat action label, hovered', 'tile-face', 'ink', 'text'],
+  // The shooter's payment is a filled chip, so its text sits on the fill.
+  ['shooter chip text', 'on-shooter', 'shooter', 'text'],
+  ['shooter chip on tile face', 'shooter', 'tile-face', 'ui'],
+  ['shooter chip on surface', 'shooter', 'surface', 'ui'],
 ];
 
 // Marks are graphics (3:1); solid fills carry white text (4.5:1).

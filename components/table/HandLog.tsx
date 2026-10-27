@@ -1,10 +1,10 @@
 'use client';
 
-import { SEATS, type HandRow, type Seat } from '@/lib/scoring';
+import type { HandRow } from '@/lib/scoring';
 import type { GameRecord } from '@/lib/game/types';
 import { Wind } from '@/components/ui/Wind';
-import { formatSigned } from '@/components/ui/Score';
 import { Term } from '@/components/ui/Term';
+import { HandDeltas } from '@/components/ui/HandDeltas';
 import { PlayerColumns } from './PlayerColumns';
 import { describeHand } from '@/lib/game/describe';
 import { termForHandType } from '@/lib/terms';
@@ -141,26 +141,11 @@ export function HandLog({
                   </span>
                 </span>
 
-                <span className="mt-1 grid grid-cols-4 gap-1">
-                  {SEATS.map((seat: Seat) => (
-                    <span
-                      key={seat}
-                      className="tnum text-right text-xs font-semibold"
-                      style={{
-                        color:
-                          row.deltas[seat] === 0
-                            ? 'var(--muted)'
-                            : row.deltas[seat] > 0
-                              ? 'var(--gain)'
-                              : 'var(--loss)',
-                      }}
-                    >
-                      {row.deltas[seat] === 0
-                        ? '0'
-                        : formatSigned(row.deltas[seat])}
-                    </span>
-                  ))}
-                </span>
+                <HandDeltas
+                  hand={row.hand}
+                  deltas={row.deltas}
+                  className="mt-1"
+                />
               </RowBody>
             </li>
           );

@@ -20,7 +20,7 @@ import { Sheet } from './Sheet';
 import { HandBuilderSheet } from './HandBuilderSheet';
 import { TileChoice } from '@/components/ui/TileChoice';
 import { Wind } from '@/components/ui/Wind';
-import { formatSigned } from '@/components/ui/Score';
+import { DeltaCell, shooterSeatOf } from '@/components/ui/HandDeltas';
 import { termForHandType } from '@/lib/terms';
 
 /**
@@ -364,18 +364,12 @@ export function RecordHandSheet({
                     >
                       {game.players[seat]}
                     </p>
-                    <p
-                      className="tnum text-base font-bold"
-                      style={{
-                        color:
-                          preview[seat] === 0
-                            ? 'var(--muted)'
-                            : preview[seat] > 0
-                              ? 'var(--gain)'
-                              : 'var(--loss)',
-                      }}
-                    >
-                      {preview[seat] === 0 ? '0' : formatSigned(preview[seat])}
+                    <p className="leading-none">
+                      <DeltaCell
+                        value={preview[seat]}
+                        isShooter={seat === shooterSeatOf(hand)}
+                        size="md"
+                      />
                     </p>
                   </div>
                 ))}
