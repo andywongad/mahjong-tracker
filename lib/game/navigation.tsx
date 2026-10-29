@@ -21,7 +21,8 @@ import {
  * forward arrive as popstate; our own pushes announce themselves, since
  * pushState fires no event of its own.
  */
-export type View = 'table' | 'stats' | 'games' | 'settle' | 'glossary';
+export type View =
+  'table' | 'stats' | 'games' | 'settle' | 'glossary' | 'score';
 
 export interface Route {
   view: View;
@@ -51,7 +52,7 @@ const getServerSnapshot = () => '';
 function parse(search: string): Route {
   const params = new URLSearchParams(search);
   const view = params.get('view');
-  const known: View[] = ['stats', 'games', 'settle', 'glossary'];
+  const known: View[] = ['stats', 'games', 'settle', 'glossary', 'score'];
   return {
     view: known.includes(view as View) ? (view as View) : 'table',
     gameId: params.get('game'),

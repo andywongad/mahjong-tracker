@@ -79,8 +79,19 @@ export function GamesScreen() {
               Tally details
             </button>
           )}
+          {/* The other thing the app does. A table playing for fun needs to
+            know what a hand is worth without keeping score at all, so it sits
+            with the actions rather than with the reference material. */}
+          <button
+            type="button"
+            onClick={() => go('score', null)}
+            className="tile-sm tile-pressable touch w-full rounded-xl py-3 text-sm font-semibold"
+          >
+            Score a hand
+          </button>
+
           {/* Two things you read rather than use: a reference and a once ever
-            explanation. They pair up under the action that gets used. */}
+            explanation. They pair up under the actions that get used. */}
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -121,7 +132,8 @@ export function GamesScreen() {
           )}
           {!loading && summaries.length === 0 && (
             <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Start a game and it will show up here.
+              Start a game and it will show up here. To work out what a single
+              hand is worth without keeping score, use Score a hand.
             </p>
           )}
           <ul className="flex flex-col gap-2">

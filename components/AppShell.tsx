@@ -2,13 +2,14 @@
 
 import { useEffect } from 'react';
 import { useGames } from '@/lib/game/GamesProvider';
-import { useNavigation } from '@/lib/game/navigation';
+import { useNavigation, type View } from '@/lib/game/navigation';
 import { GameScreen } from '@/components/table/GameScreen';
 import { StatsScreen } from '@/components/stats/StatsScreen';
 import { GamesScreen } from '@/components/games/GamesScreen';
 import { StorageError } from '@/components/ui/StorageError';
 import { SettleScreen } from '@/components/settle/SettleScreen';
 import { GlossaryScreen } from '@/components/glossary/GlossaryScreen';
+import { ScoreHandScreen } from '@/components/scorer/ScoreHandScreen';
 
 /**
  * The whole app behind one route. Views are swapped in place so nothing needs
@@ -22,8 +23,8 @@ export function AppShell() {
   // With no game chosen, fall to the most recent one, or to the games list.
   useEffect(() => {
     if (storageError) return;
-    if (loading || view === 'games' || view === 'settle' || view === 'glossary')
-      return;
+    const standalone: View[] = ['games', 'settle', 'glossary', 'score'];
+    if (loading || standalone.includes(view)) return;
     const known = gameId && games.some((game) => game.id === gameId);
     if (known) return;
     if (games.length > 0) go('table', games[0].id);
@@ -44,6 +45,7 @@ export function AppShell() {
   if (view === 'games') return <GamesScreen />;
   if (view === 'settle') return <SettleScreen />;
   if (view === 'glossary') return <GlossaryScreen />;
+  if (view === 'score') return <ScoreHandScreen />;
 
   const activeId = gameId ?? games[0]?.id;
   if (!activeId) return <GamesScreen />;

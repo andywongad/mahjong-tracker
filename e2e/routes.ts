@@ -94,6 +94,13 @@ export const ROUTES: Route[] = [
     },
   },
   {
+    name: 'score-hand',
+    go: async (page) => {
+      await page.goto('/?view=score');
+      await settle(page);
+    },
+  },
+  {
     name: 'glossary',
     go: async (page) => {
       await page.goto('/?view=glossary');
