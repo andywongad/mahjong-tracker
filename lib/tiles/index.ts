@@ -6,7 +6,7 @@
  * describe it.
  */
 
-export type Suit = 'characters' | 'dots' | 'bamboo' | 'honour';
+export type Suit = 'characters' | 'dots' | 'bamboo' | 'honour' | 'bonus';
 
 /** Honours in the order a set of tiles comes in: the four winds, then the three dragons. */
 export type Honour =
@@ -14,6 +14,8 @@ export type Honour =
 
 export interface Tile {
   suit: Suit;
+  /** A flower or a season, which sits beside the hand rather than in it. */
+  bonus?: string;
   /** 1 to 9 for the three numbered suits. */
   rank?: number;
   honour?: Honour;
@@ -80,7 +82,19 @@ function parseGroup(group: string): Tile[] {
 }
 
 /** A tile's name, so a hand can be read aloud as well as looked at. */
+const BONUS_NAMES: Record<string, string> = {
+  f1: 'Flower 1, plum',
+  f2: 'Flower 2, orchid',
+  f3: 'Flower 3, chrysanthemum',
+  f4: 'Flower 4, bamboo',
+  s1: 'Season 1, spring',
+  s2: 'Season 2, summer',
+  s3: 'Season 3, autumn',
+  s4: 'Season 4, winter',
+};
+
 export function tileName(tile: Tile): string {
+  if (tile.suit === 'bonus') return BONUS_NAMES[tile.bonus ?? ''] ?? 'Flower';
   if (tile.suit === 'honour') {
     const names: Record<Honour, string> = {
       east: 'East wind',
@@ -98,6 +112,7 @@ export function tileName(tile: Tile): string {
     dots: 'dots',
     bamboo: 'bamboo',
     honour: '',
+    bonus: '',
   };
   return `${tile.rank} ${suits[tile.suit]}`;
 }
@@ -105,4 +120,123 @@ export function tileName(tile: Tile): string {
 /** The whole hand as a sentence, for anyone who cannot see the drawing. */
 export function handName(groups: Tile[][]): string {
   return groups.map((group) => group.map(tileName).join(', ')).join('; ');
+}
+
+/* ---------------------------------------------------------------------------
+   Compact keys
+   The hand scorer counts tiles, looks for runs and splits a hand into sets,
+   all of which are far easier on a short string than on an object. "d1" is the
+   one of dots, "wE" the east wind, "f1" the first flower.
+--------------------------------------------------------------------------- */
+
+export type SuitLetter = 'd' | 'b' | 'c';
+export type Rank = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type SuitKey = `${SuitLetter}${Rank}`;
+export type HonourKey = 'wE' | 'wS' | 'wW' | 'wN' | 'rR' | 'rG' | 'rW';
+/** Flowers and seasons sit beside the hand and are never part of a set. */
+export type BonusKey = 'f1' | 'f2' | 'f3' | 'f4' | 's1' | 's2' | 's3' | 's4';
+/** Anything that can be in the hand proper. */
+export type TileKey = SuitKey | HonourKey;
+
+export const SUIT_KEYS: SuitLetter[] = ['d', 'b', 'c'];
+export const RANKS: Rank[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+export const HONOUR_KEYS: HonourKey[] = [
+  'wE',
+  'wS',
+  'wW',
+  'wN',
+  'rR',
+  'rG',
+  'rW',
+];
+export const BONUS_KEYS: BonusKey[] = [
+  'f1',
+  'f2',
+  'f3',
+  'f4',
+  's1',
+  's2',
+  's3',
+  's4',
+];
+
+const SUIT_OF: Record<SuitLetter, Suit> = {
+  d: 'dots',
+  b: 'bamboo',
+  c: 'characters',
+};
+
+const HONOUR_OF: Record<HonourKey, Honour> = {
+  wE: 'east',
+  wS: 'south',
+  wW: 'west',
+  wN: 'north',
+  rR: 'red',
+  rG: 'green',
+  rW: 'white',
+};
+
+export function isSuitKey(key: string): key is SuitKey {
+  return SUIT_KEYS.includes(key[0] as SuitLetter) && /^[dbc][1-9]$/.test(key);
+}
+
+export function isHonourKey(key: string): key is HonourKey {
+  return (HONOUR_KEYS as string[]).includes(key);
+}
+
+export function isBonusKey(key: string): key is BonusKey {
+  return (BONUS_KEYS as string[]).includes(key);
+}
+
+/** The rank of a numbered tile, or null for an honour. */
+export function rankOf(key: TileKey): Rank | null {
+  return isSuitKey(key) ? (Number(key.slice(1)) as Rank) : null;
+}
+
+export function suitOf(key: TileKey): SuitLetter | null {
+  return isSuitKey(key) ? (key[0] as SuitLetter) : null;
+}
+
+/** A key as the drawable tile the rest of the app already understands. */
+export function tileOf(key: TileKey | BonusKey): Tile {
+  if (isSuitKey(key)) {
+    return { suit: SUIT_OF[key[0] as SuitLetter], rank: Number(key.slice(1)) };
+  }
+  if (isHonourKey(key)) return { suit: 'honour', honour: HONOUR_OF[key] };
+  return { suit: 'bonus', bonus: key as BonusKey };
+}
+
+/**
+ * Sorting order for the tray and for anywhere a hand is shown tidied. The hand
+ * itself is never sorted: tiles stay where they were tapped.
+ */
+export function orderOf(key: TileKey | BonusKey): number {
+  if (isSuitKey(key)) {
+    return { d: 0, b: 10, c: 20 }[key[0] as SuitLetter] + Number(key.slice(1));
+  }
+  const rest: Record<string, number> = {
+    wE: 30,
+    wS: 31,
+    wW: 32,
+    wN: 33,
+    rR: 34,
+    rG: 35,
+    rW: 36,
+    f1: 40,
+    f2: 41,
+    f3: 42,
+    f4: 43,
+    s1: 44,
+    s2: 45,
+    s3: 46,
+    s4: 47,
+  };
+  return rest[key] ?? 99;
+}
+
+/** How many of each tile a hand holds. */
+export function countTiles(tiles: readonly TileKey[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const key of tiles) counts[key] = (counts[key] ?? 0) + 1;
+  return counts;
 }

@@ -26,12 +26,15 @@ export function Sheet({
   onClose,
   children,
   footer,
+  wide = false,
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  /** For a sheet with a grid in it, which 560px squeezes. */
+  wide?: boolean;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -108,7 +111,11 @@ export function Sheet({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="pad-safe-bottom relative flex max-h-[90vh] w-full flex-col rounded-t-2xl outline-none tablet:max-h-[85vh] tablet:max-w-[35rem] tablet:rounded-2xl tablet:pb-0"
+        className={`pad-safe-bottom relative flex max-h-[90vh] w-full flex-col rounded-t-2xl outline-none tablet:max-h-[85vh] tablet:rounded-2xl tablet:pb-0 ${
+          wide
+            ? 'tablet:max-w-[35rem] desktop:max-w-[46rem]'
+            : 'tablet:max-w-[35rem]'
+        }`}
         style={{
           background: 'var(--surface)',
           boxShadow: 'var(--shadow-sheet)',

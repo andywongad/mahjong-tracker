@@ -28,6 +28,7 @@ function setup(
       open
       game={GAME}
       handNumber={1}
+      roundWind="east"
       editing={null}
       onClose={onClose}
       onSave={onSave}

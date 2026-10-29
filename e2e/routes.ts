@@ -52,6 +52,25 @@ export const ROUTES: Route[] = [
     },
   },
   {
+    name: 'hand-scorer',
+    go: async (page) => {
+      await page.goto(`/?game=${GAME}`);
+      await settle(page);
+      await page
+        .getByRole('button', { name: /Record hand \d+ won by/ })
+        .first()
+        .click();
+      await page.waitForTimeout(400);
+      await page
+        .getByRole('dialog')
+        .getByRole('button', { name: /Zi Mo/ })
+        .click();
+      await page.waitForTimeout(250);
+      await page.getByRole('button', { name: 'Work it out' }).click();
+      await page.waitForTimeout(600);
+    },
+  },
+  {
     name: 'stats',
     go: async (page) => {
       await page.goto(`/?view=stats&game=${GAME}`);

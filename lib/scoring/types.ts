@@ -60,6 +60,8 @@ export type Hand =
       isLimit?: boolean;
       /** Patterns chosen in the hand builder, absent when faan was tapped in. */
       patterns?: HandPattern[];
+      /** The tiles tapped into the scorer, in the order they were tapped. */
+      tiles?: string[];
     }
   | {
       type: 'zi_mo';
@@ -67,6 +69,7 @@ export type Hand =
       faan: number;
       isLimit?: boolean;
       patterns?: HandPattern[];
+      tiles?: string[];
     }
   | { type: 'zaa_wu'; offenderSeat: Seat }
   | { type: 'draw' };

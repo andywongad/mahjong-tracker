@@ -1,0 +1,98 @@
+import { expect, test, type Page } from '@playwright/test';
+
+/**
+ * The hand scorer, end to end.
+ *
+ * It exists for a player who does not know what their hand is worth, so what
+ * matters is that tapping the tiles they are holding produces the right faan
+ * and that the number reaches the record sheet.
+ */
+
+async function openScorer(page: Page): Promise<void> {
+  await page.goto('/?game=seed-aug-19-2026');
+  await page.waitForLoadState('networkidle');
+  await page
+    .getByRole('button', { name: /Record hand \d+ won by Player A/ })
+    .click();
+  await page.getByRole('dialog').getByRole('button', { name: /Zi Mo/ }).click();
+  await page.getByRole('button', { name: 'Work it out' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'The winning hand' }),
+  ).toBeVisible();
+}
+
+async function tap(page: Page, tray: string, name: RegExp, times = 1) {
+  await page.getByRole('tab', { name: new RegExp(tray) }).click();
+  for (let i = 0; i < times; i += 1) {
+    await page.getByRole('button', { name }).first().click();
+  }
+}
+
+test('works a hand out from the tiles and hands the faan back', async ({
+  page,
+}) => {
+  await openScorer(page);
+
+  // Three green dragons, a pung of 2s, two runs and a pair of 9s.
+  await tap(page, 'Characters', /^Add 2 characters/, 3);
+  await tap(page, 'Characters', /^Add 4 characters/);
+  await tap(page, 'Characters', /^Add 5 characters/);
+  await tap(page, 'Characters', /^Add 6 characters/, 2);
+  await tap(page, 'Characters', /^Add 7 characters/);
+  await tap(page, 'Characters', /^Add 8 characters/);
+  await tap(page, 'Characters', /^Add 9 characters/, 2);
+  await tap(page, 'Honours', /^Add Green dragon/, 3);
+
+  // It says what it made of them, without moving a tile.
+  await expect(page.getByText('14 of 14 tiles')).toBeVisible();
+  await expect(page.getByText('Pung Green dragon')).toBeVisible();
+  await expect(page.getByText(/A complete hand/)).toBeVisible();
+
+  // One suit plus a dragon is 3, the dragon pung 1, no flowers 1.
+  const use = page.getByRole('button', { name: 'Use 5 faan' });
+  await expect(use).toBeEnabled();
+  await use.click();
+
+  // Back in the record sheet with the faan filled in and ready to save.
+  await expect(
+    page.getByRole('button', { name: /Save hand \d+/ }),
+  ).toBeEnabled();
+  await expect(page.getByText(/Built from/)).toBeVisible();
+});
+
+test('will not take a hand that is not a hand', async ({ page }) => {
+  await openScorer(page);
+
+  // Fourteen tiles that make no sets at all.
+  for (const rank of ['1', '2', '4', '5', '7', '8']) {
+    await tap(page, 'Dots', new RegExp(`^Add ${rank} dots`));
+  }
+  for (const rank of ['1', '2', '4', '5', '7', '8']) {
+    await tap(page, 'Bamboo', new RegExp(`^Add ${rank} bamboo`));
+  }
+  await tap(page, 'Characters', /^Add 1 characters/);
+  await tap(page, 'Characters', /^Add 3 characters/);
+
+  await expect(
+    page.getByText(/do not make four sets and a pair/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Finish the hand' }),
+  ).toBeDisabled();
+});
+
+test('counts a kong as a fifteenth tile', async ({ page }) => {
+  await openScorer(page);
+
+  await tap(page, 'Dots', /^Add 5 dots/, 4);
+  await expect(page.getByText('4 of 15 tiles')).toBeVisible();
+  await expect(page.getByText(/a kong adds one/)).toBeVisible();
+});
+
+test('the patterns tab is still there for anyone who knows the hand', async ({
+  page,
+}) => {
+  await openScorer(page);
+  await page.getByRole('tab', { name: 'I know the patterns' }).click();
+  await expect(page.getByText(/already know the hand/)).toBeVisible();
+});

@@ -10,16 +10,18 @@ import {
   type Hand,
   type HandRow,
   type HandPattern,
+  type Wind as WindName,
   type HandType,
   type Seat,
 } from '@/lib/scoring';
 import type { Rules } from '@/lib/rules/types';
+import type { TileKey } from '@/lib/tiles';
 import type { GameRecord } from '@/lib/game/types';
 import { SEAT_WINDS, seatSolid } from '@/lib/game/seats';
-import { Sheet } from './Sheet';
-import { HandBuilderSheet } from './HandBuilderSheet';
-import { TileChoice } from '@/components/ui/TileChoice';
 import { Wind } from '@/components/ui/Wind';
+import { Sheet } from './Sheet';
+import { HandScorerSheet } from './HandScorerSheet';
+import { TileChoice } from '@/components/ui/TileChoice';
 import { DeltaCell, shooterSeatOf } from '@/components/ui/HandDeltas';
 import { termForHandType } from '@/lib/terms';
 
@@ -40,6 +42,8 @@ interface Draft {
   faan: number | null;
   isLimit?: boolean;
   patterns?: HandPattern[];
+  /** The tiles tapped into the scorer, kept so an edit reopens them. */
+  tiles?: TileKey[];
 }
 
 const EMPTY_DRAFT: Draft = {
@@ -61,6 +65,7 @@ function draftFromHand(hand: Hand): Draft {
         faan: hand.faan,
         isLimit: hand.isLimit,
         patterns: hand.patterns,
+        tiles: hand.tiles as TileKey[] | undefined,
       };
     case 'zi_mo':
       return {
@@ -71,6 +76,7 @@ function draftFromHand(hand: Hand): Draft {
         faan: hand.faan,
         isLimit: hand.isLimit,
         patterns: hand.patterns,
+        tiles: hand.tiles as TileKey[] | undefined,
       };
     case 'zaa_wu':
       return {
@@ -94,6 +100,7 @@ function toHand(draft: Draft, rules: Rules): Hand | null {
         faan: draft.faan as number,
         isLimit: draft.isLimit,
         patterns: draft.patterns,
+        tiles: draft.tiles,
       };
     case 'zi_mo':
       return {
@@ -102,6 +109,7 @@ function toHand(draft: Draft, rules: Rules): Hand | null {
         faan: draft.faan as number,
         isLimit: draft.isLimit,
         patterns: draft.patterns,
+        tiles: draft.tiles,
       };
     case 'zaa_wu':
       return { type: 'zaa_wu', offenderSeat: draft.offenderSeat as Seat };
@@ -117,6 +125,7 @@ export function RecordHandSheet({
   game,
   handNumber,
   dealerSeat,
+  roundWind,
   presetSeat,
   editing,
   onClose,
@@ -130,6 +139,8 @@ export function RecordHandSheet({
   handNumber: number;
   /** Who is dealing, so a dealer bonus previews correctly. */
   dealerSeat?: Seat;
+  /** The round being played, which the scorer needs and must never ask for. */
+  roundWind: WindName;
   /** The player tapped on the table, who won the hand. */
   presetSeat?: Seat | null;
   /** The hand being edited, or null when recording a new one. */
@@ -484,7 +495,7 @@ export function RecordHandSheet({
                   className="text-xs font-semibold underline underline-offset-2"
                   style={{ color: 'var(--accent)' }}
                 >
-                  Build hand
+                  Work it out
                 </button>
               }
             >
@@ -507,6 +518,7 @@ export function RecordHandSheet({
                         faan,
                         patterns: undefined,
                         isLimit: false,
+                        tiles: undefined,
                       }))
                     }
                   >
@@ -534,14 +546,24 @@ export function RecordHandSheet({
         </div>
       </Sheet>
 
-      <HandBuilderSheet
+      <HandScorerSheet
         open={builderOpen}
         rules={game.rules}
+        winnerSeat={draft.winnerSeat}
+        roundWind={roundWind}
+        dealerSeat={dealerSeat}
         selfDraw={draft.type === 'zi_mo'}
         initialPatterns={draft.patterns}
+        initialTiles={draft.tiles}
         onClose={() => setBuilderOpen(false)}
-        onUse={(faan, patterns, isLimit) =>
-          setDraft((current) => ({ ...current, faan, patterns, isLimit }))
+        onUse={(faan, patterns, isLimit, tiles) =>
+          setDraft((current) => ({
+            ...current,
+            faan,
+            patterns,
+            isLimit,
+            tiles: tiles.length > 0 ? tiles : undefined,
+          }))
         }
         onRecordZaaWu={
           editing

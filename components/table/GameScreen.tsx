@@ -366,6 +366,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
         handNumber={nextHand}
         presetSeat={presetSeat}
         dealerSeat={result.currentDealerSeat}
+        roundWind={result.currentRound}
         editing={editing}
         onClose={() => setSheetOpen(false)}
         onSave={save}

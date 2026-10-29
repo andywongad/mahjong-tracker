@@ -38,6 +38,7 @@ interface HandRow {
   faan: number | null;
   patterns: HandPattern[] | null;
   is_limit: boolean | null;
+  tiles: string[] | null;
 }
 
 /** Rebuild the engine's discriminated union from a flat row. */
@@ -51,6 +52,7 @@ function toHand(row: HandRow): Hand {
         faan: row.faan ?? 0,
         isLimit: row.is_limit ?? false,
         patterns: row.patterns ?? undefined,
+        tiles: row.tiles ?? undefined,
       };
     case 'zi_mo':
       return {
@@ -59,6 +61,7 @@ function toHand(row: HandRow): Hand {
         faan: row.faan ?? 0,
         isLimit: row.is_limit ?? false,
         patterns: row.patterns ?? undefined,
+        tiles: row.tiles ?? undefined,
       };
     case 'zaa_wu':
       return {
