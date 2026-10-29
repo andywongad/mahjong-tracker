@@ -35,6 +35,14 @@ export function FeedMatrix({
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-sm font-semibold">Who feeds whom</h2>
+      <p className="text-xs" style={{ color: 'var(--muted)' }}>
+        Rows are who fed, columns who won. Each cell is the{' '}
+        <span className="font-semibold" style={{ color: 'var(--ink)' }}>
+          hands
+        </span>{' '}
+        they fed, over the <span className="font-semibold">points</span> they
+        paid for them.
+      </p>
       <div className="tile overflow-x-auto">
         <table className="w-full text-sm">
           <caption className="sr-only">
@@ -115,9 +123,7 @@ export function FeedMatrix({
         </table>
       </div>
       <p className="text-xs" style={{ color: 'var(--muted)' }}>
-        Read along a row: that player fed each of the others this many hands,
-        and paid the points underneath. Self drawn hands are nobody&rsquo;s
-        fault, so they are not counted here.
+        Self drawn hands are nobody&rsquo;s fault, so they are not counted here.
       </p>
     </section>
   );
