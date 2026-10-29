@@ -43,9 +43,8 @@ test('works a hand out from the tiles and hands the faan back', async ({
   await tap(page, 'Characters', /^Add 9 characters/, 2);
   await tap(page, 'Honours', /^Add Green dragon/, 3);
 
-  // It says what it made of them, without moving a tile.
+  // It says the hand is finished, without moving a tile to prove it.
   await expect(page.getByText('14 of 14 tiles')).toBeVisible();
-  await expect(page.getByText('Pung Green dragon')).toBeVisible();
   await expect(page.getByText(/A complete hand/)).toBeVisible();
 
   // One suit plus a dragon is 3, the dragon pung 1, no flowers 1.

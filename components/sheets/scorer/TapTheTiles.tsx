@@ -13,7 +13,7 @@ import {
   type SuitLetter,
   type TileKey,
 } from '@/lib/tiles';
-import { targetSize, tilesOfSet, type Reading } from '@/lib/tiles/solver';
+import { targetSize } from '@/lib/tiles/solver';
 import type { ScoredHand } from '@/lib/patterns/detect';
 import { Tile } from '@/components/ui/Tile';
 
@@ -34,12 +34,6 @@ const TRAY_NOTE: Record<string, string> = {
   f: 'Flowers and seasons sit beside the hand, not in it.',
 };
 
-const SUIT_NAME: Record<string, string> = {
-  d: 'Dots',
-  b: 'Bamboo',
-  c: 'Characters',
-};
-
 /**
  * The hand sits in a box of one fixed height, and the tiles stretch to fill
  * the width it has. A row that wrapped onto a second line part way through
@@ -49,27 +43,6 @@ const SUIT_NAME: Record<string, string> = {
 const HAND_BOX = 56;
 /** A tile never grows past what its own proportions allow at that height. */
 const MAX_TILE_W = Math.round((HAND_BOX - 6) * 0.72);
-
-const KIND_NAME: Record<string, string> = {
-  chow: 'Run',
-  pung: 'Pung',
-  kong: 'Kong',
-  pair: 'Pair',
-};
-
-/** How a split reads out loud, for the chips under the hand. */
-function describeReading(reading: Reading): { kind: string; what: string }[] {
-  return [...reading.sets, reading.pair].map((set) => {
-    if (set.kind === 'chow') {
-      const low = Number(set.key.slice(1));
-      return {
-        kind: KIND_NAME.chow,
-        what: `${low}-${low + 1}-${low + 2} ${SUIT_NAME[set.key[0]]}`,
-      };
-    }
-    return { kind: KIND_NAME[set.kind], what: tileName(tileOf(set.key)) };
-  });
-}
 
 /**
  * Work the hand out from the tiles.
@@ -108,16 +81,14 @@ export function TapTheTiles({
         ? BONUS_KEYS
         : RANKS.map((rank) => `${tray as SuitLetter}${rank}` as TileKey);
 
-  const readAs = scored.reading
-    ? describeReading(scored.reading)
-    : scored.complete
-      ? [{ kind: 'Thirteen Orphans', what: 'every 1, 9 and honour' }]
-      : [];
-
   let message: string;
   let tone = 'var(--muted)';
   if (tiles.length === 0) {
     message = 'Tap the tiles in the winning hand. Tap one here to take it out.';
+  } else if (scored.complete && !scored.reading) {
+    // The one winning hand with no sets in it at all.
+    message = 'Thirteen Orphans: one of every 1, 9 and honour tile.';
+    tone = 'var(--gain)';
   } else if (scored.complete) {
     message =
       'A complete hand: four sets and a pair. Tap any tile to remove it.';
@@ -203,23 +174,6 @@ export function TapTheTiles({
               </button>
             ))}
           </div>
-        )}
-
-        {readAs.length > 0 && (
-          <ul className="flex flex-wrap gap-1.5">
-            {readAs.map((chip, index) => (
-              <li
-                key={index}
-                className="rounded-md px-2 py-1 text-[0.7rem]"
-                style={{
-                  background: 'var(--line)',
-                  color: 'var(--ink)',
-                }}
-              >
-                <span className="font-semibold">{chip.kind}</span> {chip.what}
-              </li>
-            ))}
-          </ul>
         )}
 
         <p className="text-xs" style={{ color: tone }}>
@@ -348,5 +302,3 @@ export function TapTheTiles({
     </div>
   );
 }
-
-export { tilesOfSet };
