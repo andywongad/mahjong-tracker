@@ -112,6 +112,22 @@ test('a concealed hand is worth more, and more again if it was drawn', async ({
   await expect(page.getByText('Concealed hand')).toHaveCount(0);
 });
 
+test('counts both number ones when a player holds the flower and the season', async ({
+  page,
+}) => {
+  await open(page);
+  await buildSouthPungHand(page);
+  await expect(verdict(page)).toContainText('worth 4 faan');
+
+  // Sitting East, so the number ones are theirs. Holding both is two faan,
+  // which is the whole reason there are eight of these and not four.
+  await page.getByRole('button', { name: /^Add Flower 1/ }).click();
+  await expect(verdict(page)).toContainText('worth 4 faan');
+  await page.getByRole('button', { name: /^Add Season 1/ }).click();
+  await expect(verdict(page)).toContainText('worth 5 faan');
+  await expect(page.getByText('Own flower')).toBeVisible();
+});
+
 test.describe('on a phone', () => {
   test.use({ viewport: { width: 390, height: 900 } });
 

@@ -83,6 +83,10 @@ function parseGroup(group: string): Tile[] {
 
 /** A tile's name, so a hand can be read aloud as well as looked at. */
 const BONUS_NAMES: Record<string, string> = {
+  f1: 'Flower 1, plum',
+  f2: 'Flower 2, orchid',
+  f3: 'Flower 3, chrysanthemum',
+  f4: 'Flower 4, bamboo',
   s1: 'Season 1, spring',
   s2: 'Season 2, summer',
   s3: 'Season 3, autumn',
@@ -130,7 +134,12 @@ export type Rank = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 export type SuitKey = `${SuitLetter}${Rank}`;
 export type HonourKey = 'wE' | 'wS' | 'wW' | 'wN' | 'rR' | 'rG' | 'rW';
 /** Flowers and seasons sit beside the hand and are never part of a set. */
-export type BonusKey = 's1' | 's2' | 's3' | 's4';
+/**
+ * The eight bonus tiles: four flowers and four seasons, both numbered one to
+ * four for the four seats. A player sitting East can hold both number ones and
+ * score a faan for each, which is why there are eight of these and not four.
+ */
+export type BonusKey = 'f1' | 'f2' | 'f3' | 'f4' | 's1' | 's2' | 's3' | 's4';
 /** Anything that can be in the hand proper. */
 export type TileKey = SuitKey | HonourKey;
 
@@ -145,7 +154,16 @@ export const HONOUR_KEYS: HonourKey[] = [
   'rG',
   'rW',
 ];
-export const BONUS_KEYS: BonusKey[] = ['s1', 's2', 's3', 's4'];
+export const BONUS_KEYS: BonusKey[] = [
+  'f1',
+  'f2',
+  'f3',
+  'f4',
+  's1',
+  's2',
+  's3',
+  's4',
+];
 
 const SUIT_OF: Record<SuitLetter, Suit> = {
   d: 'dots',

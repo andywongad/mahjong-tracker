@@ -35,6 +35,24 @@ const TILES = [
   ['s4', 40],
 ];
 
+/**
+ * The four flowers, which the bundle does not have.
+ *
+ * Hong Kong mahjong has eight bonus tiles, the flowers and the seasons, and a
+ * player sitting East can hold both number ones and score a faan for each. The
+ * bundle only draws the seasons, so these are composed from the set's own
+ * frame and corner number with the character written on: plainer than the
+ * drawn seasons, unmistakable all the same.
+ *
+ * Drop four more artboards in and add them to TILES above to replace these.
+ */
+const FLOWERS = [
+  ['f1', '梅', 37],
+  ['f2', '蘭', 38],
+  ['f3', '菊', 39],
+  ['f4', '竹', 40],
+];
+
 /** The union of every artboard's drawing, so no tile is clipped or jumps. */
 const VIEW_BOX = '177 22 900 1211';
 
@@ -51,12 +69,33 @@ const symbols = TILES.map(([key, index]) => {
   return `<symbol id="t-${key}" viewBox="${VIEW_BOX}">${body}</symbol>`;
 });
 
+/** One layer of an artboard, by the colour its path is named for. */
+function layer(index, id) {
+  const source = readFileSync(`${DIR}/svg   (${index}).svg`, 'utf8');
+  const match = source.match(new RegExp(`<path id="${id}"[^>]*?/>`));
+  if (!match) throw new Error(`No ${id} layer in artboard ${index}`);
+  return match[0].replace(/-?\d+\.\d+/g, (n) => String(Math.round(Number(n))));
+}
+
+const flowers = FLOWERS.map(([key, character, index]) => {
+  // The frame is the same on every artboard; the number comes from the season
+  // that shares this flower's number.
+  const body =
+    layer(37, 'black') +
+    layer(index, 'navy') +
+    `<text x="627" y="790" text-anchor="middle" font-size="430" ` +
+    `class="hanzi" fill="#a86e12">${character}</text>`;
+  return `<symbol id="t-${key}" viewBox="${VIEW_BOX}">${body}</symbol>`;
+});
+
 const sprite =
-  `<svg xmlns="http://www.w3.org/2000/svg">` + symbols.join('') + `</svg>`;
+  `<svg xmlns="http://www.w3.org/2000/svg">` +
+  symbols.concat(flowers).join('') +
+  `</svg>`;
 
 writeFileSync('public/tiles.svg', sprite);
 console.log(
-  `public/tiles.svg: ${TILES.length} tiles, ` +
+  `public/tiles.svg: ${TILES.length + FLOWERS.length} tiles, ` +
     `${(sprite.length / 1024).toFixed(0)}KB raw, ` +
     `${(gzipSync(sprite, { level: 9 }).length / 1024).toFixed(0)}KB gzipped`,
 );
