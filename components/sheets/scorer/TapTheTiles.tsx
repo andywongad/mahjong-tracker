@@ -1,38 +1,33 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   BONUS_KEYS,
   HONOUR_KEYS,
   RANKS,
+  SUIT_KEYS,
   countTiles,
   isSuitKey,
   tileName,
   tileOf,
   type BonusKey,
-  type SuitLetter,
   type TileKey,
 } from '@/lib/tiles';
 import { targetSize } from '@/lib/tiles/solver';
 import type { ScoredHand } from '@/lib/patterns/detect';
 import { Tile } from '@/components/ui/Tile';
 
-/** The tray's tabs: the three suits, then honours, then flowers. */
-const TRAYS: { id: string; zh: string; en: string }[] = [
-  { id: 'd', zh: '筒', en: 'Dots' },
-  { id: 'b', zh: '索', en: 'Bamboo' },
-  { id: 'c', zh: '萬', en: 'Characters' },
-  { id: 'h', zh: '字', en: 'Honours' },
-  { id: 'f', zh: '花', en: 'Flowers' },
+/**
+ * Every tile that can be in a hand, grouped the way a set is laid out.
+ *
+ * The groups carry no labels: a suit is quicker to recognise by its own tiles
+ * than by a word naming it, and breaking the rows keeps them apart well
+ * enough on its own.
+ */
+const TILE_GROUPS: TileKey[][] = [
+  ...SUIT_KEYS.map((suit) => RANKS.map((rank) => `${suit}${rank}` as TileKey)),
+  HONOUR_KEYS,
 ];
-
-const TRAY_NOTE: Record<string, string> = {
-  d: 'Dots (筒). Tap a tile once for each copy in the hand.',
-  b: 'Bamboo (索). Tap a tile once for each copy in the hand.',
-  c: 'Characters (萬). Tap a tile once for each copy in the hand.',
-  h: 'Winds and dragons. Tap once for each copy in the hand.',
-  f: 'Flowers and seasons sit beside the hand, not in it.',
-};
 
 /**
  * The hand sits in a box of one fixed height, and the tiles stretch to fill
@@ -67,19 +62,10 @@ export function TapTheTiles({
   onTiles: (tiles: TileKey[]) => void;
   onFlowers: (flowers: BonusKey[]) => void;
 }) {
-  const [tray, setTray] = useState('d');
-
   const counts = useMemo(() => countTiles(tiles), [tiles]);
   const target = targetSize(tiles);
   const left = target - tiles.length;
   const quads = Object.values(counts).filter((count) => count === 4).length;
-
-  const keys: (TileKey | BonusKey)[] =
-    tray === 'h'
-      ? HONOUR_KEYS
-      : tray === 'f'
-        ? BONUS_KEYS
-        : RANKS.map((rank) => `${tray as SuitLetter}${rank}` as TileKey);
 
   let message: string;
   let tone = 'var(--muted)';
@@ -181,124 +167,142 @@ export function TapTheTiles({
         </p>
       </section>
 
-      <section className="flex flex-col gap-2">
-        <div
-          className="grid grid-cols-5 gap-1"
-          style={{ borderBottom: '1px solid var(--line-strong)' }}
-          role="tablist"
-          aria-label="Which tiles to show"
-        >
-          {TRAYS.map((item) => {
-            const selected = tray === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => setTray(item.id)}
-                className="flex flex-col items-center gap-0.5 py-2 text-xs"
-                style={{
-                  color: selected ? 'var(--ink)' : 'var(--muted)',
-                  fontWeight: selected ? 600 : 500,
-                  boxShadow: selected
-                    ? 'inset 0 -3px 0 var(--accent)'
-                    : undefined,
-                }}
-              >
-                <span
-                  lang="zh-Hant"
-                  className="hanzi text-base leading-none"
-                  aria-hidden="true"
-                >
-                  {item.zh}
-                </span>
-                {item.en}
-              </button>
-            );
-          })}
-        </div>
-
+      <section className="flex flex-col gap-3">
         <p className="text-xs" style={{ color: 'var(--muted)' }}>
-          {TRAY_NOTE[tray]}
-          {tray === 'f' && ` Number ${ownFlowerNumber} is this player's own.`}
+          Tap a tile once for each copy in the hand.
         </p>
 
-        <div className="grid grid-cols-5 gap-2">
-          {keys.map((key) => {
-            const bonus = tray === 'f';
-            const held = bonus
-              ? flowers.includes(key as BonusKey)
-                ? 1
-                : 0
-              : (counts[key] ?? 0);
-            // A fourth copy is a kong, which is allowed and raises the target.
-            const quadsAfter = quads + (held === 3 ? 1 : 0);
-            const disabled = bonus
-              ? false
-              : held >= 4 || tiles.length + 1 > 14 + quadsAfter;
+        {/* The whole tray at once. Tabs hid two thirds of it behind a guess
+          about which suit you were about to reach for, and a tile is far
+          quicker to spot than a label naming its suit. */}
+        {TILE_GROUPS.map((group) => (
+          <TileGrid key={group[0]}>
+            {group.map((key) => {
+              const held = counts[key] ?? 0;
+              // A fourth copy is a kong, allowed, and it raises the target.
+              const quadsAfter = quads + (held === 3 ? 1 : 0);
+              const disabled = held >= 4 || tiles.length + 1 > 14 + quadsAfter;
+              return (
+                <TrayTile
+                  key={key}
+                  tileKey={key}
+                  held={held}
+                  disabled={disabled}
+                  onPick={() => onTiles([...tiles, key])}
+                />
+              );
+            })}
+          </TileGrid>
+        ))}
 
-            return (
-              <button
-                key={key}
-                type="button"
-                disabled={disabled}
-                aria-label={`Add ${tileName(tileOf(key))}${
-                  held > 0 ? `, ${held} already` : ''
-                }`}
-                onClick={() =>
+        <div
+          className="flex flex-col gap-2 pt-1"
+          style={{ borderTop: '1px solid var(--line)' }}
+        >
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+            Flowers and seasons sit beside the hand, not in it. Number{' '}
+            {ownFlowerNumber} is this player&rsquo;s own.
+          </p>
+          <TileGrid>
+            {BONUS_KEYS.map((key) => {
+              const held = flowers.includes(key) ? 1 : 0;
+              return (
+                <TrayTile
+                  key={key}
+                  tileKey={key}
+                  held={held}
                   bonus
-                    ? onFlowers(
-                        held
-                          ? flowers.filter((item) => item !== key)
-                          : [...flowers, key as BonusKey],
-                      )
-                    : onTiles([...tiles, key as TileKey])
-                }
-                className="tile-pressable flex items-center justify-center rounded-lg py-1"
-                style={{
-                  opacity: disabled ? 0.35 : 1,
-                  cursor: disabled ? 'not-allowed' : undefined,
-                }}
-              >
-                {/* The marks hang off the tile itself, not off the cell it
-                  sits in, so they stay with it at any width. */}
-                <span className="relative inline-flex">
-                  {isSuitKey(key as string) && (
-                    <span
-                      aria-hidden="true"
-                      className="tnum absolute top-1 left-1.5 z-10 text-[0.6rem] leading-none"
-                      style={{ color: 'var(--muted)' }}
-                    >
-                      {(key as string).slice(1)}
-                    </span>
-                  )}
-                  {held > 0 && (
-                    <span
-                      aria-hidden="true"
-                      className="tnum absolute -top-1 -right-1.5 z-10 inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[0.6rem] font-semibold"
-                      style={{ background: 'var(--tile-back)', color: '#fff' }}
-                    >
-                      {bonus ? '✓' : `×${held}`}
-                    </span>
-                  )}
-                  <span
-                    style={{
-                      outline:
-                        held > 0 ? '2px solid var(--tile-back)' : undefined,
-                      outlineOffset: 1,
-                      borderRadius: 6,
-                      display: 'inline-flex',
-                    }}
-                  >
-                    <Tile tile={tileOf(key)} size={46} />
-                  </span>
-                </span>
-              </button>
-            );
-          })}
+                  onPick={() =>
+                    onFlowers(
+                      held
+                        ? flowers.filter((item) => item !== key)
+                        : [...flowers, key],
+                    )
+                  }
+                />
+              );
+            })}
+          </TileGrid>
         </div>
       </section>
     </div>
+  );
+}
+
+/** As many tiles across as will fit, at the size they are. */
+function TileGrid({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="grid gap-1.5"
+      style={{
+        gridTemplateColumns: 'repeat(auto-fill, minmax(3.25rem, 1fr))',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** One tile in the tray, with how many of it are already in the hand. */
+function TrayTile({
+  tileKey,
+  held,
+  disabled = false,
+  bonus = false,
+  onPick,
+}: {
+  tileKey: TileKey | BonusKey;
+  held: number;
+  disabled?: boolean;
+  bonus?: boolean;
+  onPick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      aria-label={`Add ${tileName(tileOf(tileKey))}${
+        held > 0 ? `, ${held} already` : ''
+      }`}
+      onClick={onPick}
+      className="tile-pressable flex items-center justify-center rounded-lg py-1"
+      style={{
+        opacity: disabled ? 0.35 : 1,
+        cursor: disabled ? 'not-allowed' : undefined,
+      }}
+    >
+      {/* The marks hang off the tile itself, not off the cell it sits in, so
+        they stay with it at any width. */}
+      <span className="relative inline-flex">
+        {isSuitKey(tileKey as string) && (
+          <span
+            aria-hidden="true"
+            className="tnum absolute top-1 left-1.5 z-10 text-[0.6rem] leading-none"
+            style={{ color: 'var(--muted)' }}
+          >
+            {(tileKey as string).slice(1)}
+          </span>
+        )}
+        {held > 0 && (
+          <span
+            aria-hidden="true"
+            className="tnum absolute -top-1 -right-1.5 z-10 inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[0.6rem] font-semibold"
+            style={{ background: 'var(--tile-back)', color: '#fff' }}
+          >
+            {bonus ? '✓' : `×${held}`}
+          </span>
+        )}
+        <span
+          style={{
+            outline: held > 0 ? '2px solid var(--tile-back)' : undefined,
+            outlineOffset: 1,
+            borderRadius: 6,
+            display: 'inline-flex',
+          }}
+        >
+          <Tile tile={tileOf(tileKey)} size={46} />
+        </span>
+      </span>
+    </button>
   );
 }

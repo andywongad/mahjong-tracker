@@ -17,8 +17,8 @@ async function open(page: Page): Promise<void> {
   ).toBeVisible();
 }
 
-async function tap(page: Page, tray: string, name: RegExp, times = 1) {
-  await page.getByRole('tab', { name: new RegExp(tray) }).click();
+/** Every tile is on screen at once, so there is no tray to switch to. */
+async function tap(page: Page, name: RegExp, times = 1) {
   for (let i = 0; i < times; i += 1) {
     await page.getByRole('button', { name }).first().click();
   }
@@ -26,11 +26,11 @@ async function tap(page: Page, tray: string, name: RegExp, times = 1) {
 
 /** One pung of South and a run of dots, so only the winds can move the score. */
 async function buildSouthPungHand(page: Page) {
-  await tap(page, 'Honours', /^Add South wind/, 3);
+  await tap(page, /^Add South wind/, 3);
   for (const rank of ['1', '2', '3', '4', '5', '6', '7', '8']) {
-    await tap(page, 'Dots', new RegExp(`^Add ${rank} dots`));
+    await tap(page, new RegExp(`^Add ${rank} dots`));
   }
-  await tap(page, 'Dots', /^Add 9 dots/, 3);
+  await tap(page, /^Add 9 dots/, 3);
 }
 
 const verdict = (page: Page) =>

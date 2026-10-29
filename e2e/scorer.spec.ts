@@ -21,8 +21,8 @@ async function openScorer(page: Page): Promise<void> {
   ).toBeVisible();
 }
 
-async function tap(page: Page, tray: string, name: RegExp, times = 1) {
-  await page.getByRole('tab', { name: new RegExp(tray) }).click();
+/** Every tile is on screen at once, so there is no tray to switch to. */
+async function tap(page: Page, name: RegExp, times = 1) {
   for (let i = 0; i < times; i += 1) {
     await page.getByRole('button', { name }).first().click();
   }
@@ -34,14 +34,14 @@ test('works a hand out from the tiles and hands the faan back', async ({
   await openScorer(page);
 
   // Three green dragons, a pung of 2s, two runs and a pair of 9s.
-  await tap(page, 'Characters', /^Add 2 characters/, 3);
-  await tap(page, 'Characters', /^Add 4 characters/);
-  await tap(page, 'Characters', /^Add 5 characters/);
-  await tap(page, 'Characters', /^Add 6 characters/, 2);
-  await tap(page, 'Characters', /^Add 7 characters/);
-  await tap(page, 'Characters', /^Add 8 characters/);
-  await tap(page, 'Characters', /^Add 9 characters/, 2);
-  await tap(page, 'Honours', /^Add Green dragon/, 3);
+  await tap(page, /^Add 2 characters/, 3);
+  await tap(page, /^Add 4 characters/);
+  await tap(page, /^Add 5 characters/);
+  await tap(page, /^Add 6 characters/, 2);
+  await tap(page, /^Add 7 characters/);
+  await tap(page, /^Add 8 characters/);
+  await tap(page, /^Add 9 characters/, 2);
+  await tap(page, /^Add Green dragon/, 3);
 
   // It says the hand is finished, without moving a tile to prove it.
   await expect(page.getByText('14 of 14 tiles')).toBeVisible();
@@ -65,10 +65,10 @@ test('keeps the reasons folded away until they are asked for', async ({
   await openScorer(page);
 
   // Six of one suit is already a Full Flush, so there is a reason to show.
-  await tap(page, 'Characters', /^Add 2 characters/, 3);
-  await tap(page, 'Characters', /^Add 4 characters/);
-  await tap(page, 'Characters', /^Add 5 characters/);
-  await tap(page, 'Characters', /^Add 6 characters/);
+  await tap(page, /^Add 2 characters/, 3);
+  await tap(page, /^Add 4 characters/);
+  await tap(page, /^Add 5 characters/);
+  await tap(page, /^Add 6 characters/);
 
   const toggle = page.getByRole('button', { name: /Why it is worth this/ });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -86,15 +86,15 @@ test('builds the hand on one row that never changes height', async ({
   const box = page.locator('[style*="height: 56px"]').first();
 
   const empty = await box.boundingBox();
-  await tap(page, 'Characters', /^Add 2 characters/, 3);
+  await tap(page, /^Add 2 characters/, 3);
   const few = await box.boundingBox();
-  await tap(page, 'Characters', /^Add 4 characters/);
-  await tap(page, 'Characters', /^Add 5 characters/);
-  await tap(page, 'Characters', /^Add 6 characters/, 2);
-  await tap(page, 'Characters', /^Add 7 characters/);
-  await tap(page, 'Characters', /^Add 8 characters/);
-  await tap(page, 'Characters', /^Add 9 characters/, 2);
-  await tap(page, 'Honours', /^Add Green dragon/, 3);
+  await tap(page, /^Add 4 characters/);
+  await tap(page, /^Add 5 characters/);
+  await tap(page, /^Add 6 characters/, 2);
+  await tap(page, /^Add 7 characters/);
+  await tap(page, /^Add 8 characters/);
+  await tap(page, /^Add 9 characters/, 2);
+  await tap(page, /^Add Green dragon/, 3);
   const full = await box.boundingBox();
 
   // Fourteen tiles fit beside each other rather than wrapping, so nothing
@@ -109,13 +109,13 @@ test('will not take a hand that is not a hand', async ({ page }) => {
 
   // Fourteen tiles that make no sets at all.
   for (const rank of ['1', '2', '4', '5', '7', '8']) {
-    await tap(page, 'Dots', new RegExp(`^Add ${rank} dots`));
+    await tap(page, new RegExp(`^Add ${rank} dots`));
   }
   for (const rank of ['1', '2', '4', '5', '7', '8']) {
-    await tap(page, 'Bamboo', new RegExp(`^Add ${rank} bamboo`));
+    await tap(page, new RegExp(`^Add ${rank} bamboo`));
   }
-  await tap(page, 'Characters', /^Add 1 characters/);
-  await tap(page, 'Characters', /^Add 3 characters/);
+  await tap(page, /^Add 1 characters/);
+  await tap(page, /^Add 3 characters/);
 
   await expect(
     page.getByText(/do not make four sets and a pair/),
@@ -128,7 +128,7 @@ test('will not take a hand that is not a hand', async ({ page }) => {
 test('counts a kong as a fifteenth tile', async ({ page }) => {
   await openScorer(page);
 
-  await tap(page, 'Dots', /^Add 5 dots/, 4);
+  await tap(page, /^Add 5 dots/, 4);
   await expect(page.getByText('4 of 15 tiles')).toBeVisible();
   await expect(page.getByText(/a kong adds one/)).toBeVisible();
 });
