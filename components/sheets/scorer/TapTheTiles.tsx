@@ -7,7 +7,6 @@ import {
   RANKS,
   SUIT_KEYS,
   countTiles,
-  isSuitKey,
   tileName,
   tileOf,
   type BonusKey,
@@ -277,18 +276,10 @@ function TrayTile({
         cursor: disabled ? 'not-allowed' : undefined,
       }}
     >
-      {/* The marks hang off the tile itself, not off the cell it sits in, so
-        they stay with it at any width. */}
+      {/* The count hangs off the tile itself, not off the cell it sits in, so
+        it stays with it at any width. The number in the corner is part of the
+        drawing, so nothing is added for it. */}
       <span className="relative inline-flex">
-        {isSuitKey(tileKey as string) && (
-          <span
-            aria-hidden="true"
-            className="tnum absolute top-1 left-1.5 z-10 text-[0.6rem] leading-none"
-            style={{ color: 'var(--muted)' }}
-          >
-            {(tileKey as string).slice(1)}
-          </span>
-        )}
         {held > 0 && (
           <span
             aria-hidden="true"

@@ -83,10 +83,6 @@ function parseGroup(group: string): Tile[] {
 
 /** A tile's name, so a hand can be read aloud as well as looked at. */
 const BONUS_NAMES: Record<string, string> = {
-  f1: 'Flower 1, plum',
-  f2: 'Flower 2, orchid',
-  f3: 'Flower 3, chrysanthemum',
-  f4: 'Flower 4, bamboo',
   s1: 'Season 1, spring',
   s2: 'Season 2, summer',
   s3: 'Season 3, autumn',
@@ -134,7 +130,7 @@ export type Rank = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 export type SuitKey = `${SuitLetter}${Rank}`;
 export type HonourKey = 'wE' | 'wS' | 'wW' | 'wN' | 'rR' | 'rG' | 'rW';
 /** Flowers and seasons sit beside the hand and are never part of a set. */
-export type BonusKey = 'f1' | 'f2' | 'f3' | 'f4' | 's1' | 's2' | 's3' | 's4';
+export type BonusKey = 's1' | 's2' | 's3' | 's4';
 /** Anything that can be in the hand proper. */
 export type TileKey = SuitKey | HonourKey;
 
@@ -149,16 +145,7 @@ export const HONOUR_KEYS: HonourKey[] = [
   'rG',
   'rW',
 ];
-export const BONUS_KEYS: BonusKey[] = [
-  'f1',
-  'f2',
-  'f3',
-  'f4',
-  's1',
-  's2',
-  's3',
-  's4',
-];
+export const BONUS_KEYS: BonusKey[] = ['s1', 's2', 's3', 's4'];
 
 const SUIT_OF: Record<SuitLetter, Suit> = {
   d: 'dots',
@@ -239,4 +226,30 @@ export function countTiles(tiles: readonly TileKey[]): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const key of tiles) counts[key] = (counts[key] ?? 0) + 1;
   return counts;
+}
+
+const SUIT_LETTER: Partial<Record<Suit, SuitLetter>> = {
+  dots: 'd',
+  bamboo: 'b',
+  characters: 'c',
+};
+
+const HONOUR_KEY: Record<Honour, HonourKey> = {
+  east: 'wE',
+  south: 'wS',
+  west: 'wW',
+  north: 'wN',
+  red: 'rR',
+  green: 'rG',
+  white: 'rW',
+};
+
+/** The key for a tile, which is also the name of its drawing in the sprite. */
+export function keyOf(tile: Tile): TileKey | BonusKey | null {
+  if (tile.suit === 'bonus') return (tile.bonus as BonusKey) ?? null;
+  if (tile.suit === 'honour') {
+    return tile.honour ? HONOUR_KEY[tile.honour] : null;
+  }
+  const letter = SUIT_LETTER[tile.suit];
+  return letter && tile.rank ? (`${letter}${tile.rank}` as TileKey) : null;
 }

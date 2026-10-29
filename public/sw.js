@@ -10,7 +10,7 @@
  * hashed, so they are safe to serve cache first.
  */
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL_CACHE = `shell-${VERSION}`;
 const ASSET_CACHE = `assets-${VERSION}`;
 const OFFLINE_URL = '/offline';
@@ -22,6 +22,7 @@ const SHELL_URLS = [
   '/icon-192.png',
   '/icon-512.png',
   '/fonts/noto-serif-tc-subset.woff2',
+  '/tiles.svg',
 ];
 
 self.addEventListener('install', (event) => {
@@ -89,12 +90,23 @@ self.addEventListener('fetch', (event) => {
   if (isAsset(url)) {
     event.respondWith(
       (async () => {
-        const cache = await caches.open(ASSET_CACHE);
-        const cached = await cache.match(request);
+        // Anything precached at install lands in the shell cache, so both are
+        // searched before the network. Without that, an asset listed in
+        // SHELL_URLS is cached and still fetched every time.
+        const assets = await caches.open(ASSET_CACHE);
+        const cached =
+          (await assets.match(request)) ?? (await caches.match(request));
         if (cached) return cached;
-        const response = await fetch(request);
-        if (response.ok) cache.put(request, response.clone());
-        return response;
+
+        try {
+          const response = await fetch(request);
+          if (response.ok) assets.put(request, response.clone());
+          return response;
+        } catch {
+          // Offline and never seen: say so rather than throwing, which would
+          // surface as a network error with no explanation.
+          return new Response('', { status: 504, statusText: 'Offline' });
+        }
       })(),
     );
   }

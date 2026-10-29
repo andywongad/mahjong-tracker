@@ -194,11 +194,11 @@ describe('naming the patterns in a finished hand', () => {
       'c5',
       'c5',
     ];
-    // Seat 1 is South, so flower 2 is theirs and flower 3 is not.
-    expect(ids(tiles, { flowers: ['f2'] })).toContain('own_flower');
-    expect(ids(tiles, { flowers: ['f3'] })).not.toContain('own_flower');
+    // Seat 1 is South, so the number two tile is theirs and three is not.
+    expect(ids(tiles, { flowers: ['s2'] })).toContain('own_flower');
+    expect(ids(tiles, { flowers: ['s3'] })).not.toContain('own_flower');
     // Any flower at all ends the no flowers bonus.
-    expect(ids(tiles, { flowers: ['f3'] })).not.toContain('no_flowers');
+    expect(ids(tiles, { flowers: ['s3'] })).not.toContain('no_flowers');
     expect(ids(tiles)).toContain('no_flowers');
   });
 

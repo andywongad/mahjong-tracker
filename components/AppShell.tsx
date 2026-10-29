@@ -7,6 +7,7 @@ import { GameScreen } from '@/components/table/GameScreen';
 import { StatsScreen } from '@/components/stats/StatsScreen';
 import { GamesScreen } from '@/components/games/GamesScreen';
 import { StorageError } from '@/components/ui/StorageError';
+import { TileSprite } from '@/components/ui/TileSprite';
 import { SettleScreen } from '@/components/settle/SettleScreen';
 import { GlossaryScreen } from '@/components/glossary/GlossaryScreen';
 import { ScoreHandScreen } from '@/components/scorer/ScoreHandScreen';
@@ -41,6 +42,19 @@ export function AppShell() {
       </p>
     );
   }
+
+  return (
+    <>
+      <TileSprite />
+      <Body />
+    </>
+  );
+}
+
+/** The view itself, so the sprite is mounted once above whatever is showing. */
+function Body() {
+  const { games } = useGames();
+  const { view, gameId } = useNavigation();
 
   if (view === 'games') return <GamesScreen />;
   if (view === 'settle') return <SettleScreen />;
