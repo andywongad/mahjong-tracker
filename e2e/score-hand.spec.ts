@@ -84,3 +84,20 @@ test('says why, because that is the whole point of asking', async ({
   await expect(page.getByText('Seat wind')).toBeVisible();
   await expect(page.getByText('No flowers')).toBeVisible();
 });
+
+test.describe('on a phone', () => {
+  test.use({ viewport: { width: 390, height: 900 } });
+
+  test('fits a whole suit of nine on one row', async ({ page }) => {
+    await open(page);
+
+    const columns = await page.evaluate(() => {
+      const grid = document.querySelector('main [style*="auto-fill"]');
+      if (!grid) return 0;
+      return getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+    });
+
+    // Nine across, so counting along a suit never crosses a row break.
+    expect(columns).toBe(9);
+  });
+});

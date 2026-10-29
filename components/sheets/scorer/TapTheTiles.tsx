@@ -229,13 +229,19 @@ export function TapTheTiles({
   );
 }
 
-/** As many tiles across as will fit, at the size they are. */
+/**
+ * As many tiles across as will fit, at the size they are.
+ *
+ * The track is barely wider than a tile so a whole suit of nine lands on one
+ * row even on a 390px phone, which is the width that decides this: a suit
+ * split across two rows is harder to count along than one that is not.
+ */
 function TileGrid({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="grid gap-1.5"
+      className="grid gap-1"
       style={{
-        gridTemplateColumns: 'repeat(auto-fill, minmax(3.25rem, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(2.25rem, 1fr))',
       }}
     >
       {children}
