@@ -15,7 +15,7 @@ async function openScorer(page: Page): Promise<void> {
     .getByRole('button', { name: /Record hand \d+ won by Player A/ })
     .click();
   await page.getByRole('dialog').getByRole('button', { name: /Zi Mo/ }).click();
-  await page.getByRole('button', { name: 'Work it out' }).click();
+  await page.getByRole('button', { name: 'Build a hand' }).click();
   await expect(
     page.getByRole('heading', { name: 'The winning hand' }),
   ).toBeVisible();

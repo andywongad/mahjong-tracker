@@ -495,7 +495,7 @@ export function RecordHandSheet({
                   className="text-xs font-semibold underline underline-offset-2"
                   style={{ color: 'var(--accent)' }}
                 >
-                  Work it out
+                  Build a hand
                 </button>
               }
             >

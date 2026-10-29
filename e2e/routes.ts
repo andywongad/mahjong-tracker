@@ -66,7 +66,7 @@ export const ROUTES: Route[] = [
         .getByRole('button', { name: /Zi Mo/ })
         .click();
       await page.waitForTimeout(250);
-      await page.getByRole('button', { name: 'Work it out' }).click();
+      await page.getByRole('button', { name: 'Build a hand' }).click();
       await page.waitForTimeout(600);
     },
   },
