@@ -59,6 +59,9 @@ export function HandScorerSheet({
   onRecordZaaWu?: () => void;
 }) {
   const [mode, setMode] = useState<'tiles' | 'patterns'>('tiles');
+  // Closed by default: it grows a line per pattern while a hand is being
+  // built, and a list that pushes the tray down is a distraction mid tap.
+  const [showReasons, setShowReasons] = useState(false);
   const [tiles, setTiles] = useState<TileKey[]>(initialTiles ?? []);
   const [flowers, setFlowers] = useState<BonusKey[]>([]);
   const [picks, setPicks] = useState<HandPattern[]>(() =>
@@ -268,48 +271,85 @@ export function HandScorerSheet({
 
         {reasons.length > 0 && (
           <section
-            className="flex flex-col gap-2 rounded-xl px-3 py-3"
+            className="flex flex-col rounded-xl"
             style={{
               background: 'var(--tile-face)',
               border: '1px solid var(--line-strong)',
             }}
           >
-            <h3 className="text-sm font-semibold">Why it is worth this</h3>
-            <ul className="flex flex-col gap-1.5">
-              {reasons.map((pick) => {
-                const pattern = PATTERNS_BY_ID[pick.id]!;
-                return (
-                  <li
-                    key={pick.id}
-                    className="flex items-baseline justify-between gap-3 text-sm"
-                  >
-                    <span className="flex min-w-0 items-baseline gap-1.5">
-                      <span
-                        lang="zh-Hant"
-                        className="hanzi shrink-0"
-                        aria-hidden="true"
-                      >
-                        {pattern.zh}
-                      </span>
-                      <span className="truncate">{pattern.nameEn}</span>
-                      {pick.count > 1 && (
+            <button
+              type="button"
+              onClick={() => setShowReasons((open) => !open)}
+              aria-expanded={showReasons}
+              className="touch flex items-center justify-between gap-3 px-3 text-left"
+            >
+              <span className="text-sm font-semibold">
+                Why it is worth this
+              </span>
+              <span
+                className="flex items-center gap-1.5 text-xs"
+                style={{ color: 'var(--muted)' }}
+              >
+                {reasons.length} {reasons.length === 1 ? 'pattern' : 'patterns'}
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  style={{
+                    transform: showReasons ? 'rotate(180deg)' : undefined,
+                  }}
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </span>
+            </button>
+
+            {showReasons && (
+              <ul
+                className="flex flex-col gap-1.5 px-3 pt-1 pb-3"
+                style={{ borderTop: '1px solid var(--line)' }}
+              >
+                {reasons.map((pick) => {
+                  const pattern = PATTERNS_BY_ID[pick.id]!;
+                  return (
+                    <li
+                      key={pick.id}
+                      className="flex items-baseline justify-between gap-3 pt-1.5 text-sm"
+                    >
+                      <span className="flex min-w-0 items-baseline gap-1.5">
                         <span
-                          className="tnum shrink-0 text-xs"
-                          style={{ color: 'var(--muted)' }}
+                          lang="zh-Hant"
+                          className="hanzi shrink-0"
+                          aria-hidden="true"
                         >
-                          ×{pick.count}
+                          {pattern.zh}
                         </span>
-                      )}
-                    </span>
-                    <span className="tnum shrink-0 text-sm font-semibold">
-                      {pattern.limit
-                        ? 'Limit'
-                        : `+${faanOf(pattern.id, rules) * pick.count}`}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+                        <span className="truncate">{pattern.nameEn}</span>
+                        {pick.count > 1 && (
+                          <span
+                            className="tnum shrink-0 text-xs"
+                            style={{ color: 'var(--muted)' }}
+                          >
+                            ×{pick.count}
+                          </span>
+                        )}
+                      </span>
+                      <span className="tnum shrink-0 text-sm font-semibold">
+                        {pattern.limit
+                          ? 'Limit'
+                          : `+${faanOf(pick.id, rules) * pick.count}`}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </section>
         )}
       </div>

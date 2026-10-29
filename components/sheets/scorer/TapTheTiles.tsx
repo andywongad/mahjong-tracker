@@ -40,6 +40,16 @@ const SUIT_NAME: Record<string, string> = {
   c: 'Characters',
 };
 
+/**
+ * The hand sits in a box of one fixed height, and the tiles stretch to fill
+ * the width it has. A row that wrapped onto a second line part way through
+ * being built moved everything under it, which is distracting when the thing
+ * you are doing is tapping tiles one at a time.
+ */
+const HAND_BOX = 56;
+/** A tile never grows past what its own proportions allow at that height. */
+const MAX_TILE_W = Math.round((HAND_BOX - 6) * 0.72);
+
 const KIND_NAME: Record<string, string> = {
   chow: 'Run',
   pung: 'Pung',
@@ -145,8 +155,8 @@ export function TapTheTiles({
         </div>
 
         <div
-          className="flex min-h-[3.5rem] flex-wrap items-center gap-1 rounded-xl px-2 py-2"
-          style={{ background: 'var(--felt)' }}
+          className="flex items-center gap-0.5 rounded-xl px-2"
+          style={{ background: 'var(--felt)', height: HAND_BOX }}
         >
           {tiles.map((key, index) => (
             <button
@@ -156,8 +166,10 @@ export function TapTheTiles({
               onClick={() =>
                 onTiles(tiles.filter((_, position) => position !== index))
               }
+              className="min-w-0 flex-1"
+              style={{ maxWidth: MAX_TILE_W }}
             >
-              <Tile tile={tileOf(key)} size={30} />
+              <Tile tile={tileOf(key)} block />
             </button>
           ))}
           {tiles.length === 0 && (

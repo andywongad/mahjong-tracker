@@ -211,17 +211,27 @@ const HONOUR_CHARS: Record<string, string> = {
 
 const NUMERALS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 
-export function Tile({ tile, size = 34 }: { tile: TileModel; size?: number }) {
+export function Tile({
+  tile,
+  size = 34,
+  block = false,
+}: {
+  tile: TileModel;
+  size?: number;
+  /** Fills whatever it is put in, instead of taking a fixed size. */
+  block?: boolean;
+}) {
   const width = Math.round(size * 0.72);
 
   return (
     <svg
-      width={width}
-      height={size}
+      width={block ? '100%' : width}
+      height={block ? '100%' : size}
       viewBox="0 0 24 32"
+      preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label={tileName(tile)}
-      style={{ flex: '0 0 auto' }}
+      style={block ? { display: 'block' } : { flex: '0 0 auto' }}
     >
       <rect
         x="0.6"

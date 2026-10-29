@@ -60,6 +60,51 @@ test('works a hand out from the tiles and hands the faan back', async ({
   await expect(page.getByText(/Built from/)).toBeVisible();
 });
 
+test('keeps the reasons folded away until they are asked for', async ({
+  page,
+}) => {
+  await openScorer(page);
+
+  // Six of one suit is already a Full Flush, so there is a reason to show.
+  await tap(page, 'Characters', /^Add 2 characters/, 3);
+  await tap(page, 'Characters', /^Add 4 characters/);
+  await tap(page, 'Characters', /^Add 5 characters/);
+  await tap(page, 'Characters', /^Add 6 characters/);
+
+  const toggle = page.getByRole('button', { name: /Why it is worth this/ });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.getByText('Full flush')).toHaveCount(0);
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByText('Full flush')).toBeVisible();
+});
+
+test('builds the hand on one row that never changes height', async ({
+  page,
+}) => {
+  await openScorer(page);
+  const box = page.locator('[style*="height: 56px"]').first();
+
+  const empty = await box.boundingBox();
+  await tap(page, 'Characters', /^Add 2 characters/, 3);
+  const few = await box.boundingBox();
+  await tap(page, 'Characters', /^Add 4 characters/);
+  await tap(page, 'Characters', /^Add 5 characters/);
+  await tap(page, 'Characters', /^Add 6 characters/, 2);
+  await tap(page, 'Characters', /^Add 7 characters/);
+  await tap(page, 'Characters', /^Add 8 characters/);
+  await tap(page, 'Characters', /^Add 9 characters/, 2);
+  await tap(page, 'Honours', /^Add Green dragon/, 3);
+  const full = await box.boundingBox();
+
+  // Fourteen tiles fit beside each other rather than wrapping, so nothing
+  // under the hand moves while it is being built.
+  expect(empty?.height).toBe(56);
+  expect(few?.height).toBe(56);
+  expect(full?.height).toBe(56);
+});
+
 test('will not take a hand that is not a hand', async ({ page }) => {
   await openScorer(page);
 
