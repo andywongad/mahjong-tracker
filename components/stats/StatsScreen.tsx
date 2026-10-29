@@ -20,6 +20,8 @@ import { formatMoney } from '@/lib/game/settle';
 import { Term, TermStack } from '@/components/ui/Term';
 import { glossOf } from '@/lib/terms';
 import { ScoreChart } from './ScoreChart';
+import { SwingSection } from './SwingSection';
+import { FeedMatrix } from './FeedMatrix';
 
 export function StatsScreen({ gameId }: { gameId: string }) {
   const { game, loading } = useGame(gameId);
@@ -218,6 +220,10 @@ export function StatsScreen({ gameId }: { gameId: string }) {
             />
           </div>
         </section>
+
+        <SwingSection players={summary.players} />
+
+        <FeedMatrix players={summary.players} feed={summary.feed} />
 
         <ByFaanTable
           title="Wins by faan"

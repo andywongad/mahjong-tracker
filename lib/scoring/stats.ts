@@ -35,6 +35,47 @@ export interface PlayerStats {
   patternCounts: Record<string, number>;
   /** The player's highest faan hand that was built from patterns. */
   signatureHand: SignatureHand | null;
+  /** How this player's score moved across the game. */
+  swing: Swing;
+}
+
+/**
+ * The shape of a player's night, which a final score hides entirely: someone
+ * who ends at nothing may never have moved, or may have been eighty up and
+ * given it all back.
+ */
+export interface Swing {
+  /** Highest the score ever reached, and the hand it happened on. */
+  high: number;
+  highAtHand: number;
+  low: number;
+  lowAtHand: number;
+  /** The biggest climb from any earlier low, and where it started. */
+  bestRun: number;
+  bestRunFromHand: number;
+  /** The biggest fall from any earlier high, and the hands it ran between. */
+  worstSlide: number;
+  worstSlideFromHand: number;
+  worstSlideToHand: number;
+  /** How much of the high was handed back by the end. */
+  gaveBack: number;
+}
+
+/**
+ * Who hands their tiles to whom.
+ *
+ * Deal ins are directional and the direction is the interesting part: that one
+ * player feeds another twice while never being fed back is the kind of thing a
+ * table argues about but cannot otherwise prove. Only the one who discarded
+ * the winning tile counts, so self drawn hands appear nowhere here.
+ */
+export interface FeedEntry {
+  shooterSeat: Seat;
+  winnerSeat: Seat;
+  /** Hands this shooter fed this winner. */
+  hands: number;
+  /** Points handed over on those hands, as the shooter's share alone. */
+  points: number;
 }
 
 /** A player's best built hand, kept for the all time table. */
@@ -66,6 +107,8 @@ export interface StatsTotals {
 
 export interface StatsResult {
   players: PlayerStats[];
+  /** Every shooter and winner pairing that actually happened. */
+  feed: FeedEntry[];
   totals: StatsTotals;
   handCount: number;
   isComplete: boolean;
@@ -118,9 +161,72 @@ function tally(record: Record<number, number>, faan: number): void {
   record[faan] = (record[faan] ?? 0) + 1;
 }
 
+/**
+ * How a player's score moved, from the running total after every hand.
+ *
+ * The run and the slide are measured the way a trader reads a position: the
+ * best climb from any earlier low, and the worst fall from any earlier high.
+ * Both are a single pass, because an earlier low can only ever help a later
+ * high, and the same the other way round.
+ */
+export function swingOf(series: readonly number[]): Swing {
+  const swing: Swing = {
+    high: series[0] ?? 0,
+    highAtHand: 0,
+    low: series[0] ?? 0,
+    lowAtHand: 0,
+    bestRun: 0,
+    bestRunFromHand: 0,
+    worstSlide: 0,
+    worstSlideFromHand: 0,
+    worstSlideToHand: 0,
+    gaveBack: 0,
+  };
+
+  let low = series[0] ?? 0;
+  let lowAt = 0;
+  let high = series[0] ?? 0;
+  let highAt = 0;
+
+  for (let hand = 0; hand < series.length; hand += 1) {
+    const value = series[hand];
+
+    if (value > swing.high) {
+      swing.high = value;
+      swing.highAtHand = hand;
+    }
+    if (value < swing.low) {
+      swing.low = value;
+      swing.lowAtHand = hand;
+    }
+
+    if (value - low > swing.bestRun) {
+      swing.bestRun = value - low;
+      swing.bestRunFromHand = lowAt;
+    }
+    if (high - value > swing.worstSlide) {
+      swing.worstSlide = high - value;
+      swing.worstSlideFromHand = highAt;
+      swing.worstSlideToHand = hand;
+    }
+
+    if (value < low) {
+      low = value;
+      lowAt = hand;
+    }
+    if (value > high) {
+      high = value;
+      highAt = hand;
+    }
+  }
+
+  swing.gaveBack = swing.high - (series[series.length - 1] ?? 0);
+  return swing;
+}
+
 /** Per player totals for the stats screen. */
 export function stats(game: GameRules): StatsResult {
-  const { rows, scores, isComplete, handCount } = replay(game);
+  const { rows, scores, series, isComplete, handCount } = replay(game);
 
   const values = faanValues(game.rules);
   const players: PlayerStats[] = SEATS.map((seat) => ({
@@ -141,7 +247,33 @@ export function stats(game: GameRules): StatsResult {
     ziMoShare: 0,
     patternCounts: {},
     signatureHand: null,
+    swing: {
+      high: 0,
+      highAtHand: 0,
+      low: 0,
+      lowAtHand: 0,
+      bestRun: 0,
+      bestRunFromHand: 0,
+      worstSlide: 0,
+      worstSlideFromHand: 0,
+      worstSlideToHand: 0,
+      gaveBack: 0,
+    },
   }));
+
+  // Every deal in, by who fed it and who took it.
+  const feed: FeedEntry[] = [];
+  const feedAt = (shooterSeat: Seat, winnerSeat: Seat): FeedEntry => {
+    let entry = feed.find(
+      (item) =>
+        item.shooterSeat === shooterSeat && item.winnerSeat === winnerSeat,
+    );
+    if (!entry) {
+      entry = { shooterSeat, winnerSeat, hands: 0, points: 0 };
+      feed.push(entry);
+    }
+    return entry;
+  };
 
   // Streaks are counted in playing order, so they are tracked as we go.
   const currentStreak = [0, 0, 0, 0];
@@ -172,6 +304,12 @@ export function stats(game: GameRules): StatsResult {
         tally(players[hand.winnerSeat].winsByFaan, hand.faan);
         players[hand.discarderSeat].ceotCung += 1;
         tally(players[hand.discarderSeat].dealtInByFaan, hand.faan);
+        {
+          const entry = feedAt(hand.discarderSeat, hand.winnerSeat);
+          entry.hands += 1;
+          // What the shooter themselves paid, not what the winner collected.
+          entry.points -= row.deltas[hand.discarderSeat];
+        }
         recordWin(players[hand.winnerSeat], hand, row.dealerSeat);
         break;
       case 'zi_mo':
@@ -186,6 +324,11 @@ export function stats(game: GameRules): StatsResult {
       case 'draw':
         break;
     }
+  }
+
+  // Swings are read off the running score, which replay already worked out.
+  for (const seat of SEATS) {
+    players[seat].swing = swingOf(series[seat]);
   }
 
   // Rates are over hands played, so an empty game reports zero rather than NaN.
@@ -212,5 +355,5 @@ export function stats(game: GameRules): StatsResult {
   };
   totals.reconciles = totals.accountedFor === handCount && totals.score === 0;
 
-  return { players, totals, handCount, isComplete };
+  return { players, feed, totals, handCount, isComplete };
 }
