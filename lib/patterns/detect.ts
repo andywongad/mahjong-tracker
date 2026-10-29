@@ -12,7 +12,7 @@ import {
   type Reading,
   type TileSet,
 } from '@/lib/tiles/solver';
-import { totalFor, type BuilderTotal } from './builder';
+import { availablePatterns, totalFor, type BuilderTotal } from './builder';
 
 /**
  * Naming the patterns in a hand.
@@ -31,6 +31,12 @@ export interface HandContext {
   seatIndex: Seat;
   flowers: BonusKey[];
   selfDraw: boolean;
+  /**
+   * Nothing was claimed from another player's discard. The tiles cannot say
+   * so, since a claimed set looks exactly like a drawn one, so this is the
+   * player's word.
+   */
+  concealed?: boolean;
 }
 
 const WIND_KEY: Record<Wind, TileKey> = {
@@ -69,7 +75,19 @@ function addBonuses(picks: HandPattern[], context: HandContext): void {
   if (own > 0) add(picks, 'own_flower', own);
 }
 
-function addSelfDraw(picks: HandPattern[], context: HandContext): void {
+/**
+ * How the hand was come by, which the tiles never show.
+ *
+ * A hand both concealed and self drawn is its own pattern rather than the two
+ * of them added together, which is why the self draw is not also counted when
+ * that one applies.
+ */
+function addHowWon(picks: HandPattern[], context: HandContext): void {
+  if (context.concealed && context.selfDraw) {
+    add(picks, 'fully_concealed_self_draw');
+    return;
+  }
+  if (context.concealed) add(picks, 'concealed_hand');
   if (context.selfDraw) add(picks, 'self_drawn');
 }
 
@@ -125,7 +143,7 @@ export function patternsOf(
     if (windTriplets.some((set) => set.key === round)) add(picks, 'round_wind');
   }
 
-  addSelfDraw(picks, context);
+  addHowWon(picks, context);
   addBonuses(picks, context);
   return picks;
 }
@@ -133,7 +151,7 @@ export function patternsOf(
 /** Thirteen orphans has no sets at all, so it is read straight off the tiles. */
 export function orphanPatterns(context: HandContext): HandPattern[] {
   const picks: HandPattern[] = [{ id: 'thirteen_orphans', count: 1 }];
-  addSelfDraw(picks, context);
+  addHowWon(picks, context);
   addBonuses(picks, context);
   return picks;
 }
@@ -165,7 +183,7 @@ export function patternsSoFar(
   if ((counts[WIND_KEY[context.seatWind]] ?? 0) >= 3) add(picks, 'seat_wind');
   if ((counts[WIND_KEY[context.roundWind]] ?? 0) >= 3) add(picks, 'round_wind');
 
-  addSelfDraw(picks, context);
+  addHowWon(picks, context);
   return picks;
 }
 
@@ -185,13 +203,35 @@ export interface ScoredHand {
  * worth, so every reading is scored and the highest kept. The tiles never
  * move: this only decides how to describe them.
  */
+/**
+ * Drop anything this table does not play.
+ *
+ * A pattern named off the tiles is only worth something if the rules carry it,
+ * so the new six and the seven pairs hands disappear at a table that does not
+ * use them rather than quietly adding faan nobody would pay.
+ */
+function underRules(
+  picks: HandPattern[],
+  rules: Rules,
+  selfDraw: boolean,
+): HandPattern[] {
+  const allowed = new Set(
+    availablePatterns(rules, selfDraw).map((pattern) => pattern.id),
+  );
+  return picks.filter((pick) => allowed.has(pick.id));
+}
+
 export function scoreHand(
   tiles: readonly TileKey[],
   context: HandContext,
   rules: Rules,
 ): ScoredHand {
   if (isThirteenOrphans(tiles)) {
-    const patterns = orphanPatterns(context);
+    const patterns = underRules(
+      orphanPatterns(context),
+      rules,
+      context.selfDraw,
+    );
     return {
       reading: null,
       patterns,
@@ -202,7 +242,11 @@ export function scoreHand(
 
   let best: ScoredHand | null = null;
   for (const reading of splitHand(tiles)) {
-    const patterns = patternsOf(reading, context);
+    const patterns = underRules(
+      patternsOf(reading, context),
+      rules,
+      context.selfDraw,
+    );
     const total = totalFor(patterns, rules);
     const better =
       !best ||
@@ -212,7 +256,11 @@ export function scoreHand(
   }
   if (best) return best;
 
-  const patterns = patternsSoFar(tiles, context);
+  const patterns = underRules(
+    patternsSoFar(tiles, context),
+    rules,
+    context.selfDraw,
+  );
   return {
     reading: null,
     patterns,

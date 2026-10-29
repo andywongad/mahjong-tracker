@@ -52,6 +52,7 @@ export function TapTheTiles({
   ownFlowerNumber,
   onTiles,
   onFlowers,
+  onClear,
 }: {
   tiles: TileKey[];
   flowers: BonusKey[];
@@ -60,6 +61,8 @@ export function TapTheTiles({
   ownFlowerNumber: number;
   onTiles: (tiles: TileKey[]) => void;
   onFlowers: (flowers: BonusKey[]) => void;
+  /** Starting over, without tapping fourteen tiles back off one at a time. */
+  onClear: () => void;
 }) {
   const counts = useMemo(() => countTiles(tiles), [tiles]);
   const target = targetSize(tiles);
@@ -91,9 +94,21 @@ export function TapTheTiles({
       <section className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-2">
           <h3 className="text-sm font-semibold">The winning hand</h3>
-          <span className="tnum text-xs" style={{ color: 'var(--muted)' }}>
-            {tiles.length} of {target} tiles
-            {quads > 0 && ' · a kong adds one'}
+          <span className="flex items-baseline gap-2">
+            <span className="tnum text-xs" style={{ color: 'var(--muted)' }}>
+              {tiles.length} of {target} tiles
+              {quads > 0 && ' · a kong adds one'}
+            </span>
+            {(tiles.length > 0 || flowers.length > 0) && (
+              <button
+                type="button"
+                onClick={onClear}
+                className="px-1 text-xs font-semibold underline underline-offset-2"
+                style={{ color: 'var(--accent)' }}
+              >
+                Clear
+              </button>
+            )}
           </span>
         </div>
 

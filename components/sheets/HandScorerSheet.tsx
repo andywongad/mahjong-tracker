@@ -4,7 +4,11 @@ import { useMemo, useState } from 'react';
 import type { Rules } from '@/lib/rules/types';
 import type { HandPattern, Seat, Wind } from '@/lib/scoring';
 import { SEAT_WINDS } from '@/lib/game/seats';
-import { totalFor, withSelfDrawBonus } from '@/lib/patterns/builder';
+import {
+  availablePatterns,
+  totalFor,
+  withSelfDrawBonus,
+} from '@/lib/patterns/builder';
 import { PATTERNS_BY_ID } from '@/lib/patterns/catalog';
 import { scoreHand, type HandContext } from '@/lib/patterns/detect';
 import type { BonusKey, TileKey } from '@/lib/tiles';
@@ -62,10 +66,24 @@ export function HandScorerSheet({
   // Closed by default: it grows a line per pattern while a hand is being
   // built, and a list that pushes the tray down is a distraction mid tap.
   const [showReasons, setShowReasons] = useState(false);
+  // The tiles cannot show whether a set was claimed, so the player says.
+  const [concealed, setConcealed] = useState(false);
   const [tiles, setTiles] = useState<TileKey[]>(initialTiles ?? []);
   const [flowers, setFlowers] = useState<BonusKey[]>([]);
   const [picks, setPicks] = useState<HandPattern[]>(() =>
     withSelfDrawBonus(initialPatterns ?? [], rules, selfDraw),
+  );
+
+  function clearHand() {
+    setTiles([]);
+    setFlowers([]);
+  }
+
+  // Offered only where the table plays it, the same as in the checklist.
+  const concealable = availablePatterns(rules, selfDraw).some(
+    (pattern) =>
+      pattern.id === 'concealed_hand' ||
+      pattern.id === 'fully_concealed_self_draw',
   );
 
   const seat = winnerSeat ?? 0;
@@ -78,8 +96,9 @@ export function HandScorerSheet({
       seatIndex: seat,
       flowers,
       selfDraw,
+      concealed,
     }),
-    [seatWind, roundWind, seat, flowers, selfDraw],
+    [seatWind, roundWind, seat, flowers, selfDraw, concealed],
   );
 
   const scored = useMemo(
@@ -136,8 +155,7 @@ export function HandScorerSheet({
               <button
                 type="button"
                 onClick={() => {
-                  setTiles([]);
-                  setFlowers([]);
+                  clearHand();
                   setPicks(withSelfDrawBonus([], rules, selfDraw));
                 }}
                 className="text-xs underline"
@@ -221,6 +239,26 @@ export function HandScorerSheet({
           )}
         </ul>
 
+        {/* The one thing about the hand the game cannot know: a claimed set
+          and a drawn one look exactly alike once they are on the table. */}
+        {concealable && (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={concealed}
+              onChange={(event) => setConcealed(event.target.checked)}
+              className="h-5 w-5"
+              style={{ accentColor: 'var(--tile-back)' }}
+            />
+            <span>
+              <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+                門前清
+              </span>{' '}
+              Concealed, nothing taken from a discard
+            </span>
+          </label>
+        )}
+
         <div
           className="grid grid-cols-2 gap-1 rounded-xl p-1"
           style={{ background: 'var(--line)' }}
@@ -259,6 +297,7 @@ export function HandScorerSheet({
             ownFlowerNumber={seat + 1}
             onTiles={setTiles}
             onFlowers={setFlowers}
+            onClear={clearHand}
           />
         ) : (
           <PatternChecklist

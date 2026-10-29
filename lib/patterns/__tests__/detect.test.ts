@@ -264,3 +264,50 @@ describe('what a part finished hand already shows', () => {
     expect(ids(['d1', 'd2', 'd3'] as TileKey[])).not.toContain('no_flowers');
   });
 });
+
+describe('a hand nobody helped with', () => {
+  const RUN_HAND: TileKey[] = [
+    'd1',
+    'd2',
+    'd3',
+    'd4',
+    'd5',
+    'd6',
+    'd7',
+    'd8',
+    'd9',
+    'b1',
+    'b2',
+    'b3',
+    'c5',
+    'c5',
+  ];
+
+  it('is its own pattern where the table plays it', () => {
+    // Hong Kong standard carries the new six, so a concealed hand counts.
+    const open = scoreHand(RUN_HAND, ctx(), HK_STANDARD);
+    const shut = scoreHand(RUN_HAND, ctx({ concealed: true }), HK_STANDARD);
+    expect(shut.patterns.map((p) => p.id)).toContain('concealed_hand');
+    expect(shut.total.raw).toBe(open.total.raw + 1);
+  });
+
+  it('counts concealed and self drawn as one pattern, not two', () => {
+    const both = scoreHand(
+      RUN_HAND,
+      ctx({ concealed: true, selfDraw: true }),
+      HK_STANDARD,
+    );
+    const ids = both.patterns.map((p) => p.id);
+    expect(ids).toContain('fully_concealed_self_draw');
+    expect(ids).not.toContain('concealed_hand');
+    expect(ids).not.toContain('self_drawn');
+  });
+
+  it('is worth nothing at a table that does not play it', () => {
+    // Our table leaves the new six out, so the claim earns no faan.
+    const open = scoreHand(RUN_HAND, ctx(), OUR_TABLE);
+    const shut = scoreHand(RUN_HAND, ctx({ concealed: true }), OUR_TABLE);
+    expect(shut.patterns.map((p) => p.id)).not.toContain('concealed_hand');
+    expect(shut.total.raw).toBe(open.total.raw);
+  });
+});

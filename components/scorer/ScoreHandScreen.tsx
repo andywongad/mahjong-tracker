@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@/lib/game/navigation';
 import { HK_STANDARD, type Rules } from '@/lib/rules/types';
 import { listRuleSets, type RuleSet } from '@/lib/rules/ruleSets';
-import { totalFor, withSelfDrawBonus } from '@/lib/patterns/builder';
+import {
+  availablePatterns,
+  totalFor,
+  withSelfDrawBonus,
+} from '@/lib/patterns/builder';
 import { PATTERNS_BY_ID } from '@/lib/patterns/catalog';
 import { scoreHand, type HandContext } from '@/lib/patterns/detect';
 import type { BonusKey, TileKey } from '@/lib/tiles';
@@ -40,6 +44,7 @@ export function ScoreHandScreen() {
   const [seatWind, setSeatWind] = useState<Wind>('east');
   const [roundWind, setRoundWind] = useState<Wind>('east');
   const [selfDraw, setSelfDraw] = useState(false);
+  const [concealed, setConcealed] = useState(false);
 
   const [rules, setRules] = useState<Rules>(HK_STANDARD);
   const [ruleSetName, setRuleSetName] = useState('Hong Kong standard');
@@ -58,9 +63,21 @@ export function ScoreHandScreen() {
 
   const seatIndex = WINDS.indexOf(seatWind) as Seat;
 
+  function clearHand() {
+    setTiles([]);
+    setFlowers([]);
+  }
+
+  // Offered only where the table plays it, the same as in the checklist.
+  const concealable = availablePatterns(rules, selfDraw).some(
+    (pattern) =>
+      pattern.id === 'concealed_hand' ||
+      pattern.id === 'fully_concealed_self_draw',
+  );
+
   const context = useMemo<HandContext>(
-    () => ({ seatWind, roundWind, seatIndex, flowers, selfDraw }),
-    [seatWind, roundWind, seatIndex, flowers, selfDraw],
+    () => ({ seatWind, roundWind, seatIndex, flowers, selfDraw, concealed }),
+    [seatWind, roundWind, seatIndex, flowers, selfDraw, concealed],
   );
 
   const scored = useMemo(
@@ -111,22 +128,44 @@ export function ScoreHandScreen() {
             hint="So is a pung of the round's wind"
           />
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={selfDraw}
-                onChange={(event) => setSelfDraw(event.target.checked)}
-                className="h-5 w-5"
-                style={{ accentColor: 'var(--tile-back)' }}
-              />
-              <span>
-                <span lang="zh-Hant" className="hanzi" aria-hidden="true">
-                  自摸
-                </span>{' '}
-                Self drawn
-              </span>
-            </label>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={selfDraw}
+                  onChange={(event) => setSelfDraw(event.target.checked)}
+                  className="h-5 w-5"
+                  style={{ accentColor: 'var(--tile-back)' }}
+                />
+                <span>
+                  <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+                    自摸
+                  </span>{' '}
+                  Self drawn
+                </span>
+              </label>
+
+              {/* The tiles cannot show it: a claimed set and a drawn one look
+                the same once they are down. */}
+              {concealable && (
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={concealed}
+                    onChange={(event) => setConcealed(event.target.checked)}
+                    className="h-5 w-5"
+                    style={{ accentColor: 'var(--tile-back)' }}
+                  />
+                  <span>
+                    <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+                      門前清
+                    </span>{' '}
+                    Concealed
+                  </span>
+                </label>
+              )}
+            </div>
 
             <button
               type="button"
@@ -177,6 +216,7 @@ export function ScoreHandScreen() {
             ownFlowerNumber={seatIndex + 1}
             onTiles={setTiles}
             onFlowers={setFlowers}
+            onClear={clearHand}
           />
         ) : (
           <PatternChecklist
@@ -255,8 +295,7 @@ export function ScoreHandScreen() {
             <button
               type="button"
               onClick={() => {
-                setTiles([]);
-                setFlowers([]);
+                clearHand();
                 setPicks([]);
               }}
               className="touch self-start px-1 text-xs underline"

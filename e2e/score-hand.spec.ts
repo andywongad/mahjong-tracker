@@ -85,6 +85,33 @@ test('says why, because that is the whole point of asking', async ({
   await expect(page.getByText('No flowers')).toBeVisible();
 });
 
+test('clears the whole hand from beside it', async ({ page }) => {
+  await open(page);
+  await buildSouthPungHand(page);
+  await expect(page.getByText('14 of 14 tiles')).toBeVisible();
+
+  // Fourteen tiles back off one at a time is not a way out of a mis-tap.
+  await page.getByRole('button', { name: 'Clear' }).click();
+  await expect(page.getByText('0 of 14 tiles')).toBeVisible();
+  await expect(verdict(page)).toContainText('Finish the hand');
+});
+
+test('a concealed hand is worth more, and more again if it was drawn', async ({
+  page,
+}) => {
+  await open(page);
+  await buildSouthPungHand(page);
+  await expect(verdict(page)).toContainText('worth 4 faan');
+
+  await page.getByLabel(/Concealed/).check();
+  await expect(verdict(page)).toContainText('worth 5 faan');
+
+  // Concealed and self drawn is one pattern, not the two of them added.
+  await page.getByLabel(/Self drawn/).check();
+  await expect(page.getByText('Fully concealed self draw')).toBeVisible();
+  await expect(page.getByText('Concealed hand')).toHaveCount(0);
+});
+
 test.describe('on a phone', () => {
   test.use({ viewport: { width: 390, height: 900 } });
 
