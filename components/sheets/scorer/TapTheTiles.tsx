@@ -53,12 +53,24 @@ export function TapTheTiles({
   onTiles,
   onFlowers,
   onClear,
+  stickyHand = false,
 }: {
   tiles: TileKey[];
   flowers: BonusKey[];
   scored: ScoredHand;
   /** The winner's seat number, which is the flower that counts as theirs. */
   ownFlowerNumber: number;
+  /**
+   * Keep the hand pinned to the top of the scroller it sits in.
+   *
+   * Where the tray is taller than the view, tapping a tile near the bottom of
+   * it scrolls that tile into view and carries the hand off the top of the
+   * screen, so the one thing being watched is the one thing not visible. Only
+   * the count, the progress bar and the tiles are pinned: the message under
+   * them rewraps between one and three lines, and a block that changes height
+   * is not a still one.
+   */
+  stickyHand?: boolean;
   onTiles: (tiles: TileKey[]) => void;
   onFlowers: (flowers: BonusKey[]) => void;
   /** Starting over, without tapping fourteen tiles back off one at a time. */
@@ -91,7 +103,20 @@ export function TapTheTiles({
 
   return (
     <div className="flex flex-col gap-4">
-      <section className="flex flex-col gap-2">
+      {/* A direct child of the column, so it stays put over the tray below
+        rather than unsticking at the end of its own section. It pins at -1rem
+        to cancel the scroller's own py-4: pinned at 0 it sat a padding's width
+        down, and tiles showed in the band above it. The matching pt-4 fills
+        that band with the sheet's own colour, and -mt-2 keeps the resting
+        position where it was. */}
+      <div
+        className={
+          stickyHand
+            ? 'sticky -top-4 z-20 -mx-4 -mt-2 flex flex-col gap-2 px-4 pt-4 pb-2'
+            : 'flex flex-col gap-2'
+        }
+        style={stickyHand ? { background: 'var(--surface)' } : undefined}
+      >
         <div className="flex items-baseline justify-between gap-2">
           <h3 className="text-sm font-semibold">The winning hand</h3>
           <span className="flex items-baseline gap-2">
@@ -152,7 +177,9 @@ export function TapTheTiles({
             </span>
           )}
         </div>
+      </div>
 
+      <section className="flex flex-col gap-2">
         {flowers.length > 0 && (
           <div className="flex items-center gap-2">
             <span

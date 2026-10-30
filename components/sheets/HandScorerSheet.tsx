@@ -301,6 +301,9 @@ export function HandScorerSheet({
             onTiles={setTiles}
             onFlowers={setFlowers}
             onClear={clearHand}
+            // The tray runs past the bottom of the sheet, so tapping down it
+            // would otherwise scroll the hand out of sight.
+            stickyHand
           />
         ) : (
           <PatternChecklist
