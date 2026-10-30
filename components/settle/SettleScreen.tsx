@@ -87,7 +87,7 @@ export function SettleScreen() {
       <AppHeader
         title="Tally details"
         subtitle={describeChosen(chosen.length, settlement.handCount)}
-        back={{ onClick: () => go('games', null), label: 'Games' }}
+        back={{ onClick: () => go('games', null), label: 'History' }}
       />
 
       <main

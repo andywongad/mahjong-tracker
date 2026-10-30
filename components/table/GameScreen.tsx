@@ -15,6 +15,12 @@ import { useWakeLock } from '@/lib/hooks/useWakeLock';
 import { markRecorded, useFirstRecord } from '@/lib/hooks/useFirstRecord';
 import { logEvent } from '@/lib/telemetry/events';
 import { AppHeader, HeaderButton } from '@/components/ui/AppHeader';
+import {
+  HistoryIcon,
+  HomeIcon,
+  RulesIcon,
+  StatsIcon,
+} from '@/components/ui/HeaderIcons';
 import { OfflineBadge } from '@/components/ui/OfflineBadge';
 import { UndoToast } from '@/components/ui/UndoToast';
 import { TableSurface } from './TableSurface';
@@ -145,15 +151,26 @@ export function GameScreen({ gameId }: { gameId: string }) {
         wide
         title={formatGameDate(game.date)}
         subtitle={game.players.join(' · ')}
-        actions={
+        left={
+          <>
+            <HeaderButton onClick={() => go('home', null)} label="Home">
+              <HomeIcon />
+            </HeaderButton>
+            <HeaderButton onClick={() => go('games', null)} label="History">
+              <HistoryIcon />
+            </HeaderButton>
+          </>
+        }
+        right={
           <>
             {/* A table settles its rules at the table, usually a few hands in
               when someone says "that is not how we play it". */}
-            <HeaderButton onClick={() => setRulesOpen(true)}>
-              Rules
+            <HeaderButton onClick={() => setRulesOpen(true)} label="Rules">
+              <RulesIcon />
             </HeaderButton>
-            <HeaderButton onClick={() => go('stats')}>Stats</HeaderButton>
-            <HeaderButton onClick={() => go('games', null)}>Games</HeaderButton>
+            <HeaderButton onClick={() => go('stats')} label="Stats">
+              <StatsIcon />
+            </HeaderButton>
           </>
         }
       />

@@ -19,7 +19,7 @@ import { useNavigation } from '@/lib/game/navigation';
 import { summarise } from '@/lib/game/standings';
 import { playedGames, resumable } from '@/lib/game/resume';
 import { formatGameDate } from '@/lib/game/format';
-import { AppHeader } from '@/components/ui/AppHeader';
+import { AppHeader, HeaderButton } from '@/components/ui/AppHeader';
 import { GameSheet } from '@/components/sheets/GameSheet';
 import { AboutSheet } from '@/components/sheets/AboutSheet';
 import { SettingsSheet } from '@/components/sheets/SettingsSheet';
@@ -50,20 +50,10 @@ export function HomeScreen() {
       <AppHeader
         title="Mahjong tracker"
         subtitle="Hong Kong scoring, kept at the table"
-        actions={
-          <button
-            type="button"
-            onClick={() => setSettingsOpen(true)}
-            aria-label="Settings"
-            className="touch inline-flex items-center gap-1.5 rounded-full px-3 text-xs font-semibold"
-            style={{
-              background: 'var(--felt-soft)',
-              color: 'var(--ink-on-felt)',
-            }}
-          >
+        right={
+          <HeaderButton onClick={() => setSettingsOpen(true)} label="Settings">
             <GearIcon />
-            Settings
-          </button>
+          </HeaderButton>
         }
       />
 
@@ -265,8 +255,8 @@ function SmallButton({
 function GearIcon() {
   return (
     <svg
-      width="14"
-      height="14"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

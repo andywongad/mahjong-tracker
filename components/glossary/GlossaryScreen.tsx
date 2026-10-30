@@ -38,7 +38,7 @@ export function GlossaryScreen() {
       <AppHeader
         title="Glossary"
         subtitle={`${TERMS.length} terms`}
-        back={{ onClick: () => go('games', null), label: 'Games' }}
+        back={{ onClick: () => go('home', null), label: 'Home' }}
       />
 
       <main

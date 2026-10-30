@@ -15,6 +15,9 @@ async function startGames(page: Page, count: number): Promise<void> {
     await page.waitForLoadState('networkidle');
     await page.getByRole('button', { name: 'Start a game' }).click();
     await page.getByRole('button', { name: 'Start game' }).click();
+    // Saving opens the new game's table. Waiting for that rather than for a
+    // moment keeps the next loop from navigating over the write.
+    await page.waitForURL(/\?game=/);
   }
 }
 

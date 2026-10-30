@@ -108,7 +108,7 @@ export function ScoreHandScreen() {
       <AppHeader
         title="What's this hand worth?"
         subtitle={`${ruleSetName} · ${rules.minFaan} to ${rules.faanCap} faan`}
-        back={{ onClick: () => go('games', null), label: 'Games' }}
+        back={{ onClick: () => go('home', null), label: 'Home' }}
       />
 
       <main
