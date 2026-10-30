@@ -179,7 +179,11 @@ export function HeaderButton({
   hint?: string;
   /** Pulled to the right edge for a button near the end of the bar. */
   hintAlign?: 'center' | 'end';
-  /** This is the screen showing, so the control marks itself rather than moving. */
+  /**
+   * This is the screen showing. Said through aria-current and nothing else:
+   * Home and Settings are a matched pair at the two ends of the bar, and
+   * filling one of them in made the pair look like two different controls.
+   */
   current?: boolean;
   /** The icon. */
   children: React.ReactNode;
@@ -198,11 +202,7 @@ export function HeaderButton({
         // touch class would force: four of those left the date no room to sit
         // between them at 320px. 36x44 is still well past the 24x24 minimum.
         className="inline-flex h-11 min-w-9 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-semibold tablet:px-3"
-        style={
-          current
-            ? { background: 'var(--tile-face)', color: 'var(--ink)' }
-            : { background: 'var(--felt-soft)', color: 'var(--ink-on-felt)' }
-        }
+        style={{ background: 'var(--felt-soft)', color: 'var(--ink-on-felt)' }}
       >
         {children}
         <span className="hidden tablet:inline">{label}</span>
