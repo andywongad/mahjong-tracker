@@ -80,7 +80,7 @@ export function HomeScreen() {
 
         {!loading && inProgress && (
           <section className="flex flex-col gap-2">
-            <h2 className="text-sm font-semibold">Carry on</h2>
+            <h2 className="text-sm font-semibold">Current game</h2>
             <button
               type="button"
               onClick={() => go('table', inProgress.id)}
@@ -146,8 +146,8 @@ export function HomeScreen() {
           </p>
         )}
 
-        {/* No heading over these two. "Carry on" earns one because it names
-          a specific game; a heading here would only be a word for "the
+        {/* No heading over these two. "Current game" earns one because it
+          names a specific game; a heading here would only be a word for "the
           buttons", and the buttons already say what they are. */}
         <section className="flex flex-col gap-2">
           <button

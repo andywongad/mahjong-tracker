@@ -5,9 +5,9 @@
  * with tests rather than inside a component.
  *
  * The sample game is not one of yours. The app seeds a finished reference game
- * on first run so nothing is ever empty, and offering to "carry on" with a
- * game somebody has never played would be the first thing they read and would
- * not be true.
+ * on first run so nothing is ever empty, and calling a game somebody has
+ * never played their "current game" would be the first thing they read and
+ * would not be true.
  *
  * A complete round is not an ended game. Tables play on past the end of a
  * round with extra hands, and the app only knows play has stopped when
