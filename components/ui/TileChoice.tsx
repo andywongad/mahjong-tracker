@@ -32,7 +32,7 @@ export function TileChoice({
               background: accent ?? 'var(--tile-back)',
               color: 'var(--on-player-solid)',
               borderColor: 'transparent',
-              boxShadow: '0 2px 0 #00000040, 0 3px 8px #17211e26',
+              boxShadow: '0 1px 2px #17211e1f, 0 2px 8px #17211e14',
             }
           : undefined
       }

@@ -72,7 +72,6 @@ export function HomeScreen() {
               style={{
                 background: 'var(--tile-back)',
                 color: '#fff',
-                boxShadow: '0 3px 0 #0e4a38',
               }}
             >
               <span className="flex items-baseline justify-between gap-3">
@@ -108,7 +107,7 @@ export function HomeScreen() {
           // One short paragraph, read once in a person's life. Anything longer
           // is a manual nobody asked for; How this works is there for whoever
           // wants it.
-          <p className="text-sm" style={{ color: 'var(--ink)' }}>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>
             Keep score for a Hong Kong mahjong table. Tap whoever won, and the
             payments, the dealer and the round look after themselves. Nothing
             to sign up for, and it works with no signal.
@@ -147,8 +146,7 @@ export function HomeScreen() {
                 : {
                     background: 'var(--tile-back)',
                     color: '#fff',
-                    boxShadow: '0 3px 0 #0e4a38',
-                  }
+                      }
             }
           >
             Start a game

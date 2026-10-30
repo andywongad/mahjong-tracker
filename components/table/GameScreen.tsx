@@ -267,8 +267,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
                     ? {
                         background: 'var(--tile-back)',
                         color: '#fff',
-                        boxShadow: '0 3px 0 #0e4a38',
-                      }
+                              }
                     : undefined
                 }
               >

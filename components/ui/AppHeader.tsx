@@ -23,7 +23,6 @@ import { HintAnchor, useHint } from './Hint';
 export function AppHeader({
   title,
   subtitle,
-  back,
   left,
   right,
   nav,
@@ -31,11 +30,10 @@ export function AppHeader({
   onClose,
   closeLabel,
   wide = false,
+  tone = 'felt',
 }: {
   title: string;
   subtitle?: string;
-  /** Where this screen came from. Rendered as the first thing on the left. */
-  back?: { onClick: () => void; label: string };
   /** Navigation, before the back button if both are given. */
   left?: React.ReactNode;
   /** What can be done on this screen. */
@@ -54,88 +52,100 @@ export function AppHeader({
   closeLabel?: string;
   /** Matches the wider column the game view uses on a desktop. */
   wide?: boolean;
+  /**
+   * Felt or page.
+   *
+   * The felt is the table: it belongs on a game, where you are sitting at
+   * one. Everywhere else is a screen you read, so the title sits on the page
+   * at full size with nothing painted behind it.
+   */
+  tone?: 'felt' | 'page';
 }) {
   const rightSide = right ?? actions;
+  const onFelt = tone === 'felt';
+
+  // The bar's own colours, handed down as custom properties so a header
+  // button does not have to be told which kind of bar it is sitting on.
+  const barTokens = onFelt
+    ? {
+        background: 'var(--felt)',
+        color: 'var(--ink-on-felt)',
+        '--bar-soft': 'var(--felt-soft)',
+        '--bar-muted': 'var(--muted-on-felt)',
+      }
+    : {
+        background: 'var(--page)',
+        color: 'var(--ink)',
+        '--bar-soft': 'var(--surface)',
+        '--bar-muted': 'var(--muted)',
+      };
+
+  const titleBlock = (
+    <>
+      <h1
+        className={
+          onFelt
+            ? 'truncate text-base leading-tight font-semibold tablet:text-lg'
+            : 'truncate text-2xl leading-tight font-bold tablet:text-3xl'
+        }
+      >
+        {title}
+      </h1>
+      {subtitle && (
+        <p
+          className={`truncate ${onFelt ? 'text-xs' : 'mt-0.5 text-sm'}`}
+          style={{ color: 'var(--bar-muted)' }}
+        >
+          {subtitle}
+        </p>
+      )}
+    </>
+  );
 
   return (
     <header className="sticky top-0 z-30">
-      {/* The felt reaches only as far as the three things that are about the
-        app itself: where home is, what this is, and settings. The row under
-        it moves between parts of a game, so it sits on the page with the
-        game rather than on the bar above it. Both stay stuck to the top. */}
       <div
-        className="pad-safe-top px-4 pb-3"
-        style={{ background: 'var(--felt)', color: 'var(--ink-on-felt)' }}
+        className={`pad-safe-top px-4 ${onFelt ? 'pb-3' : 'pb-1'}`}
+        style={barTokens as React.CSSProperties}
       >
         <div className={wide ? 'page-wide' : 'page-column'}>
-        {/* A grid, not flex: two side tracks of 1fr are equal by definition,
-          which is what puts the title in the true centre of the bar whether a
-          side holds two buttons or none. Flexbox sides grow from different
-          bases, which left the title up to 47px off centre. The 1fr tracks
-          floor at their own content, so a button is never clipped. */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <div className="flex min-w-0 items-center gap-1">
-            {back && (
-              <HeaderButton onClick={back.onClick} label={back.label}>
-                <BackIcon />
-              </HeaderButton>
-            )}
-            {left}
-          </div>
-
-          <div className="min-w-0 text-center">
-            {/* 16px on a phone, which is the size a centred app bar title
-              usually is, and the size that lets a date like "Aug 19, 2026"
-              sit between four buttons at 320px: it needs 122px at 18px and
-              108px at 16px, against the 120px the middle slot has there. */}
-            <h1 className="truncate text-base leading-tight font-semibold tablet:text-lg">
-              {title}
-            </h1>
-            {subtitle && (
-              <p
-                className="truncate text-xs"
-                style={{ color: 'var(--muted-on-felt)' }}
-              >
-                {subtitle}
-              </p>
-            )}
-          </div>
-
-          <div className="flex min-w-0 items-center justify-end gap-1">
-            {rightSide}
-            {onClose && (
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label={closeLabel ?? 'Close'}
-                className="touch -mr-2 inline-flex items-center justify-center rounded-full px-3"
-                style={{ color: 'var(--ink-on-felt)' }}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M4 4l10 10M14 4L4 14"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-
+          {onFelt ? (
+            // A grid, not flex: two side tracks of 1fr are equal by
+            // definition, which is what puts the title in the true centre
+            // whether a side holds two buttons or none. Flex sides grow from
+            // different bases, which left it up to 47px off centre.
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+              <div className="flex min-w-0 items-center gap-1">{left}</div>
+              <div className="min-w-0 text-center">{titleBlock}</div>
+              <div className="flex min-w-0 items-center justify-end gap-1">
+                {rightSide}
+                {onClose && <CloseButton onClose={onClose} label={closeLabel} />}
+              </div>
+            </div>
+          ) : (
+            // The way the reference does it: the controls are a quiet row of
+            // their own, and the title has the next line to itself at full
+            // size. A big title cannot be centred between two buttons without
+            // being squeezed by them.
+            <>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-1">{left}</div>
+                <div className="flex min-w-0 items-center justify-end gap-1">
+                  {rightSide}
+                  {onClose && (
+                    <CloseButton onClose={onClose} label={closeLabel} />
+                  )}
+                </div>
+              </div>
+              <div className="min-w-0 pt-1 pb-2">{titleBlock}</div>
+            </>
+          )}
         </div>
       </div>
 
       {nav && (
         <div
-          className="px-4 py-2"
+          className="px-4 pb-2"
           style={{
             background: 'var(--page)',
             borderBottom: '1px solid var(--line)',
@@ -152,22 +162,29 @@ export function AppHeader({
   );
 }
 
-function BackIcon() {
+function CloseButton({
+  onClose,
+  label,
+}: {
+  onClose: () => void;
+  label?: string;
+}) {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label={label ?? 'Close'}
+      className="touch -mr-2 inline-flex items-center justify-center rounded-full px-3"
     >
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path
+          d="M4 4l10 10M14 4L4 14"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    </button>
   );
 }
 
@@ -219,7 +236,7 @@ export function HeaderButton({
         // touch class would force: four of those left the date no room to sit
         // between them at 320px. 36x44 is still well past the 24x24 minimum.
         className="inline-flex h-11 min-w-9 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-semibold tablet:px-3"
-        style={{ background: 'var(--felt-soft)', color: 'var(--ink-on-felt)' }}
+        style={{ background: 'var(--bar-soft)', color: 'currentColor' }}
       >
         {children}
         <span className="hidden tablet:inline">{label}</span>

@@ -283,8 +283,7 @@ export function SettleScreen() {
                 style={{
                   background: 'var(--tile-back)',
                   color: '#fff',
-                  boxShadow: '0 3px 0 #0e4a38',
-                }}
+                  }}
               >
                 {sent === 'copied' ? 'Copied' : 'Send the tally'}
               </button>

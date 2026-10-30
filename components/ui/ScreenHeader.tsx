@@ -62,6 +62,9 @@ export function ScreenHeader({
   return (
     <AppHeader
       wide={wide}
+      // The felt is the table, so it is worn by the one screen where you are
+      // sitting at one. Everything else is something you read.
+      tone={view === 'table' ? 'felt' : 'page'}
       title={title}
       subtitle={subtitle}
       left={
