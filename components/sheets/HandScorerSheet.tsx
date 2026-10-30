@@ -64,9 +64,6 @@ export function HandScorerSheet({
   onRecordZaaWu?: () => void;
 }) {
   const [mode, setMode] = useState<'tiles' | 'patterns'>('tiles');
-  // Closed by default: it grows a line per pattern while a hand is being
-  // built, and a list that pushes the tray down is a distraction mid tap.
-  const [showReasons, setShowReasons] = useState(false);
   // The tiles cannot show whether a set was claimed, so the player says.
   const [concealed, setConcealed] = useState(false);
   const [tiles, setTiles] = useState<TileKey[]>(initialTiles ?? []);
@@ -314,57 +311,22 @@ export function HandScorerSheet({
           />
         )}
 
+        {/* Always open. It was a disclosure while the sheet grew with its
+          content and the list shifted everything under it; the sheet holds its
+          height now and the hand is pinned, so there is nothing left to hide
+          it from, and the one number the sheet exists to produce should not
+          take a tap to see. */}
         {reasons.length > 0 && (
-          <section
-            className="flex flex-col rounded-xl"
+          <HandReasons
+            reasons={reasons}
+            rules={rules}
+            total={total}
+            className="flex flex-col gap-1.5 rounded-xl px-3 py-3"
             style={{
               background: 'var(--tile-face)',
               border: '1px solid var(--line-strong)',
             }}
-          >
-            <button
-              type="button"
-              onClick={() => setShowReasons((open) => !open)}
-              aria-expanded={showReasons}
-              className="touch flex items-center justify-between gap-3 px-3 text-left"
-            >
-              <span className="text-sm font-semibold">
-                Why it is worth this
-              </span>
-              <span
-                className="flex items-center gap-1.5 text-xs"
-                style={{ color: 'var(--muted)' }}
-              >
-                {reasons.length} {reasons.length === 1 ? 'pattern' : 'patterns'}
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                  style={{
-                    transform: showReasons ? 'rotate(180deg)' : undefined,
-                  }}
-                >
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </span>
-            </button>
-
-            {showReasons && (
-              <HandReasons
-                reasons={reasons}
-                rules={rules}
-                total={total}
-                className="flex flex-col gap-1.5 px-3 pt-2.5 pb-3"
-                style={{ borderTop: '1px solid var(--line)' }}
-              />
-            )}
-          </section>
+          />
         )}
       </div>
     </Sheet>

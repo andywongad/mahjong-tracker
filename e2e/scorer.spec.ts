@@ -59,9 +59,7 @@ test('works a hand out from the tiles and hands the faan back', async ({
   await expect(page.getByText(/Built from/)).toBeVisible();
 });
 
-test('keeps the reasons folded away until they are asked for', async ({
-  page,
-}) => {
+test('shows what the hand is worth without being asked', async ({ page }) => {
   await openScorer(page);
 
   // Six of one suit is already a Full Flush, so there is a reason to show.
@@ -70,13 +68,12 @@ test('keeps the reasons folded away until they are asked for', async ({
   await tap(page, /^Add 5 characters/);
   await tap(page, /^Add 6 characters/);
 
-  const toggle = page.getByRole('button', { name: /Why it is worth this/ });
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.getByText('Full flush')).toHaveCount(0);
-
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  // No disclosure to open: the reason and the sum are both already there.
+  await expect(
+    page.getByRole('button', { name: /Why it is worth this/ }),
+  ).toHaveCount(0);
   await expect(page.getByText('Full flush')).toBeVisible();
+  await expect(page.getByText('Total faan')).toBeVisible();
 });
 
 test('builds the hand on one row that never changes height', async ({
