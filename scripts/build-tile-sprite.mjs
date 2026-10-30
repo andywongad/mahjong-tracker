@@ -118,16 +118,17 @@ const flowers = FLOWERS.map(([key, character, index]) => {
   const source = readFileSync(`${DIR}/svg   (${index}).svg`, 'utf8');
   const red = splitRedLayer(index);
   const redFill = source.match(/<path id="red" fill="([^"]*)"/)[1];
+  const navy = source.match(/<path id="navy" fill="([^"]*)"/)[1];
 
   const body =
     layer(index, 'black') +
     layer(index, 'green') +
     layer(index, 'navy') +
     `<path fill="${redFill}" fill-rule="evenodd" d="${round(red.art)}"/>` +
-    // The flower's own name, where the season's used to be. Ochre rather than
-    // the seasons' red, so a glance tells the two groups apart.
+    // The flower's own name, where the season's used to be, in the set's own
+    // navy rather than the seasons' red, so a glance tells the groups apart.
     `<text x="862" y="420" text-anchor="middle" font-size="310" ` +
-    `class="hanzi" fill="#a86e12">${character}</text>`;
+    `class="hanzi" fill="${navy}">${character}</text>`;
   return `<symbol id="t-${key}" viewBox="${VIEW_BOX}">${body}</symbol>`;
 });
 
