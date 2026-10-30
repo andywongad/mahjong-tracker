@@ -128,6 +128,32 @@ test('counts both number ones when a player holds the flower and the season', as
   await expect(page.getByText('Own flower')).toBeVisible();
 });
 
+test('marks the two bonus tiles that belong to this player', async ({
+  page,
+}) => {
+  await open(page);
+
+  // Sitting East, so the number ones are theirs and the other six are not.
+  await expect(
+    page.getByRole('button', { name: /^Add Flower 1, plum, your own/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /^Add Season 1, spring, your own/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /^Add Flower 2, orchid$/ }),
+  ).toBeVisible();
+
+  // Move seat and the mark moves with it.
+  await page.getByRole('button', { name: 'My seat: South' }).click();
+  await expect(
+    page.getByRole('button', { name: /^Add Flower 2, orchid, your own/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /^Add Flower 1, plum$/ }),
+  ).toBeVisible();
+});
+
 test.describe('on a phone', () => {
   test.use({ viewport: { width: 390, height: 900 } });
 

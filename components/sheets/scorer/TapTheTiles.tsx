@@ -214,8 +214,9 @@ export function TapTheTiles({
           style={{ borderTop: '1px solid var(--line)' }}
         >
           <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            Flowers and seasons sit beside the hand, not in it. Number{' '}
-            {ownFlowerNumber} is this player&rsquo;s own.
+            Flowers and seasons sit beside the hand, not in it. Only number{' '}
+            {ownFlowerNumber}, the two marked <OwnMark />, scores for this
+            player; the other six are somebody else&rsquo;s.
           </p>
           <TileGrid>
             {BONUS_KEYS.map((key) => {
@@ -226,6 +227,9 @@ export function TapTheTiles({
                   tileKey={key}
                   held={held}
                   bonus
+                  // Reading a number off eight corners is work; seeing which
+                  // two are yours is not.
+                  own={Number(key.slice(1)) === ownFlowerNumber}
                   onPick={() =>
                     onFlowers(
                       held
@@ -264,24 +268,40 @@ function TileGrid({ children }: { children: React.ReactNode }) {
 }
 
 /** One tile in the tray, with how many of it are already in the hand. */
+/** The mark on a tile that belongs to this player, named so it can be said. */
+function OwnMark() {
+  return (
+    <span
+      className="inline-flex h-3 w-3 shrink-0 items-center justify-center rounded-full align-[-1px] text-[0.55rem] font-bold"
+      style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}
+      aria-hidden="true"
+    >
+      &#9733;
+    </span>
+  );
+}
+
 function TrayTile({
   tileKey,
   held,
   disabled = false,
   bonus = false,
+  own = false,
   onPick,
 }: {
   tileKey: TileKey | BonusKey;
   held: number;
   disabled?: boolean;
   bonus?: boolean;
+  /** A flower or season of this player's own number, which is the one that scores. */
+  own?: boolean;
   onPick: () => void;
 }) {
   return (
     <button
       type="button"
       disabled={disabled}
-      aria-label={`Add ${tileName(tileOf(tileKey))}${
+      aria-label={`Add ${tileName(tileOf(tileKey))}${own ? ', your own' : ''}${
         held > 0 ? `, ${held} already` : ''
       }`}
       onClick={onPick}
@@ -295,6 +315,11 @@ function TrayTile({
         it stays with it at any width. The number in the corner is part of the
         drawing, so nothing is added for it. */}
       <span className="relative inline-flex">
+        {own && held === 0 && (
+          <span className="absolute -top-1 -right-1.5 z-10">
+            <OwnMark />
+          </span>
+        )}
         {held > 0 && (
           <span
             aria-hidden="true"
