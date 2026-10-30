@@ -78,6 +78,9 @@ const PAIRS = [
   ['shooter chip text', 'on-shooter', 'shooter', 'text'],
   ['shooter chip on tile face', 'shooter', 'tile-face', 'ui'],
   ['shooter chip on surface', 'shooter', 'surface', 'ui'],
+  ['winner chip text', 'on-winner', 'winner', 'text'],
+  ['winner chip on tile face', 'winner', 'tile-face', 'ui'],
+  ['winner chip on surface', 'winner', 'surface', 'ui'],
 ];
 
 // Marks are graphics (3:1); solid fills carry white text (4.5:1).

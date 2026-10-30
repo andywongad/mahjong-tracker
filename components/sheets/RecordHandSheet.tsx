@@ -22,7 +22,11 @@ import { Wind } from '@/components/ui/Wind';
 import { Sheet } from './Sheet';
 import { HandScorerSheet } from './HandScorerSheet';
 import { TileChoice } from '@/components/ui/TileChoice';
-import { DeltaCell, shooterSeatOf } from '@/components/ui/HandDeltas';
+import {
+  DeltaCell,
+  shooterSeatOf,
+  winnerSeatOf,
+} from '@/components/ui/HandDeltas';
 import { termForHandType } from '@/lib/terms';
 
 /**
@@ -379,6 +383,7 @@ export function RecordHandSheet({
                       <DeltaCell
                         value={preview[seat]}
                         isShooter={seat === shooterSeatOf(hand)}
+                        isWinner={seat === winnerSeatOf(hand)}
                         size="md"
                       />
                     </p>

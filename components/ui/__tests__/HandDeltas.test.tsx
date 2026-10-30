@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { HandDeltas, shooterSeatOf } from '../HandDeltas';
+import { HandDeltas, shooterSeatOf, winnerSeatOf } from '../HandDeltas';
 import type { Hand } from '@/lib/scoring';
 
 const DISCARD: Hand = {
@@ -26,6 +26,19 @@ describe('finding the shooter', () => {
   });
 });
 
+describe('finding the winner', () => {
+  it('is the winner on either way of winning', () => {
+    expect(winnerSeatOf(DISCARD)).toBe(0);
+    expect(winnerSeatOf(SELF_DRAW)).toBe(2);
+  });
+
+  it('is nobody on a hand with no winner', () => {
+    expect(winnerSeatOf({ type: 'draw' })).toBeNull();
+    expect(winnerSeatOf({ type: 'zaa_wu', offenderSeat: 3 })).toBeNull();
+    expect(winnerSeatOf(null)).toBeNull();
+  });
+});
+
 describe('a hand’s four changes', () => {
   it('marks the shooter and nobody else', () => {
     render(<HandDeltas hand={DISCARD} deltas={[32, -16, -8, -8]} />);
@@ -34,6 +47,27 @@ describe('a hand’s four changes', () => {
     const chips = screen.getAllByText(/Shooter,/);
     expect(chips).toHaveLength(1);
     expect(chips[0].parentElement).toHaveTextContent('-16');
+  });
+
+  it('marks the winner too, on both ways of winning', () => {
+    const { unmount } = render(
+      <HandDeltas hand={DISCARD} deltas={[32, -16, -8, -8]} />,
+    );
+    const won = screen.getAllByText(/Won,/);
+    expect(won).toHaveLength(1);
+    expect(won[0].parentElement).toHaveTextContent('+32');
+    unmount();
+
+    // A self drawn hand has a winner and no shooter.
+    render(<HandDeltas hand={SELF_DRAW} deltas={[-16, -16, 48, -16]} />);
+    expect(screen.getAllByText(/Won,/)).toHaveLength(1);
+    expect(screen.queryByText(/Shooter,/)).toBeNull();
+  });
+
+  it('marks nobody on a hand nobody won', () => {
+    render(<HandDeltas hand={{ type: 'draw' }} deltas={[0, 0, 0, 0]} />);
+    expect(screen.queryByText(/Won,/)).toBeNull();
+    expect(screen.queryByText(/Shooter,/)).toBeNull();
   });
 
   it('leaves a self drawn hand unmarked, where all three pay the same', () => {

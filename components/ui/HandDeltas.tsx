@@ -7,35 +7,51 @@ export function shooterSeatOf(hand: Hand | null | undefined): Seat | null {
   return hand?.type === 'ceot_cung' ? hand.discarderSeat : null;
 }
 
+/** Who took the hand. Nobody, on a draw or a false win. */
+export function winnerSeatOf(hand: Hand | null | undefined): Seat | null {
+  if (hand?.type === 'ceot_cung' || hand?.type === 'zi_mo') {
+    return hand.winnerSeat;
+  }
+  return null;
+}
+
 /**
  * One player's change from one hand.
  *
- * The shooter's payment is filled rather than given a hue of its own: a loss is
- * still a loss, so red stays red and the shape is what marks it out. Keeping
- * the colour's meaning intact also means the mark is never carried by colour
- * alone, which matters for the one man in twelve who cannot separate red from
- * green.
+ * The two players a hand turns on are filled rather than given hues of their
+ * own: a win is still a gain and a loss still a loss, so the colours stay and
+ * the shape is what marks them out. Keeping the colours' meaning intact also
+ * means neither mark is carried by colour alone, which matters for the one man
+ * in twelve who cannot separate red from green.
  */
 export function DeltaCell({
   value,
   isShooter = false,
+  isWinner = false,
   size = 'sm',
 }: {
   value: number;
   isShooter?: boolean;
+  isWinner?: boolean;
   /** Small in the hand log, larger in the preview above the save button. */
   size?: 'sm' | 'md';
 }) {
   const text = size === 'sm' ? 'text-xs' : 'text-base';
   const weight = size === 'sm' ? 'font-semibold' : 'font-bold';
 
-  if (isShooter) {
+  if (isShooter || isWinner) {
+    const shooter = isShooter;
     return (
       <span
         className={`tnum inline-flex items-center rounded px-1.5 py-0.5 ${text} ${weight}`}
-        style={{ background: 'var(--shooter)', color: 'var(--on-shooter)' }}
+        style={{
+          background: shooter ? 'var(--shooter)' : 'var(--winner)',
+          color: shooter ? 'var(--on-shooter)' : 'var(--on-winner)',
+        }}
       >
-        <span className="sr-only">{glossOf('cheut_chung')}, </span>
+        <span className="sr-only">
+          {shooter ? `${glossOf('cheut_chung')}, ` : 'Won, '}
+        </span>
         {formatSigned(value)}
       </span>
     );
@@ -74,12 +90,17 @@ export function HandDeltas({
   className?: string;
 }) {
   const shooter = shooterSeatOf(hand);
+  const winner = winnerSeatOf(hand);
 
   return (
     <span className={`grid grid-cols-4 gap-1 ${className}`}>
       {SEATS.map((seat: Seat) => (
         <span key={seat} className="text-right leading-none">
-          <DeltaCell value={deltas[seat]} isShooter={seat === shooter} />
+          <DeltaCell
+            value={deltas[seat]}
+            isShooter={seat === shooter}
+            isWinner={seat === winner}
+          />
         </span>
       ))}
     </span>
