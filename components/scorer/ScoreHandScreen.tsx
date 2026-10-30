@@ -23,6 +23,10 @@ import { windLabel } from '@/components/ui/Wind';
 import { TapTheTiles } from '@/components/sheets/scorer/TapTheTiles';
 import { PatternChecklist } from '@/components/sheets/scorer/PatternChecklist';
 import { RulesSheet } from '@/components/sheets/RulesSheet';
+import {
+  HandReasons,
+  faanOf,
+} from '@/components/sheets/scorer/HandReasons';
 
 const WINDS: Wind[] = ['east', 'south', 'west', 'north'];
 
@@ -254,41 +258,12 @@ export function ScoreHandScreen() {
           )}
 
           {reasons.length > 0 && (
-            <ul className="flex flex-col gap-1.5">
-              {reasons.map((pick) => {
-                const pattern = PATTERNS_BY_ID[pick.id]!;
-                return (
-                  <li
-                    key={pick.id}
-                    className="flex items-baseline justify-between gap-3 text-sm"
-                  >
-                    <span className="flex min-w-0 items-baseline gap-1.5">
-                      <span
-                        lang="zh-Hant"
-                        className="hanzi shrink-0"
-                        aria-hidden="true"
-                      >
-                        {pattern.zh}
-                      </span>
-                      <span className="truncate">{pattern.nameEn}</span>
-                      {pick.count > 1 && (
-                        <span
-                          className="tnum shrink-0 text-xs"
-                          style={{ color: 'var(--muted)' }}
-                        >
-                          ×{pick.count}
-                        </span>
-                      )}
-                    </span>
-                    <span className="tnum shrink-0 font-semibold">
-                      {pattern.limit
-                        ? 'Limit'
-                        : `+${faanOf(pick.id, rules) * pick.count}`}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+            <HandReasons
+              reasons={reasons}
+              rules={rules}
+              total={total}
+              className="flex flex-col gap-1.5"
+            />
           )}
 
           {(tiles.length > 0 || flowers.length > 0 || picks.length > 0) && (
@@ -391,10 +366,4 @@ function WindRow({
       </div>
     </div>
   );
-}
-
-function faanOf(id: string, rules: Rules): number {
-  const pattern = PATTERNS_BY_ID[id];
-  if (!pattern) return 0;
-  return pattern.faanFromRules ? rules[pattern.faanFromRules] : pattern.faan;
 }

@@ -18,6 +18,7 @@ import { WIND_CHARS } from '@/lib/scoring';
 import { Sheet } from './Sheet';
 import { TapTheTiles } from './scorer/TapTheTiles';
 import { PatternChecklist } from './scorer/PatternChecklist';
+import { HandReasons, faanOf } from './scorer/HandReasons';
 
 /**
  * Work out what a hand is worth.
@@ -350,44 +351,13 @@ export function HandScorerSheet({
             </button>
 
             {showReasons && (
-              <ul
-                className="flex flex-col gap-1.5 px-3 pt-1 pb-3"
+              <HandReasons
+                reasons={reasons}
+                rules={rules}
+                total={total}
+                className="flex flex-col gap-1.5 px-3 pt-2.5 pb-3"
                 style={{ borderTop: '1px solid var(--line)' }}
-              >
-                {reasons.map((pick) => {
-                  const pattern = PATTERNS_BY_ID[pick.id]!;
-                  return (
-                    <li
-                      key={pick.id}
-                      className="flex items-baseline justify-between gap-3 pt-1.5 text-sm"
-                    >
-                      <span className="flex min-w-0 items-baseline gap-1.5">
-                        <span
-                          lang="zh-Hant"
-                          className="hanzi shrink-0"
-                          aria-hidden="true"
-                        >
-                          {pattern.zh}
-                        </span>
-                        <span className="truncate">{pattern.nameEn}</span>
-                        {pick.count > 1 && (
-                          <span
-                            className="tnum shrink-0 text-xs"
-                            style={{ color: 'var(--muted)' }}
-                          >
-                            ×{pick.count}
-                          </span>
-                        )}
-                      </span>
-                      <span className="tnum shrink-0 text-sm font-semibold">
-                        {pattern.limit
-                          ? 'Limit'
-                          : `+${faanOf(pick.id, rules) * pick.count}`}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
+              />
             )}
           </section>
         )}
@@ -409,10 +379,4 @@ function Fact({ zh, text }: { zh: string; text: string }) {
       {text}
     </li>
   );
-}
-
-function faanOf(id: string, rules: Rules): number {
-  const pattern = PATTERNS_BY_ID[id];
-  if (!pattern) return 0;
-  return pattern.faanFromRules ? rules[pattern.faanFromRules] : pattern.faan;
 }
