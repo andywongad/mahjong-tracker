@@ -132,6 +132,8 @@ export function HandScorerSheet({
     <Sheet
       open={open}
       wide
+      // Built a tap at a time, so the hand being worked on has to stay put.
+      tall
       title="What is this hand worth?"
       onClose={onClose}
       footer={

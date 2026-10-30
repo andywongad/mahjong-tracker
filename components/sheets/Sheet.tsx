@@ -27,6 +27,7 @@ export function Sheet({
   children,
   footer,
   wide = false,
+  tall = false,
 }: {
   open: boolean;
   title: string;
@@ -35,6 +36,16 @@ export function Sheet({
   footer?: React.ReactNode;
   /** For a sheet with a grid in it, which 560px squeezes. */
   wide?: boolean;
+  /**
+   * Hold the panel at full height instead of letting it follow its content.
+   *
+   * A panel sized by its content moves when the content grows: anchored to the
+   * bottom its top edge rises, and centred it opens at both edges at once. In a
+   * sheet being filled in a tap at a time that drags the part being worked on
+   * out from under the finger. Fixing the height sends the growth into the
+   * scrolling body instead, where nothing above it moves.
+   */
+  tall?: boolean;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -112,6 +123,8 @@ export function Sheet({
         aria-labelledby={titleId}
         tabIndex={-1}
         className={`pad-safe-bottom relative flex max-h-[90vh] w-full flex-col rounded-t-2xl outline-none tablet:max-h-[85vh] tablet:rounded-2xl tablet:pb-0 ${
+          tall ? 'h-[90vh] tablet:h-[85vh]' : ''
+        } ${
           wide
             ? 'tablet:max-w-[35rem] desktop:max-w-[46rem]'
             : 'tablet:max-w-[35rem]'
