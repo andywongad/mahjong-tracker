@@ -64,9 +64,9 @@
      and the shape is what marks them out. */
   --shooter: #c23128;
   --on-shooter: #ffffff;
-  --winner: #14674c;
+  --winner: #00784e;
   --on-winner: #ffffff;
-  --self-pick: #2e4c9c;
+  --self-pick: #2a2a8a;
   --on-self-pick: #ffffff;
 
   --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 10px #17211e1f;
@@ -118,9 +118,9 @@
        a chip is findable, and 4.5:1 for the white number on it. */
     --shooter: #d6372c;
     --on-shooter: #ffffff;
-    --winner: #03815c;
+    --winner: #008254;
     --on-winner: #ffffff;
-    --self-pick: #3773b7;
+    --self-pick: #6868d6;
     --on-self-pick: #ffffff;
 
     --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 12px #00000066;
@@ -164,9 +164,9 @@
 
   --shooter: #d6372c;
   --on-shooter: #ffffff;
-  --winner: #03815c;
+  --winner: #008254;
   --on-winner: #ffffff;
-  --self-pick: #3773b7;
+  --self-pick: #6868d6;
   --on-self-pick: #ffffff;
 
   --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 12px #00000066;
