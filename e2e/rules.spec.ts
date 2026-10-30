@@ -57,7 +57,7 @@ test('a rules change holds after a reload, and only touches this game', async ({
 
   // A new game starts from the rules of the last one played, not from the
   // rules a saved set happens to hold.
-  await page.goto('/?view=games');
-  await page.getByRole('button', { name: 'Start a new game' }).click();
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start a game' }).click();
   await expect(page.getByText(/Hong Kong standard/)).toBeVisible();
 });

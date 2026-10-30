@@ -22,7 +22,13 @@ import {
  * pushState fires no event of its own.
  */
 export type View =
-  'table' | 'stats' | 'games' | 'settle' | 'glossary' | 'score';
+  | 'home'
+  | 'table'
+  | 'stats'
+  | 'games'
+  | 'settle'
+  | 'glossary'
+  | 'score';
 
 export interface Route {
   view: View;
@@ -52,10 +58,24 @@ const getServerSnapshot = () => '';
 function parse(search: string): Route {
   const params = new URLSearchParams(search);
   const view = params.get('view');
-  const known: View[] = ['stats', 'games', 'settle', 'glossary', 'score'];
+  const known: View[] = [
+    'home',
+    'stats',
+    'games',
+    'settle',
+    'glossary',
+    'score',
+  ];
+  const gameId = params.get('game');
   return {
-    view: known.includes(view as View) ? (view as View) : 'table',
-    gameId: params.get('game'),
+    // No view named at all: a link carrying a game means that game's table,
+    // and a bare visit means home.
+    view: known.includes(view as View)
+      ? (view as View)
+      : view === 'table' || gameId
+        ? 'table'
+        : 'home',
+    gameId,
   };
 }
 

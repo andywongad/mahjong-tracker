@@ -9,7 +9,7 @@ import { expect, test, type Page } from '@playwright/test';
  */
 
 async function open(page: Page): Promise<void> {
-  await page.goto('/?view=games');
+  await page.goto('/');
   await page.waitForLoadState('networkidle');
   await page.getByRole('button', { name: 'Score a hand' }).click();
   await expect(

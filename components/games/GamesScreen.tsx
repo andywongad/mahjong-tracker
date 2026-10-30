@@ -9,9 +9,7 @@ import { formatGameDate } from '@/lib/game/format';
 import { seatColor } from '@/lib/game/seats';
 import type { GameRecord } from '@/lib/game/types';
 import { AppHeader } from '@/components/ui/AppHeader';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { GameSheet } from '@/components/sheets/GameSheet';
-import { AboutSheet } from '@/components/sheets/AboutSheet';
 import { formatSigned } from '@/components/ui/Score';
 import { formatMoney } from '@/lib/game/settle';
 import { PATTERNS_BY_ID } from '@/lib/patterns/catalog';
@@ -26,7 +24,6 @@ export function GamesScreen() {
   const { go } = useNavigation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<GameRecord | null>(null);
-  const [aboutOpen, setAboutOpen] = useState(false);
   // History grows a game a night. Enough to recognise the last few sessions,
   // then more on request, rather than a list that runs off the screen.
   const [shown, setShown] = useState(FIRST_PAGE);
@@ -39,13 +36,13 @@ export function GamesScreen() {
   return (
     <>
       <AppHeader
-        title="Games"
+        title="History"
         subtitle={
           games.length === 0
             ? 'No games yet'
             : `${games.length} game${games.length === 1 ? '' : 's'}`
         }
-        actions={<ThemeToggle />}
+        back={{ onClick: () => go('home', null), label: 'Home' }}
       />
 
       <main
@@ -53,72 +50,35 @@ export function GamesScreen() {
         tabIndex={-1}
         className="page-column flex flex-col gap-6 px-4 py-4 pad-safe-bottom"
       >
-        <button
-          type="button"
-          onClick={() => {
-            setEditing(null);
-            setSheetOpen(true);
-          }}
-          className="tile-pressable touch w-full rounded-xl py-4 text-base font-semibold"
-          style={{
-            background: 'var(--tile-back)',
-            color: '#fff',
-            boxShadow: '0 3px 0 #0e4a38',
-          }}
-        >
-          Start a new game
-        </button>
-
-        <div className="flex flex-col gap-2">
-          {games.length > 0 && (
-            <button
-              type="button"
-              onClick={() => go('settle', null)}
-              className="tile-sm tile-pressable touch w-full rounded-xl py-3 text-sm font-semibold"
-            >
-              Tally details
-            </button>
-          )}
-          {/* The other thing the app does. A table playing for fun needs to
-            know what a hand is worth without keeping score at all, so it sits
-            with the actions rather than with the reference material. */}
+        {/* The launcher lives on home now. What is left here is the list,
+          plus the one action that belongs beside it: a game that ended is
+          most often followed by the next one. */}
+        {games.length > 0 && (
           <button
             type="button"
-            onClick={() => go('score', null)}
+            onClick={() => {
+              setEditing(null);
+              setSheetOpen(true);
+            }}
             className="tile-sm tile-pressable touch w-full rounded-xl py-3 text-sm font-semibold"
           >
-            Score a hand
+            Start another game
           </button>
-
-          {/* Two things you read rather than use: a reference and a once ever
-            explanation. They pair up under the actions that get used. */}
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => go('glossary', null)}
-              className="tile-sm tile-pressable touch rounded-xl py-3 text-sm font-semibold"
-            >
-              Glossary
-            </button>
-            <button
-              type="button"
-              onClick={() => setAboutOpen(true)}
-              className="tile-sm tile-pressable touch rounded-xl py-3 text-sm font-semibold"
-            >
-              How this works
-            </button>
-          </div>
-        </div>
+        )}
 
         {games.length > 0 && (
-          <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            Kept on this device. Send the tally to the group when you are done.
-          </p>
+          <button
+            type="button"
+            onClick={() => go('settle', null)}
+            className="tile-sm tile-pressable touch w-full rounded-xl py-3 text-sm font-semibold"
+          >
+            Tally details
+          </button>
         )}
 
         <section className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-2">
-            <h2 className="text-sm font-semibold">History</h2>
+            <h2 className="text-sm font-semibold">Games played</h2>
             {summaries.length > 0 && (
               <p className="text-xs" style={{ color: 'var(--muted)' }}>
                 Tap a game to record hands
@@ -132,8 +92,7 @@ export function GamesScreen() {
           )}
           {!loading && summaries.length === 0 && (
             <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Start a game and it will show up here. To work out what a single
-              hand is worth without keeping score, use Score a hand.
+              Start a game from home and it will show up here.
             </p>
           )}
           <ul className="flex flex-col gap-2">
@@ -401,12 +360,6 @@ export function GamesScreen() {
 
       {/* Keyed so the fields start from the game being edited, or from the last
           game's names for a new one, on every open. */}
-      <AboutSheet
-        open={aboutOpen}
-        onClose={() => setAboutOpen(false)}
-        onOpenGlossary={() => go('glossary', null)}
-      />
-
       <GameSheet
         key={sheetOpen ? (editing ? editing.id : 'new') : 'closed'}
         open={sheetOpen}

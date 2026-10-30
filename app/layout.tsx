@@ -5,7 +5,7 @@ import { NavigationProvider } from '@/lib/game/navigation';
 import { GlossaryProvider } from '@/lib/glossary/GlossaryProvider';
 import { ServiceWorker } from '@/components/ui/ServiceWorker';
 import { DebugPanel } from '@/components/debug/DebugPanel';
-import { THEME_INIT_SCRIPT } from '@/components/ui/ThemeToggle';
+import { THEME_INIT_SCRIPT } from '@/lib/ui/theme';
 import './globals.css';
 
 const sora = Sora({

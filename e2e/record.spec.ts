@@ -11,9 +11,9 @@ import { expect, test, type Page } from '@playwright/test';
 const UNIT = 4;
 
 async function startGame(page: Page): Promise<void> {
-  await page.goto('/?view=games');
+  await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await page.getByRole('button', { name: 'Start a new game' }).click();
+  await page.getByRole('button', { name: 'Start a game' }).click();
   await page.getByRole('button', { name: 'Start game' }).click();
   // The new game opens on its own table.
   await expect(seat(page, 1)).toBeVisible();

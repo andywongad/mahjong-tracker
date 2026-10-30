@@ -9,22 +9,26 @@ const FIRST_PAGE = 5;
 
 async function startGames(page: Page, count: number): Promise<void> {
   for (let i = 0; i < count; i += 1) {
-    await page.getByRole('button', { name: 'Start a new game' }).click();
+    // Games are started from home, and starting one opens its table, so each
+    // round trip goes back to home rather than clicking its way there.
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'Start a game' }).click();
     await page.getByRole('button', { name: 'Start game' }).click();
-    await page.getByRole('button', { name: 'Games' }).click();
   }
 }
 
 function listed(page: Page) {
-  return page.locator('section:has(h2:text-is("History")) li');
+  return page.locator('section:has(h2:text-is("Games played")) li');
 }
 
 test('history shows a few games, then more on request', async ({ page }) => {
-  await page.goto('/?view=games');
-  await page.waitForLoadState('networkidle');
-
   // The seeded game plus seven, so there is more than one page but not two.
   await startGames(page, 7);
+
+  // Starting a game opens its table, so history is where we go to read it.
+  await page.goto('/?view=games');
+  await page.waitForLoadState('networkidle');
   await expect(listed(page)).toHaveCount(FIRST_PAGE);
 
   const more = page.getByRole('button', { name: /Show \d+ more/ });

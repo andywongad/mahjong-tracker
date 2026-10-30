@@ -25,6 +25,24 @@ async function settle(page: Page) {
 
 export const ROUTES: Route[] = [
   {
+    name: 'home',
+    go: async (page) => {
+      await page.goto('/');
+      await settle(page);
+    },
+  },
+  {
+    name: 'settings-sheet',
+    go: async (page) => {
+      await page.goto('/');
+      await settle(page);
+      await page.getByRole('button', { name: 'Settings' }).click();
+      await page.waitForTimeout(500);
+    },
+  },
+  {
+    // The games list, which is the History screen now. The name is kept so
+    // the before and after shots of this route still line up for review.
     name: 'games',
     go: async (page) => {
       await page.goto('/?view=games');
@@ -87,7 +105,7 @@ export const ROUTES: Route[] = [
   {
     name: 'about-sheet',
     go: async (page) => {
-      await page.goto('/?view=games');
+      await page.goto('/');
       await settle(page);
       await page.getByRole('button', { name: 'How this works' }).click();
       await page.waitForTimeout(500);
