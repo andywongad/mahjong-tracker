@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   BONUS_KEYS,
   HONOUR_KEYS,
@@ -15,6 +15,7 @@ import {
 import { targetSize } from '@/lib/tiles/solver';
 import type { ScoredHand } from '@/lib/patterns/detect';
 import { Tile } from '@/components/ui/Tile';
+import { ScanHand } from '@/components/scan/ScanHand';
 
 /**
  * Every tile that can be in a hand, grouped the way a set is laid out.
@@ -53,6 +54,7 @@ export function TapTheTiles({
   onTiles,
   onFlowers,
   onClear,
+  onScanned,
   stickyHand = false,
 }: {
   tiles: TileKey[];
@@ -75,7 +77,32 @@ export function TapTheTiles({
   onFlowers: (flowers: BonusKey[]) => void;
   /** Starting over, without tapping fourteen tiles back off one at a time. */
   onClear: () => void;
+  /**
+   * A scan happened, and this is its id. The caller records it so the tiles
+   * the player finally saves can be compared with what the camera read.
+   */
+  onScanned?: (scanId: string) => void;
 }) {
+  // Which tiles the scan was unsure of, by position. Held here rather than by
+  // the caller because this is where tiles are added and removed, and a mark
+  // that does not move with its tile is worse than no mark.
+  const [unsure, setUnsure] = useState<number[]>([]);
+  // Whether these tiles came off a photo rather than off fingertips, which
+  // changes what the player should do next: check, rather than carry on.
+  const [scanned, setScanned] = useState(false);
+
+  const removeAt = useCallback(
+    (position: number) => {
+      onTiles(tiles.filter((_, index) => index !== position));
+      setUnsure((marks) =>
+        marks
+          .filter((mark) => mark !== position)
+          .map((mark) => (mark > position ? mark - 1 : mark)),
+      );
+    },
+    [tiles, onTiles],
+  );
+
   const counts = useMemo(() => countTiles(tiles), [tiles]);
   const target = targetSize(tiles);
   const left = target - tiles.length;
@@ -127,7 +154,11 @@ export function TapTheTiles({
             {(tiles.length > 0 || flowers.length > 0) && (
               <button
                 type="button"
-                onClick={onClear}
+                onClick={() => {
+                  setUnsure([]);
+                  setScanned(false);
+                  onClear();
+                }}
                 className="px-1 text-xs font-semibold underline underline-offset-2"
                 style={{ color: 'var(--accent)' }}
               >
@@ -154,20 +185,30 @@ export function TapTheTiles({
           className="flex items-center gap-0.5 rounded-xl px-2"
           style={{ background: 'var(--felt)', height: HAND_BOX }}
         >
-          {tiles.map((key, index) => (
-            <button
-              key={`${key}-${index}`}
-              type="button"
-              aria-label={`Remove ${tileName(tileOf(key))}`}
-              onClick={() =>
-                onTiles(tiles.filter((_, position) => position !== index))
-              }
-              className="min-w-0 flex-1"
-              style={{ maxWidth: MAX_TILE_W }}
-            >
-              <Tile tile={tileOf(key)} block />
-            </button>
-          ))}
+          {tiles.map((key, index) => {
+            const guessed = unsure.includes(index);
+            return (
+              <button
+                key={`${key}-${index}`}
+                type="button"
+                aria-label={`Remove ${tileName(tileOf(key))}${
+                  guessed ? ', check this one' : ''
+                }`}
+                onClick={() => removeAt(index)}
+                className="min-w-0 flex-1"
+                style={{
+                  maxWidth: MAX_TILE_W,
+                  // Ringed rather than tinted: the tile face has to stay
+                  // readable, since reading it is the job being asked.
+                  outline: guessed ? '2px solid var(--badge-bg)' : undefined,
+                  outlineOffset: 1,
+                  borderRadius: 4,
+                }}
+              >
+                <Tile tile={tileOf(key)} block />
+              </button>
+            );
+          })}
           {tiles.length === 0 && (
             <span
               className="px-1 text-xs"
@@ -203,12 +244,30 @@ export function TapTheTiles({
           </div>
         )}
 
+        {scanned && (
+          <p className="text-xs" role="status" style={{ color: 'var(--ink)' }}>
+            Check these against the table. Tap a tile to remove it, or add any
+            we missed.
+            {unsure.length > 0 && ' The ringed ones we were least sure of.'}
+          </p>
+        )}
+
         <p className="text-xs" style={{ color: tone }}>
           {message}
         </p>
       </section>
 
       <section className="flex flex-col gap-3">
+        <ScanHand
+          onScanned={(result) => {
+            onTiles(result.tiles);
+            onFlowers(result.flowers);
+            setUnsure(result.lowConfidence);
+            setScanned(true);
+            onScanned?.(result.scanId);
+          }}
+        />
+
         <p className="text-xs" style={{ color: 'var(--muted)' }}>
           Tap a tile once for each copy in the hand.
         </p>

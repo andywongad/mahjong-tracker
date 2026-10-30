@@ -1,6 +1,13 @@
 'use client';
 
+import { useSyncExternalStore } from 'react';
 import { Sheet } from './Sheet';
+import {
+  photoChoice,
+  photoChoiceOnServer,
+  setPhotoChoice,
+  subscribePhotoChoice,
+} from '@/lib/scan/client';
 import { termForHandType } from '@/lib/terms';
 import { glossOf } from '@/lib/terms';
 
@@ -114,6 +121,23 @@ export function AboutSheet({
           </p>
         </Section>
 
+        <Section title="Scanning a hand (beta)">
+          <p className="text-sm">
+            Instead of tapping fourteen tiles in, you can photograph them and
+            have the tiles read off the picture. It fills the hand in for you
+            to check: nothing is scored from the photo, and you can take any
+            tile out or add one it missed.
+          </p>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+            The photo is shrunk and re-encoded on your phone before it is sent,
+            which removes the camera&rsquo;s hidden data, including the
+            location it was taken. That never leaves the device. The picture
+            itself goes to Anthropic&rsquo;s API to be read, and is not kept
+            unless you say so below.
+          </p>
+          <PhotoToggle />
+        </Section>
+
         <Section title="Where your games live">
           <p className="text-sm">
             In this browser, on this device, and nowhere else. They survive
@@ -127,6 +151,41 @@ export function AboutSheet({
         </Section>
       </div>
     </Sheet>
+  );
+}
+
+/**
+ * Whether photos of your tiles may be kept to measure how well scanning works.
+ *
+ * Asked once after the first scan and remembered; this is where it can be
+ * changed afterwards. Off is the default, and off means the photo is read and
+ * then gone.
+ */
+function PhotoToggle() {
+  const choice = useSyncExternalStore(
+    subscribePhotoChoice,
+    photoChoice,
+    photoChoiceOnServer,
+  );
+
+  return (
+    <label className="flex items-start gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={choice === 'share'}
+        onChange={(event) => {
+          setPhotoChoice(event.target.checked ? 'share' : 'no');
+        }}
+        className="mt-0.5 h-5 w-5 shrink-0"
+        style={{ accentColor: 'var(--tile-back)' }}
+      />
+      <span>
+        Keep my scanned photos to help improve it.{' '}
+        <span style={{ color: 'var(--muted)' }}>
+          Stored privately and deleted after 90 days.
+        </span>
+      </span>
+    </label>
   );
 }
 

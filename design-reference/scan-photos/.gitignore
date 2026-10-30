@@ -1,0 +1,5 @@
+# Photos of other people's tables do not belong in a public repo. The README
+# and this file are the only things tracked here.
+*
+!.gitignore
+!README.md

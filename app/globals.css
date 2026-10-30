@@ -468,3 +468,22 @@ body {
 .pad-safe-top {
   padding-top: max(0.75rem, env(safe-area-inset-top));
 }
+
+/* The scan spinner. Reduced motion keeps the icon, drops the spin: the status
+   text beside it already says what is happening. */
+@keyframes scan-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.scan-spin {
+  animation: scan-spin 900ms linear infinite;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-spin {
+    animation: none;
+  }
+}

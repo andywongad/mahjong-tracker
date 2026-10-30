@@ -19,6 +19,7 @@ import { Sheet } from './Sheet';
 import { TapTheTiles } from './scorer/TapTheTiles';
 import { PatternChecklist } from './scorer/PatternChecklist';
 import { HandReasons, faanOf } from './scorer/HandReasons';
+import { postConfirm } from '@/lib/scan/client';
 
 /**
  * Work out what a hand is worth.
@@ -67,6 +68,10 @@ export function HandScorerSheet({
   // The tiles cannot show whether a set was claimed, so the player says.
   const [concealed, setConcealed] = useState(false);
   const [tiles, setTiles] = useState<TileKey[]>(initialTiles ?? []);
+  // The scan this hand started from, if it started from one. Saving writes the
+  // tiles the player settled on back onto it, and the difference between the
+  // two is the whole measurement.
+  const [scanId, setScanId] = useState<string | null>(null);
   const [flowers, setFlowers] = useState<BonusKey[]>([]);
   const [picks, setPicks] = useState<HandPattern[]>(() =>
     withSelfDrawBonus(initialPatterns ?? [], rules, selfDraw),
@@ -75,6 +80,8 @@ export function HandScorerSheet({
   function clearHand() {
     setTiles([]);
     setFlowers([]);
+    // Cleared by hand, so whatever was scanned is no longer what is here.
+    setScanId(null);
   }
 
   // Offered only where the table plays it, the same as in the checklist.
@@ -201,6 +208,10 @@ export function HandScorerSheet({
             type="button"
             disabled={!canUse}
             onClick={() => {
+              // Best effort and never awaited: the hand is saved locally
+              // either way, and the accuracy figure is not worth making
+              // anyone wait for a round trip.
+              if (scanId && byTiles) void postConfirm(scanId, tiles, flowers);
               onUse(total.faan, patterns, total.isLimit, byTiles ? tiles : []);
               onClose();
             }}
@@ -298,6 +309,7 @@ export function HandScorerSheet({
             onTiles={setTiles}
             onFlowers={setFlowers}
             onClear={clearHand}
+            onScanned={setScanId}
             // The tray runs past the bottom of the sheet, so tapping down it
             // would otherwise scroll the hand out of sight.
             stickyHand

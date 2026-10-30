@@ -18,6 +18,12 @@ export default defineConfig({
     // which Node 20 cannot do.
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['lib/**/*.test.ts', 'components/**/*.test.tsx'],
+    include: [
+      'lib/**/*.test.ts',
+      'components/**/*.test.tsx',
+      // Route handlers are plain functions over a Request, so they are unit
+      // tested here rather than only through a running server.
+      'app/**/*.test.ts',
+    ],
   },
 });
