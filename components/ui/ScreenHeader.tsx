@@ -160,10 +160,17 @@ function NavButton({
         disabled={disabled}
         aria-current={current ? 'page' : undefined}
         {...targetProps}
-        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold"
+        // On the page now rather than on the felt, so it wears the same tile
+        // face as every other button there. The section being read is ringed
+        // in the table green, the way the chosen option is in settings,
+        // rather than filled in: a filled pill in a row of three reads as the
+        // one to press.
+        className={`tile-sm inline-flex h-9 w-full items-center justify-center gap-1.5 px-2 text-xs font-semibold ${
+          disabled ? '' : 'tile-pressable'
+        }`}
         style={{
-          background: current ? 'var(--tile-face)' : 'var(--felt-soft)',
-          color: current ? 'var(--ink)' : 'var(--ink-on-felt)',
+          color: 'var(--ink)',
+          border: current ? '2px solid var(--selected)' : undefined,
           opacity: disabled ? 0.45 : 1,
           cursor: disabled ? 'not-allowed' : undefined,
         }}

@@ -58,11 +58,16 @@ export function AppHeader({
   const rightSide = right ?? actions;
 
   return (
-    <header
-      className="pad-safe-top sticky top-0 z-30 px-4 pb-3"
-      style={{ background: 'var(--felt)', color: 'var(--ink-on-felt)' }}
-    >
-      <div className={wide ? 'page-wide' : 'page-column'}>
+    <header className="sticky top-0 z-30">
+      {/* The felt reaches only as far as the three things that are about the
+        app itself: where home is, what this is, and settings. The row under
+        it moves between parts of a game, so it sits on the page with the
+        game rather than on the bar above it. Both stay stuck to the top. */}
+      <div
+        className="pad-safe-top px-4 pb-3"
+        style={{ background: 'var(--felt)', color: 'var(--ink-on-felt)' }}
+      >
+        <div className={wide ? 'page-wide' : 'page-column'}>
         {/* A grid, not flex: two side tracks of 1fr are equal by definition,
           which is what puts the title in the true centre of the bar whether a
           side holds two buttons or none. Flexbox sides grow from different
@@ -125,12 +130,24 @@ export function AppHeader({
           </div>
         </div>
 
-        {nav && (
-          <nav aria-label="Sections" className="mt-2 flex items-center gap-1.5">
-            {nav}
-          </nav>
-        )}
+        </div>
       </div>
+
+      {nav && (
+        <div
+          className="px-4 py-2"
+          style={{
+            background: 'var(--page)',
+            borderBottom: '1px solid var(--line)',
+          }}
+        >
+          <div className={wide ? 'page-wide' : 'page-column'}>
+            <nav aria-label="Sections" className="flex items-center gap-1.5">
+              {nav}
+            </nav>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

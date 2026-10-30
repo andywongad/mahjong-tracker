@@ -62,6 +62,11 @@
   /* The two players a hand turns on, filled rather than given hues of their
      own: a win is still a gain and a loss still a loss, so the colours stay
      and the shape is what marks them out. */
+  /* The ring round the section you are reading. Its own token because the
+     table green is too dark to be seen against the dark tile face: it came
+     out at 2.58:1 there, under the 3:1 a control boundary needs. */
+  --selected: #1e7a5c;
+
   --shooter: #c23128;
   --on-shooter: #ffffff;
   --winner: #00784e;
@@ -114,6 +119,10 @@
     --gain: #3fbb8b;
     --loss: #e9594d;
 
+    /* Lighter than the table green, which comes out at 2.58:1 against the
+       dark tile face and so cannot be the only thing marking a control. */
+    --selected: #3fbb8b;
+
     /* Picked to clear two bars at once: 3:1 against the card they sit on, so
        a chip is findable, and 4.5:1 for the white number on it. */
     --shooter: #d6372c;
@@ -161,6 +170,8 @@
 
   --gain: #3fbb8b;
   --loss: #e9594d;
+
+  --selected: #3fbb8b;
 
   --shooter: #d6372c;
   --on-shooter: #ffffff;
