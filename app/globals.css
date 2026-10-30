@@ -66,6 +66,8 @@
   --on-shooter: #ffffff;
   --winner: #14674c;
   --on-winner: #ffffff;
+  --self-pick: #2e4c9c;
+  --on-self-pick: #ffffff;
 
   --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 10px #17211e1f;
   --shadow-tile-sm: 0 2px 0 var(--tile-back), 0 3px 6px #17211e1a;
@@ -118,6 +120,8 @@
     --on-shooter: #ffffff;
     --winner: #03815c;
     --on-winner: #ffffff;
+    --self-pick: #3773b7;
+    --on-self-pick: #ffffff;
 
     --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 12px #00000066;
     --shadow-tile-sm: 0 2px 0 var(--tile-back), 0 3px 8px #00000059;
@@ -162,6 +166,8 @@
   --on-shooter: #ffffff;
   --winner: #03815c;
   --on-winner: #ffffff;
+  --self-pick: #3773b7;
+  --on-self-pick: #ffffff;
 
   --shadow-tile: 0 3px 0 var(--tile-back), 0 4px 12px #00000066;
   --shadow-tile-sm: 0 2px 0 var(--tile-back), 0 3px 8px #00000059;
@@ -195,6 +201,7 @@
   --color-loss: var(--loss);
   --color-shooter: var(--shooter);
   --color-winner: var(--winner);
+  --color-self-pick: var(--self-pick);
 
   --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
   --font-hanzi: 'Noto Serif TC Subset', 'Noto Serif TC', 'Songti TC', serif;

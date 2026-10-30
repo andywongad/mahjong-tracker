@@ -2,56 +2,71 @@ import { SEATS, type Deltas, type Hand, type Seat } from '@/lib/scoring';
 import { glossOf } from '@/lib/terms';
 import { formatSigned } from './Score';
 
-/** Who paid the extra, when a hand was won off a discard. */
-export function shooterSeatOf(hand: Hand | null | undefined): Seat | null {
-  return hand?.type === 'ceot_cung' ? hand.discarderSeat : null;
+/**
+ * What a player was to a hand, where that is worth marking.
+ *
+ * Three roles, three chips: the one who fed it, and the one who took it by
+ * either route. Everyone else is a plain number.
+ */
+export type DeltaMark = 'shooter' | 'won' | 'self-pick';
+
+const MARK_STYLE: Record<DeltaMark, { background: string; color: string }> = {
+  shooter: { background: 'var(--shooter)', color: 'var(--on-shooter)' },
+  won: { background: 'var(--winner)', color: 'var(--on-winner)' },
+  'self-pick': { background: 'var(--self-pick)', color: 'var(--on-self-pick)' },
+};
+
+/** What a mark is called, for anyone who cannot see which colour it is. */
+function markLabel(mark: DeltaMark): string {
+  if (mark === 'shooter') return glossOf('cheut_chung');
+  if (mark === 'self-pick') return glossOf('zi_mo');
+  return 'Won';
 }
 
-/** Who took the hand. Nobody, on a draw or a false win. */
-export function winnerSeatOf(hand: Hand | null | undefined): Seat | null {
-  if (hand?.type === 'ceot_cung' || hand?.type === 'zi_mo') {
-    return hand.winnerSeat;
+/** What one hand did to one player, and what that player was to it. */
+export function markFor(
+  hand: Hand | null | undefined,
+  seat: Seat,
+): DeltaMark | null {
+  if (!hand) return null;
+  if (hand.type === 'ceot_cung') {
+    if (seat === hand.winnerSeat) return 'won';
+    if (seat === hand.discarderSeat) return 'shooter';
+    return null;
   }
+  if (hand.type === 'zi_mo' && seat === hand.winnerSeat) return 'self-pick';
   return null;
 }
 
 /**
  * One player's change from one hand.
  *
- * The two players a hand turns on are filled rather than given hues of their
- * own: a win is still a gain and a loss still a loss, so the colours stay and
- * the shape is what marks them out. Keeping the colours' meaning intact also
- * means neither mark is carried by colour alone, which matters for the one man
- * in twelve who cannot separate red from green.
+ * The players a hand turns on are filled rather than given hues that fight
+ * the numbers: the colour of a chip says what that player was to the hand,
+ * while the sign and the colour of every unmarked number still say gain or
+ * loss. No mark is carried by colour alone, which matters for the one man in
+ * twelve who cannot separate red from green.
  */
 export function DeltaCell({
   value,
-  isShooter = false,
-  isWinner = false,
+  mark = null,
   size = 'sm',
 }: {
   value: number;
-  isShooter?: boolean;
-  isWinner?: boolean;
+  mark?: DeltaMark | null;
   /** Small in the hand log, larger in the preview above the save button. */
   size?: 'sm' | 'md';
 }) {
   const text = size === 'sm' ? 'text-xs' : 'text-base';
   const weight = size === 'sm' ? 'font-semibold' : 'font-bold';
 
-  if (isShooter || isWinner) {
-    const shooter = isShooter;
+  if (mark) {
     return (
       <span
         className={`tnum inline-flex items-center rounded px-1.5 py-0.5 ${text} ${weight}`}
-        style={{
-          background: shooter ? 'var(--shooter)' : 'var(--winner)',
-          color: shooter ? 'var(--on-shooter)' : 'var(--on-winner)',
-        }}
+        style={MARK_STYLE[mark]}
       >
-        <span className="sr-only">
-          {shooter ? `${glossOf('cheut_chung')}, ` : 'Won, '}
-        </span>
+        <span className="sr-only">{markLabel(mark)}, </span>
         {formatSigned(value)}
       </span>
     );
@@ -89,18 +104,11 @@ export function HandDeltas({
   deltas: Deltas;
   className?: string;
 }) {
-  const shooter = shooterSeatOf(hand);
-  const winner = winnerSeatOf(hand);
-
   return (
     <span className={`grid grid-cols-4 gap-1 ${className}`}>
       {SEATS.map((seat: Seat) => (
         <span key={seat} className="text-right leading-none">
-          <DeltaCell
-            value={deltas[seat]}
-            isShooter={seat === shooter}
-            isWinner={seat === winner}
-          />
+          <DeltaCell value={deltas[seat]} mark={markFor(hand, seat)} />
         </span>
       ))}
     </span>

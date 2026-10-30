@@ -81,6 +81,9 @@ const PAIRS = [
   ['winner chip text', 'on-winner', 'winner', 'text'],
   ['winner chip on tile face', 'winner', 'tile-face', 'ui'],
   ['winner chip on surface', 'winner', 'surface', 'ui'],
+  ['self pick chip text', 'on-self-pick', 'self-pick', 'text'],
+  ['self pick chip on tile face', 'self-pick', 'tile-face', 'ui'],
+  ['self pick chip on surface', 'self-pick', 'surface', 'ui'],
 ];
 
 // Marks are graphics (3:1); solid fills carry white text (4.5:1).

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { HandDeltas, shooterSeatOf, winnerSeatOf } from '../HandDeltas';
+import { HandDeltas, markFor } from '../HandDeltas';
 import type { Hand } from '@/lib/scoring';
 
 const DISCARD: Hand = {
@@ -12,75 +12,61 @@ const DISCARD: Hand = {
 };
 const SELF_DRAW: Hand = { type: 'zi_mo', winnerSeat: 2, faan: 4 };
 
-describe('finding the shooter', () => {
-  it('is the discarder on a hand won off a discard', () => {
-    expect(shooterSeatOf(DISCARD)).toBe(1);
+describe('what a player was to a hand', () => {
+  it('names the winner and the shooter on a discard win', () => {
+    expect(markFor(DISCARD, 0)).toBe('won');
+    expect(markFor(DISCARD, 1)).toBe('shooter');
+    expect(markFor(DISCARD, 2)).toBeNull();
+    expect(markFor(DISCARD, 3)).toBeNull();
   });
 
-  it('is nobody on any other kind of hand', () => {
-    expect(shooterSeatOf(SELF_DRAW)).toBeNull();
-    expect(shooterSeatOf({ type: 'draw' })).toBeNull();
-    expect(shooterSeatOf({ type: 'zaa_wu', offenderSeat: 3 })).toBeNull();
-    // Still being filled in.
-    expect(shooterSeatOf(null)).toBeNull();
-  });
-});
-
-describe('finding the winner', () => {
-  it('is the winner on either way of winning', () => {
-    expect(winnerSeatOf(DISCARD)).toBe(0);
-    expect(winnerSeatOf(SELF_DRAW)).toBe(2);
+  it('names a self pick as its own thing, with nobody at fault', () => {
+    expect(markFor(SELF_DRAW, 2)).toBe('self-pick');
+    expect(markFor(SELF_DRAW, 0)).toBeNull();
+    expect(markFor(SELF_DRAW, 1)).toBeNull();
   });
 
-  it('is nobody on a hand with no winner', () => {
-    expect(winnerSeatOf({ type: 'draw' })).toBeNull();
-    expect(winnerSeatOf({ type: 'zaa_wu', offenderSeat: 3 })).toBeNull();
-    expect(winnerSeatOf(null)).toBeNull();
+  it('names nobody on a hand nobody won', () => {
+    for (const seat of [0, 1, 2, 3] as const) {
+      expect(markFor({ type: 'draw' }, seat)).toBeNull();
+      expect(markFor({ type: 'zaa_wu', offenderSeat: 3 }, seat)).toBeNull();
+      expect(markFor(null, seat)).toBeNull();
+    }
   });
 });
 
 describe('a hand’s four changes', () => {
-  it('marks the shooter and nobody else', () => {
+  it('marks the winner and the shooter, each once', () => {
     render(<HandDeltas hand={DISCARD} deltas={[32, -16, -8, -8]} />);
 
-    // The mark is a filled chip, not a colour, so it is findable without one.
-    const chips = screen.getAllByText(/Shooter,/);
-    expect(chips).toHaveLength(1);
-    expect(chips[0].parentElement).toHaveTextContent('-16');
-  });
-
-  it('marks the winner too, on both ways of winning', () => {
-    const { unmount } = render(
-      <HandDeltas hand={DISCARD} deltas={[32, -16, -8, -8]} />,
-    );
-    const won = screen.getAllByText(/Won,/);
+    // The marks are filled chips, not colours, so they are findable without.
+    const won = screen.getAllByText(/^Won,/);
     expect(won).toHaveLength(1);
     expect(won[0].parentElement).toHaveTextContent('+32');
-    unmount();
 
-    // A self drawn hand has a winner and no shooter.
+    const shot = screen.getAllByText(/^Shooter,/);
+    expect(shot).toHaveLength(1);
+    expect(shot[0].parentElement).toHaveTextContent('-16');
+  });
+
+  it('marks a self pick differently, and marks no shooter', () => {
     render(<HandDeltas hand={SELF_DRAW} deltas={[-16, -16, 48, -16]} />);
-    expect(screen.getAllByText(/Won,/)).toHaveLength(1);
-    expect(screen.queryByText(/Shooter,/)).toBeNull();
+
+    const self = screen.getAllByText(/^Self pick,/);
+    expect(self).toHaveLength(1);
+    expect(self[0].parentElement).toHaveTextContent('+48');
+    expect(screen.queryByText(/^Shooter,/)).toBeNull();
+    expect(screen.queryByText(/^Won,/)).toBeNull();
   });
 
-  it('marks nobody on a hand nobody won', () => {
-    render(<HandDeltas hand={{ type: 'draw' }} deltas={[0, 0, 0, 0]} />);
-    expect(screen.queryByText(/Won,/)).toBeNull();
-    expect(screen.queryByText(/Shooter,/)).toBeNull();
-  });
-
-  it('leaves a self drawn hand unmarked, where all three pay the same', () => {
-    render(<HandDeltas hand={SELF_DRAW} deltas={[-16, -16, 48, -16]} />);
-    expect(screen.queryByText(/Shooter,/)).toBeNull();
-  });
-
-  it('still shows every player, signed, with zero as neutral', () => {
+  it('marks nobody on a draw', () => {
     render(<HandDeltas hand={{ type: 'draw' }} deltas={[0, 0, 0, 0]} />);
     expect(screen.getAllByText('0')).toHaveLength(4);
+    expect(screen.queryByText(/^Won,/)).toBeNull();
+    expect(screen.queryByText(/^Self pick,/)).toBeNull();
   });
 
-  it('signs a win and a loss', () => {
+  it('signs every number, marked or not', () => {
     render(<HandDeltas hand={SELF_DRAW} deltas={[-16, -16, 48, -16]} />);
     expect(screen.getByText('+48')).toBeVisible();
     expect(screen.getAllByText('-16')).toHaveLength(3);
