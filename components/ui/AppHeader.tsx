@@ -1,4 +1,5 @@
 'use client';
+import { HintAnchor, useHint } from './Hint';
 
 /**
  * The jade header that sits across the top of every screen.
@@ -150,28 +151,42 @@ function BackIcon() {
 export function HeaderButton({
   onClick,
   label,
+  hint,
+  hintAlign,
   children,
 }: {
   onClick: () => void;
   /** Said out loud always, shown as text from 600px up. */
   label: string;
+  /**
+   * What pressing it does, under the pointer and on keyboard focus. Says
+   * something the label does not; a hint that repeats the name is noise.
+   */
+  hint?: string;
+  /** Pulled to the right edge for a button near the end of the bar. */
+  hintAlign?: 'center' | 'end';
   /** The icon. */
   children: React.ReactNode;
 }) {
+  const { anchorProps, targetProps, bubble } = useHint(hint, hintAlign);
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      // Full height for the thumb, but narrower than the 44px square the
-      // touch class would force: four of those left the date no room to sit
-      // between them at 320px. 36x44 is still well past the 24x24 minimum.
-      className="inline-flex h-11 min-w-9 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-semibold tablet:px-3"
-      style={{ background: 'var(--felt-soft)', color: 'var(--ink-on-felt)' }}
-    >
-      {children}
-      <span className="hidden tablet:inline">{label}</span>
-    </button>
+    <HintAnchor {...anchorProps}>
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={label}
+        {...targetProps}
+        // Full height for the thumb, but narrower than the 44px square the
+        // touch class would force: four of those left the date no room to sit
+        // between them at 320px. 36x44 is still well past the 24x24 minimum.
+        className="inline-flex h-11 min-w-9 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-semibold tablet:px-3"
+        style={{ background: 'var(--felt-soft)', color: 'var(--ink-on-felt)' }}
+      >
+        {children}
+        <span className="hidden tablet:inline">{label}</span>
+      </button>
+      {bubble}
+    </HintAnchor>
   );
 }

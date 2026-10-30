@@ -153,10 +153,18 @@ export function GameScreen({ gameId }: { gameId: string }) {
         subtitle={game.players.join(' · ')}
         left={
           <>
-            <HeaderButton onClick={() => go('home', null)} label="Home">
+            <HeaderButton
+              onClick={() => go('home', null)}
+              label="Home"
+              hint="Leave this game open and go back to the start"
+            >
               <HomeIcon />
             </HeaderButton>
-            <HeaderButton onClick={() => go('games', null)} label="History">
+            <HeaderButton
+              onClick={() => go('games', null)}
+              label="History"
+              hint="Every game you have played, newest first"
+            >
               <HistoryIcon />
             </HeaderButton>
           </>
@@ -165,10 +173,19 @@ export function GameScreen({ gameId }: { gameId: string }) {
           <>
             {/* A table settles its rules at the table, usually a few hands in
               when someone says "that is not how we play it". */}
-            <HeaderButton onClick={() => setRulesOpen(true)} label="Rules">
+            <HeaderButton
+              onClick={() => setRulesOpen(true)}
+              label="Rules"
+              hint="What this table counts and what it pays, changeable mid game"
+            >
               <RulesIcon />
             </HeaderButton>
-            <HeaderButton onClick={() => go('stats')} label="Stats">
+            <HeaderButton
+              onClick={() => go('stats')}
+              label="Stats"
+              hint="Who beat whom, the running score, and the biggest swings"
+              hintAlign="end"
+            >
               <StatsIcon />
             </HeaderButton>
           </>

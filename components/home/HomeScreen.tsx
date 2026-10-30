@@ -20,6 +20,7 @@ import { summarise } from '@/lib/game/standings';
 import { playedGames, resumable } from '@/lib/game/resume';
 import { formatGameDate } from '@/lib/game/format';
 import { AppHeader, HeaderButton } from '@/components/ui/AppHeader';
+import { HintAnchor, useHint } from '@/components/ui/Hint';
 import { GameSheet } from '@/components/sheets/GameSheet';
 import { AboutSheet } from '@/components/sheets/AboutSheet';
 import { SettingsSheet } from '@/components/sheets/SettingsSheet';
@@ -51,7 +52,12 @@ export function HomeScreen() {
         title="Mahjong tracker"
         subtitle="Hong Kong scoring, kept at the table"
         right={
-          <HeaderButton onClick={() => setSettingsOpen(true)} label="Settings">
+          <HeaderButton
+            onClick={() => setSettingsOpen(true)}
+            label="Settings"
+            hint="Light or dark, and the language the app speaks"
+            hintAlign="end"
+          >
             <GearIcon />
           </HeaderButton>
         }
@@ -140,9 +146,9 @@ export function HomeScreen() {
           names a specific game; a heading here would only be a word for "the
           buttons", and the buttons already say what they are. */}
         <section className="flex flex-col gap-2">
-          <button
-            type="button"
+          <ActionButton
             onClick={() => setNewGameOpen(true)}
+            hint="Name the four players, pick the house rules, and sit down"
             className="tile-pressable touch w-full rounded-xl py-4 text-base font-semibold"
             style={
               inProgress
@@ -158,28 +164,43 @@ export function HomeScreen() {
             }
           >
             Start a game
-          </button>
+          </ActionButton>
 
           {/* The other thing the app does, for a table playing for fun: what
             is this hand worth, with no game and no score kept. */}
-          <button
-            type="button"
+          <ActionButton
             onClick={() => go('score', null)}
+            hint="Tap the tiles in and be told what the hand is worth, with no game and no score kept"
             className="tile-sm tile-pressable touch w-full rounded-xl py-3.5 text-sm font-semibold"
           >
             Score a hand
-          </button>
+          </ActionButton>
         </section>
 
         {/* Three things you read rather than use. Quieter, and together. */}
         <nav aria-label="Reference" className="grid grid-cols-3 gap-2">
-          <SmallButton onClick={() => go('games', null)} disabled={!hasGames}>
+          <SmallButton
+            onClick={() => go('games', null)}
+            disabled={!hasGames}
+            hint={
+              hasGames
+                ? 'Every game you have played, with its final scores'
+                : 'Nothing here yet. Games you play will be listed here.'
+            }
+          >
             History
           </SmallButton>
-          <SmallButton onClick={() => go('glossary', null)}>
+          <SmallButton
+            onClick={() => go('glossary', null)}
+            hint="Every term the app uses, in characters and in English"
+          >
             Glossary
           </SmallButton>
-          <SmallButton onClick={() => setAboutOpen(true)}>
+          <SmallButton
+            onClick={() => setAboutOpen(true)}
+            hint="A short tour of recording a hand, the rules and sharing the tally"
+            hintAlign="end"
+          >
             How this works
           </SmallButton>
         </nav>
@@ -223,6 +244,37 @@ export function HomeScreen() {
   );
 }
 
+/** One of the two things the app does, with a line on what that means. */
+function ActionButton({
+  onClick,
+  hint,
+  className,
+  style,
+  children,
+}: {
+  onClick: () => void;
+  hint: string;
+  className: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  const { anchorProps, targetProps, bubble } = useHint(hint);
+  return (
+    <HintAnchor className="w-full" {...anchorProps}>
+      <button
+        type="button"
+        onClick={onClick}
+        {...targetProps}
+        className={className}
+        style={style}
+      >
+        {children}
+      </button>
+      {bubble}
+    </HintAnchor>
+  );
+}
+
 /**
  * A quiet button for the reading material.
  *
@@ -233,22 +285,33 @@ export function HomeScreen() {
 function SmallButton({
   onClick,
   disabled = false,
+  hint,
+  hintAlign,
   children,
 }: {
   onClick: () => void;
   disabled?: boolean;
+  hint: string;
+  hintAlign?: 'center' | 'end';
   children: React.ReactNode;
 }) {
+  // The hint works disabled as well as enabled, which is the state that most
+  // needs it: a dead control with no reason given is just a dead end.
+  const { anchorProps, targetProps, bubble } = useHint(hint, hintAlign);
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="tile-sm tile-pressable touch rounded-xl px-1 py-3 text-xs font-semibold"
-      style={disabled ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
-    >
-      {children}
-    </button>
+    <HintAnchor className="w-full" {...anchorProps}>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        {...targetProps}
+        className="tile-sm tile-pressable touch w-full rounded-xl px-1 py-3 text-xs font-semibold"
+        style={disabled ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
+      >
+        {children}
+      </button>
+      {bubble}
+    </HintAnchor>
   );
 }
 

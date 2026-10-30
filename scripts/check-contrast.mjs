@@ -52,6 +52,10 @@ const NEED = { text: 4.5, large: 3, ui: 3 };
 /** [label, foreground token, background token, kind] */
 const PAIRS = [
   ['body ink on page', 'ink', 'page', 'text'],
+  // The hover hint inverts those two, so it is the same ratio read the other
+  // way round. Listed in its own right so a change to either token is caught
+  // against the bubble as well as against the page.
+  ['hint text on hint bubble', 'page', 'ink', 'text'],
   ['ink on tile face', 'ink', 'tile-face', 'text'],
   ['ink on surface', 'ink', 'surface', 'text'],
   ['muted on page', 'muted', 'page', 'text'],
