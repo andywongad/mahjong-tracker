@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/stamp-sw.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -11,7 +12,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "check:contrast": "node scripts/check-contrast.mjs",
-    "verify": "npm run typecheck && npm test && npm run check:contrast && npm run build",
+    "check:sw": "node scripts/stamp-sw.mjs --check",
+    "verify": "npm run typecheck && npm test && npm run check:contrast && npm run check:sw && npm run build",
     "shots:before": "SHOT_PHASE=before playwright test e2e/screenshots.spec.ts",
     "shots:after": "SHOT_PHASE=after playwright test e2e/screenshots.spec.ts",
     "shots:sheet": "node scripts/contact-sheet.mjs",

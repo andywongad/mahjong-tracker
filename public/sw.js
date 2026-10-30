@@ -6,11 +6,19 @@
  * to keep the shell and its assets available.
  *
  * Navigations are network first, so a deployed change is picked up promptly,
- * falling back to the cached shell when the network is gone. Build assets are
- * hashed, so they are safe to serve cache first.
+ * falling back to the cached shell when the network is gone. Assets are served
+ * cache first: the ones Next builds carry a hash in their path, and the ones at
+ * a fixed path — tiles.svg, the icons, the font — are held in a cache named for
+ * VERSION below.
+ *
+ * VERSION is stamped by scripts/stamp-sw.mjs from the contents of those fixed
+ * path files, and must not be edited by hand. Editing it by hand is what went
+ * wrong before: the tile sprite was rebuilt three times while VERSION stayed at
+ * v2, so returning browsers kept serving the first sprite out of shell-v2 and
+ * never saw the new flowers.
  */
 
-const VERSION = 'v2';
+const VERSION = '43bec3c5e67e';
 const SHELL_CACHE = `shell-${VERSION}`;
 const ASSET_CACHE = `assets-${VERSION}`;
 const OFFLINE_URL = '/offline';
