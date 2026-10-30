@@ -10,7 +10,7 @@ import {
   settle,
   settlementText,
 } from '@/lib/game/settle';
-import { AppHeader } from '@/components/ui/AppHeader';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { formatSigned } from '@/components/ui/Score';
 
 /**
@@ -32,7 +32,7 @@ function describeChosen(gameCount: number, handCount: number): string {
 
 export function SettleScreen() {
   const { games, loading } = useGames();
-  const { gameId, go } = useNavigation();
+  const { gameId } = useNavigation();
 
   // Arriving from a game settles that one; everything else is opt in.
   const [selected, setSelected] = useState<string[]>(() =>
@@ -84,10 +84,9 @@ export function SettleScreen() {
 
   return (
     <>
-      <AppHeader
+      <ScreenHeader
         title="Tally details"
         subtitle={describeChosen(chosen.length, settlement.handCount)}
-        back={{ onClick: () => go('games', null), label: 'History' }}
       />
 
       <main

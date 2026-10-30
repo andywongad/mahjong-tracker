@@ -8,7 +8,7 @@ import { standings, summarise } from '@/lib/game/standings';
 import { formatGameDate } from '@/lib/game/format';
 import { seatColor } from '@/lib/game/seats';
 import type { GameRecord } from '@/lib/game/types';
-import { AppHeader } from '@/components/ui/AppHeader';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { GameSheet } from '@/components/sheets/GameSheet';
 import { formatSigned } from '@/components/ui/Score';
 import { formatMoney } from '@/lib/game/settle';
@@ -35,14 +35,13 @@ export function GamesScreen() {
 
   return (
     <>
-      <AppHeader
+      <ScreenHeader
         title="History"
         subtitle={
           games.length === 0
             ? 'No games yet'
             : `${games.length} game${games.length === 1 ? '' : 's'}`
         }
-        back={{ onClick: () => go('home', null), label: 'Home' }}
       />
 
       <main
@@ -99,7 +98,7 @@ export function GamesScreen() {
             {visible.map((summary) => (
               <li key={summary.id} className="tile relative">
                 {/* The whole card opens the game, which is where hands are
-                    recorded. Settings is a separate, smaller action so the two
+                    recorded. Edit is a separate, smaller action so the two
                     are not mistaken for each other. */}
                 <button
                   type="button"
@@ -192,10 +191,14 @@ export function GamesScreen() {
                     setEditing(game);
                     setSheetOpen(true);
                   }}
+                  // Named for the game it edits. "Settings" would now collide
+                  // with the app's own Settings in the header, which is a
+                  // different thing entirely.
+                  aria-label={`Edit ${formatGameDate(summary.date)}`}
                   className="absolute top-0.5 right-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-2 text-xs"
                   style={{ color: 'var(--muted)' }}
                 >
-                  Settings
+                  Edit
                 </button>
               </li>
             ))}

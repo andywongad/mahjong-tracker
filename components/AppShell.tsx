@@ -9,6 +9,7 @@ import { GamesScreen } from '@/components/games/GamesScreen';
 import { HomeScreen } from '@/components/home/HomeScreen';
 import { StorageError } from '@/components/ui/StorageError';
 import { TileSprite } from '@/components/ui/TileSprite';
+import { GlobalSheets } from '@/components/GlobalSheets';
 import { SettleScreen } from '@/components/settle/SettleScreen';
 import { GlossaryScreen } from '@/components/glossary/GlossaryScreen';
 import { ScoreHandScreen } from '@/components/scorer/ScoreHandScreen';
@@ -47,6 +48,9 @@ export function AppShell() {
     <>
       <TileSprite />
       <Body />
+      {/* Mounted above the view, because Settings and Rules open from the top
+        of every screen and so belong to none of them. */}
+      <GlobalSheets />
     </>
   );
 }

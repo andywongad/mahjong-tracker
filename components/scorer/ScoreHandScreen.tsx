@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigation } from '@/lib/game/navigation';
 import { HK_STANDARD, type Rules } from '@/lib/rules/types';
 import { listRuleSets, type RuleSet } from '@/lib/rules/ruleSets';
 import {
@@ -18,7 +17,7 @@ import {
   type Seat,
   type Wind,
 } from '@/lib/scoring';
-import { AppHeader } from '@/components/ui/AppHeader';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { windLabel } from '@/components/ui/Wind';
 import { TapTheTiles } from '@/components/sheets/scorer/TapTheTiles';
 import { PatternChecklist } from '@/components/sheets/scorer/PatternChecklist';
@@ -39,7 +38,6 @@ const WINDS: Wind[] = ['east', 'south', 'west', 'north'];
  * somebody says otherwise, because a table with no game has told us nothing.
  */
 export function ScoreHandScreen() {
-  const { go } = useNavigation();
   const [mode, setMode] = useState<'tiles' | 'patterns'>('tiles');
   const [tiles, setTiles] = useState<TileKey[]>([]);
   const [flowers, setFlowers] = useState<BonusKey[]>([]);
@@ -105,10 +103,9 @@ export function ScoreHandScreen() {
 
   return (
     <>
-      <AppHeader
+      <ScreenHeader
         title="What's this hand worth?"
         subtitle={`${ruleSetName} · ${rules.minFaan} to ${rules.faanCap} faan`}
-        back={{ onClick: () => go('home', null), label: 'Home' }}
       />
 
       <main

@@ -3,8 +3,7 @@
 import { useMemo, useState } from 'react';
 import { TERMS, GROUP_LABELS, type Term as TermEntry } from '@/lib/terms';
 import { useGlossary } from '@/lib/glossary/GlossaryProvider';
-import { useNavigation } from '@/lib/game/navigation';
-import { AppHeader } from '@/components/ui/AppHeader';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 
 const GROUP_ORDER: TermEntry['group'][] = [
   'play',
@@ -15,7 +14,6 @@ const GROUP_ORDER: TermEntry['group'][] = [
 
 export function GlossaryScreen() {
   const { define } = useGlossary();
-  const { go } = useNavigation();
   const [query, setQuery] = useState('');
 
   const groups = useMemo(() => {
@@ -35,11 +33,7 @@ export function GlossaryScreen() {
 
   return (
     <>
-      <AppHeader
-        title="Glossary"
-        subtitle={`${TERMS.length} terms`}
-        back={{ onClick: () => go('home', null), label: 'Home' }}
-      />
+      <ScreenHeader title="Glossary" subtitle={`${TERMS.length} terms`} />
 
       <main
         id="main"

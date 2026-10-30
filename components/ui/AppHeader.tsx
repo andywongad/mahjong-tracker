@@ -26,6 +26,7 @@ export function AppHeader({
   back,
   left,
   right,
+  nav,
   actions,
   onClose,
   closeLabel,
@@ -39,6 +40,12 @@ export function AppHeader({
   left?: React.ReactNode;
   /** What can be done on this screen. */
   right?: React.ReactNode;
+  /**
+   * A second row under the title, for moving between places rather than
+   * acting on this one. Part of the sticky header, so it stays reachable
+   * while a long screen scrolls.
+   */
+  nav?: React.ReactNode;
   /** The older name for the right slot, kept so callers need not all change. */
   actions?: React.ReactNode;
   /** Shows a close control at the top right, for screens that sit over another. */
@@ -117,6 +124,12 @@ export function AppHeader({
             )}
           </div>
         </div>
+
+        {nav && (
+          <nav aria-label="Sections" className="mt-2 flex items-center gap-1.5">
+            {nav}
+          </nav>
+        )}
       </div>
     </header>
   );
@@ -153,6 +166,7 @@ export function HeaderButton({
   label,
   hint,
   hintAlign,
+  current = false,
   children,
 }: {
   onClick: () => void;
@@ -165,6 +179,8 @@ export function HeaderButton({
   hint?: string;
   /** Pulled to the right edge for a button near the end of the bar. */
   hintAlign?: 'center' | 'end';
+  /** This is the screen showing, so the control marks itself rather than moving. */
+  current?: boolean;
   /** The icon. */
   children: React.ReactNode;
 }) {
@@ -176,12 +192,17 @@ export function HeaderButton({
         type="button"
         onClick={onClick}
         aria-label={label}
+        aria-current={current ? 'page' : undefined}
         {...targetProps}
         // Full height for the thumb, but narrower than the 44px square the
         // touch class would force: four of those left the date no room to sit
         // between them at 320px. 36x44 is still well past the 24x24 minimum.
         className="inline-flex h-11 min-w-9 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-semibold tablet:px-3"
-        style={{ background: 'var(--felt-soft)', color: 'var(--ink-on-felt)' }}
+        style={
+          current
+            ? { background: 'var(--tile-face)', color: 'var(--ink)' }
+            : { background: 'var(--felt-soft)', color: 'var(--ink-on-felt)' }
+        }
       >
         {children}
         <span className="hidden tablet:inline">{label}</span>

@@ -142,7 +142,7 @@ export const ROUTES: Route[] = [
     go: async (page) => {
       await page.goto('/?view=games');
       await settle(page);
-      await page.getByRole('button', { name: 'Settings' }).first().click();
+      await page.getByRole('button', { name: /^Edit / }).first().click();
       await page.waitForTimeout(500);
     },
   },

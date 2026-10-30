@@ -14,7 +14,7 @@ import { useGame } from '@/lib/game/GamesProvider';
 import { useNavigation } from '@/lib/game/navigation';
 import { formatGameDate } from '@/lib/game/format';
 import { seatColor } from '@/lib/game/seats';
-import { AppHeader } from '@/components/ui/AppHeader';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { formatSigned } from '@/components/ui/Score';
 import { formatMoney } from '@/lib/game/settle';
 import { Term, TermStack } from '@/components/ui/Term';
@@ -55,11 +55,9 @@ export function StatsScreen({ gameId }: { gameId: string }) {
 
   return (
     <>
-      <AppHeader
+      <ScreenHeader
         title="Stats"
         subtitle={`${formatGameDate(game.date)} · ${result.handCount} hands`}
-        onClose={() => go('table')}
-        closeLabel="Close stats and go back to the table"
       />
 
       <main

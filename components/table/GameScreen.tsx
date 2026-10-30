@@ -14,19 +14,12 @@ import { describeHand } from '@/lib/game/describe';
 import { useWakeLock } from '@/lib/hooks/useWakeLock';
 import { markRecorded, useFirstRecord } from '@/lib/hooks/useFirstRecord';
 import { logEvent } from '@/lib/telemetry/events';
-import { AppHeader, HeaderButton } from '@/components/ui/AppHeader';
-import {
-  HistoryIcon,
-  HomeIcon,
-  RulesIcon,
-  StatsIcon,
-} from '@/components/ui/HeaderIcons';
 import { OfflineBadge } from '@/components/ui/OfflineBadge';
 import { UndoToast } from '@/components/ui/UndoToast';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { TableSurface } from './TableSurface';
 import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
-import { RulesSheet } from '@/components/sheets/RulesSheet';
 import { TallySummary } from './TallySummary';
 import { ScoreChart } from '@/components/stats/ScoreChart';
 import { termForHandType } from '@/lib/terms';
@@ -46,7 +39,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const [presetSeat, setPresetSeat] = useState<Seat | null>(null);
   const [undoable, setUndoable] = useState<Undoable | null>(null);
   const [confirmingEnd, setConfirmingEnd] = useState(false);
-  const [rulesOpen, setRulesOpen] = useState(false);
   const neverRecorded = useFirstRecord();
 
   // Keep the screen awake while a game is on the table.
@@ -147,49 +139,10 @@ export function GameScreen({ gameId }: { gameId: string }) {
 
   return (
     <>
-      <AppHeader
+      <ScreenHeader
         wide
         title={formatGameDate(game.date)}
         subtitle={game.players.join(' · ')}
-        left={
-          <>
-            <HeaderButton
-              onClick={() => go('home', null)}
-              label="Home"
-              hint="Leave this game open and go back to the start"
-            >
-              <HomeIcon />
-            </HeaderButton>
-            <HeaderButton
-              onClick={() => go('games', null)}
-              label="History"
-              hint="Every game you have played, newest first"
-            >
-              <HistoryIcon />
-            </HeaderButton>
-          </>
-        }
-        right={
-          <>
-            {/* A table settles its rules at the table, usually a few hands in
-              when someone says "that is not how we play it". */}
-            <HeaderButton
-              onClick={() => setRulesOpen(true)}
-              label="Rules"
-              hint="What this table counts and what it pays, changeable mid game"
-            >
-              <RulesIcon />
-            </HeaderButton>
-            <HeaderButton
-              onClick={() => go('stats')}
-              label="Stats"
-              hint="Who beat whom, the running score, and the biggest swings"
-              hintAlign="end"
-            >
-              <StatsIcon />
-            </HeaderButton>
-          </>
-        }
       />
 
       <main
@@ -410,21 +363,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
 
       {/* Applied straight to this game, which replays every hand against the
         new rules. The faan recorded never moves; only what it is worth does. */}
-      <RulesSheet
-        key={rulesOpen ? `rules-${game.updatedAt}` : 'rules-closed'}
-        open={rulesOpen}
-        rules={game.rules}
-        ruleSetName={game.ruleSetName}
-        handCount={result.handCount}
-        onClose={() => setRulesOpen(false)}
-        onApply={async (rules, set) => {
-          await updateGame(game!.id, {
-            rules,
-            ruleSetId: set?.id,
-            ruleSetName: set?.name,
-          });
-        }}
-      />
     </>
   );
 }
