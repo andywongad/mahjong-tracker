@@ -113,7 +113,10 @@ export function AppHeader({
 
       {nav && (
         <div
-          className="px-4 pb-2"
+          // Page colour above the buttons as well as below them. Without it
+          // they sit flush against the felt on a game, which reads as one
+          // bar in two colours rather than a bar and the row under it.
+          className="px-4 pt-2 pb-2"
           style={{
             background: 'var(--page)',
             borderBottom: '1px solid var(--line)',
