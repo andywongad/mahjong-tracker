@@ -80,66 +80,44 @@ export function AppHeader({
         '--bar-muted': 'var(--muted)',
       };
 
-  const titleBlock = (
-    <>
-      <h1
-        className={
-          onFelt
-            ? 'truncate text-base leading-tight font-semibold tablet:text-lg'
-            : 'truncate text-2xl leading-tight font-bold tablet:text-3xl'
-        }
-      >
-        {title}
-      </h1>
-      {subtitle && (
-        <p
-          className={`truncate ${onFelt ? 'text-xs' : 'mt-0.5 text-sm'}`}
-          style={{ color: 'var(--bar-muted)' }}
-        >
-          {subtitle}
-        </p>
-      )}
-    </>
-  );
-
   return (
     <header className="sticky top-0 z-30">
       <div
-        className={`pad-safe-top px-4 ${onFelt ? 'pb-3' : 'pb-1'}`}
+        className="pad-safe-top px-4 pb-3"
         style={barTokens as React.CSSProperties}
       >
         <div className={wide ? 'page-wide' : 'page-column'}>
-          {onFelt ? (
-            // A grid, not flex: two side tracks of 1fr are equal by
-            // definition, which is what puts the title in the true centre
-            // whether a side holds two buttons or none. Flex sides grow from
-            // different bases, which left it up to 47px off centre.
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-              <div className="flex min-w-0 items-center gap-1">{left}</div>
-              <div className="min-w-0 text-center">{titleBlock}</div>
-              <div className="flex min-w-0 items-center justify-end gap-1">
-                {rightSide}
-                {onClose && <CloseButton onClose={onClose} label={closeLabel} />}
-              </div>
+          {/* One arrangement on both tones, so only the colour changes from
+            screen to screen. A grid, not flex: two side tracks of 1fr are
+            equal by definition, which is what puts the title in the true
+            centre whether a side holds two buttons or none. Flex sides grow
+            from different bases, which left it up to 47px off centre.
+
+            The title is 16px on a phone because that is what fits between
+            the buttons: the middle track is 120px wide at 320px, and
+            "Aug 19, 2026" needs 122px at 18px against 108px at 16px. */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <div className="flex min-w-0 items-center gap-1">{left}</div>
+
+            <div className="min-w-0 text-center">
+              <h1 className="truncate text-base leading-tight font-semibold tablet:text-lg">
+                {title}
+              </h1>
+              {subtitle && (
+                <p
+                  className="truncate text-xs"
+                  style={{ color: 'var(--bar-muted)' }}
+                >
+                  {subtitle}
+                </p>
+              )}
             </div>
-          ) : (
-            // The way the reference does it: the controls are a quiet row of
-            // their own, and the title has the next line to itself at full
-            // size. A big title cannot be centred between two buttons without
-            // being squeezed by them.
-            <>
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-1">{left}</div>
-                <div className="flex min-w-0 items-center justify-end gap-1">
-                  {rightSide}
-                  {onClose && (
-                    <CloseButton onClose={onClose} label={closeLabel} />
-                  )}
-                </div>
-              </div>
-              <div className="min-w-0 pt-1 pb-2">{titleBlock}</div>
-            </>
-          )}
+
+            <div className="flex min-w-0 items-center justify-end gap-1">
+              {rightSide}
+              {onClose && <CloseButton onClose={onClose} label={closeLabel} />}
+            </div>
+          </div>
         </div>
       </div>
 
