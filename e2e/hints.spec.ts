@@ -95,9 +95,9 @@ test('a button that cannot be pressed still explains itself', async ({
     if (button) button.setAttribute('disabled', '');
   });
 
-  const history = page
+  const first = page
     .getByRole('navigation', { name: 'Reference' })
-    .getByRole('button', { name: 'History' });
-  await history.hover({ force: true });
+    .getByRole('button', { name: 'Glossary' });
+  await first.hover({ force: true });
   await expect(tooltip(page)).toHaveCount(1);
 });

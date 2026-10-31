@@ -37,25 +37,21 @@ export function ScreenHeader({
   title,
   subtitle,
   wide = false,
+  showSections = true,
 }: {
   title: string;
   subtitle?: string;
   wide?: boolean;
+  /**
+   * Whether the section row rides in the header.
+   *
+   * Home turns it off and places it in the page instead, under the two
+   * things people came to do. In a sticky header it would sit above them,
+   * which puts the least-used controls first on the screen people see most.
+   */
+  showSections?: boolean;
 }) {
-  const { games } = useGames();
-  const { view, gameId, go } = useNavigation();
-
-  // The game these buttons act on, in the order anyone would expect: the one
-  // on screen, else the one still being played, else the most recent of any
-  // kind. The last of those deliberately includes the seeded sample, unlike
-  // "carry on" on home — looking at the sample's rules and charts is what the
-  // sample is for, and leaving two of three buttons dead until a first game
-  // is started would be a poor way to meet a newcomer.
-  const current = useMemo(() => {
-    const summaries = summarise(games);
-    const named = gameId && summaries.find((game) => game.id === gameId);
-    return named || resumable(summaries) || summaries[0] || null;
-  }, [games, gameId]);
+  const { view, go } = useNavigation();
 
   const atHome = view === 'home';
 
@@ -89,8 +85,30 @@ export function ScreenHeader({
           </HeaderButton>
         </>
       }
-      nav={
-        <>
+      nav={showSections ? <SectionNav /> : undefined}
+    />
+  );
+}
+
+
+/**
+ * History, Rules and Stats.
+ *
+ * In the header on every screen but home, and in the page on home, so the
+ * order on the screen matches what people reach for.
+ */
+export function SectionNav() {
+  const { games } = useGames();
+  const { view, gameId, go } = useNavigation();
+
+  const current = useMemo(() => {
+    const summaries = summarise(games);
+    const named = gameId && summaries.find((game) => game.id === gameId);
+    return named || resumable(summaries) || summaries[0] || null;
+  }, [games, gameId]);
+
+  return (
+    <>
           <NavButton
             onClick={() => go('games', null)}
             label="History"
@@ -129,9 +147,7 @@ export function ScreenHeader({
           >
             <StatsIcon />
           </NavButton>
-        </>
-      }
-    />
+    </>
   );
 }
 
