@@ -1,0 +1,214 @@
+'use client';
+
+import { useSyncExternalStore } from 'react';
+import { useNavigation } from '@/lib/game/navigation';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import {
+  photoChoice,
+  photoChoiceOnServer,
+  setPhotoChoice,
+  subscribePhotoChoice,
+} from '@/lib/scan/client';
+import { termForHandType } from '@/lib/terms';
+import { glossOf } from '@/lib/terms';
+
+/**
+ * What the app is and how to drive it, in one read.
+ *
+ * A screen rather than a sheet. A sheet is for something that hands a result
+ * back to what you were doing; this hands nothing back. It is eight sections
+ * of prose, and a sheet would read them inside a focus trap with the page
+ * scroll locked, which is the wrong shape for anything long. As a screen it
+ * also has an address, so it can be sent to somebody being taught the app.
+ */
+export function AboutScreen() {
+  const { go } = useNavigation();
+
+  return (
+    <>
+      <ScreenHeader title="How this works" subtitle="A short tour" />
+
+      <main
+        id="main"
+        tabIndex={-1}
+        className="page-column pad-safe-bottom flex flex-col gap-6 px-4 py-4"
+      >
+        <AboutSections />
+
+        <button
+          type="button"
+          onClick={() => go('glossary', null)}
+          className="tile-sm tile-pressable touch w-full rounded-xl px-4 py-3 text-sm font-semibold"
+        >
+          Look up a term in the glossary
+        </button>
+      </main>
+    </>
+  );
+}
+
+/**
+ * The prose itself, with no hooks and no providers.
+ *
+ * Separate from the screen that frames it so what it says can be tested
+ * directly. The wording is the thing worth holding still here; the header
+ * around it is not.
+ */
+export function AboutSections() {
+  return (
+    <div className="flex flex-col gap-6">
+      <p className="text-sm">
+        A scoresheet for Hong Kong mahjong. You record how each hand ended; it
+        keeps the running totals, the dealer, the round and who owes what.
+      </p>
+
+      <Section title="Recording a hand">
+        <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm">
+          <li>Tap whoever won.</li>
+          <li>
+            Say how they won: <Term type="ceot_cung" /> off someone&rsquo;s
+            discard, or <Term type="zi_mo" /> on a tile they drew themselves.
+          </li>
+          <li>Off a discard, tap the shooter — the player who threw it.</li>
+          <li>Tap the faan. Save.</li>
+        </ol>
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+          Nobody won? Use <strong>{glossOf('lau_guk')}</strong> under the table.
+          Someone declared a win they did not have? Use the{' '}
+          <strong>{glossOf('zaa_wu')}</strong> strip on their own tile. Both are
+          one tap, and neither asks who won, because neither has a winner.
+        </p>
+      </Section>
+
+      <Section title="You never type a score">
+        <p className="text-sm">
+          A hand is worth faan. The app turns faan into points using your
+          table&rsquo;s rules and works out all four numbers, so nobody has to
+          do the arithmetic while three people wait.
+        </p>
+        <p className="text-sm">
+          Off a discard the shooter usually pays more than the other two; on a
+          self pick all three pay the same. Every hand adds up to zero, because
+          the winner is paid exactly what the losers hand over.
+        </p>
+      </Section>
+
+      <Section title="The dealer and the round look after themselves">
+        <p className="text-sm">
+          None of it is stored. The dealer, the prevailing wind and every
+          running total are worked out from the list of hands each time you
+          look, so fixing hand 3 fixes everything after it too.
+        </p>
+      </Section>
+
+      <Section title="Sharing the result">
+        <p className="text-sm">
+          When the game is done, <strong>Tally details</strong> works out who
+          owes whom and sends the whole thing as a message. On a phone that
+          opens your share sheet, so it goes straight into the group chat.
+        </p>
+      </Section>
+
+      <Section title="Fixing a mistake">
+        <p className="text-sm">
+          For six seconds after saving, <strong>Undo</strong> takes the hand
+          straight back. After that, tap any hand in the log to change it or
+          delete it.
+        </p>
+      </Section>
+
+      <Section title="House rules">
+        <p className="text-sm">
+          Every game keeps its own copy of the rules from the moment it starts.
+          Editing a saved rule set later never rewrites a game you have already
+          played. Change them in a game&rsquo;s settings before it begins.
+        </p>
+      </Section>
+
+      <Section title="Scanning a hand (beta)">
+        <p className="text-sm">
+          Instead of tapping fourteen tiles in, you can photograph them and have
+          the tiles read off the picture. It fills the hand in for you to check:
+          nothing is scored from the photo, and you can take any tile out or add
+          one it missed.
+        </p>
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+          The photo is shrunk and re-encoded on your phone before it is sent,
+          which removes the camera&rsquo;s hidden data, including the location
+          it was taken. That never leaves the device. The picture itself goes to
+          Anthropic&rsquo;s API to be read, and is not kept unless you say so
+          below.
+        </p>
+        <PhotoToggle />
+      </Section>
+
+      <Section title="Where your games live">
+        <p className="text-sm">
+          In this browser, on this device, and nowhere else. They survive
+          closing the tab, restarting the phone and having no signal.
+        </p>
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+          They do not follow you to another device, and clearing this
+          site&rsquo;s data deletes them. There are no accounts: one person
+          keeps score, and sends the tally round at the end.
+        </p>
+      </Section>
+    </div>
+  );
+}
+
+function PhotoToggle() {
+  const choice = useSyncExternalStore(
+    subscribePhotoChoice,
+    photoChoice,
+    photoChoiceOnServer,
+  );
+
+  return (
+    <label className="flex items-start gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={choice === 'share'}
+        onChange={(event) => {
+          setPhotoChoice(event.target.checked ? 'share' : 'no');
+        }}
+        className="mt-0.5 h-5 w-5 shrink-0"
+        style={{ accentColor: 'var(--tile-back)' }}
+      />
+      <span>
+        Keep my scanned photos to help improve it.{' '}
+        <span style={{ color: 'var(--muted)' }}>
+          Stored privately and deleted after 90 days.
+        </span>
+      </span>
+    </label>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h3 className="text-sm font-bold">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+/** A term the way the rest of the app writes it: characters, name, plain English. */
+function Term({ type }: { type: 'ceot_cung' | 'zi_mo' }) {
+  const label = termForHandType(type);
+  return (
+    <span className="font-semibold">
+      <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+        {label.zh}
+      </span>{' '}
+      {label.roman}
+    </span>
+  );
+}

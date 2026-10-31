@@ -16,6 +16,7 @@ const SCREENS = [
   ['/?view=score', 'score a hand'],
   ['/?game=seed-aug-19-2026', 'a game'],
   ['/?view=settle', 'tally details'],
+  ['/?view=about', 'how this works'],
 ] as const;
 
 const header = (page: Page) => page.locator('header');
@@ -97,4 +98,22 @@ test('the screen you are on marks itself rather than offering to go there', asyn
   await expect(
     page.getByRole('navigation', { name: 'Sections' }).getByRole('button', { name: 'History' }),
   ).toHaveAttribute('aria-current', 'page');
+});
+
+test('how this works is a place, not a dialog', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  await page.getByRole('button', { name: 'How this works' }).click();
+
+  // It has an address, so it can be linked to and reloaded into, and the
+  // page scrolls rather than being locked behind a modal.
+  await expect(page).toHaveURL(/view=about/);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(
+    page.getByRole('heading', { name: 'How this works' }),
+  ).toBeVisible();
+
+  // And it hands off to the glossary, which used to be its footer button.
+  await page.getByRole('button', { name: /glossary/i }).click();
+  await expect(page).toHaveURL(/view=glossary/);
 });

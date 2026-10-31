@@ -7,6 +7,7 @@ import { GameScreen } from '@/components/table/GameScreen';
 import { StatsScreen } from '@/components/stats/StatsScreen';
 import { GamesScreen } from '@/components/games/GamesScreen';
 import { HomeScreen } from '@/components/home/HomeScreen';
+import { AboutScreen } from '@/components/about/AboutScreen';
 import { StorageError } from '@/components/ui/StorageError';
 import { TileSprite } from '@/components/ui/TileSprite';
 import { GlobalSheets } from '@/components/GlobalSheets';
@@ -64,6 +65,7 @@ function Body() {
   if (view === 'games') return <GamesScreen />;
   if (view === 'settle') return <SettleScreen />;
   if (view === 'glossary') return <GlossaryScreen />;
+  if (view === 'about') return <AboutScreen />;
   if (view === 'score') return <ScoreHandScreen />;
 
   const activeId = gameId ?? games[0]?.id;

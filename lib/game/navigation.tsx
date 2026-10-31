@@ -28,7 +28,8 @@ export type View =
   | 'games'
   | 'settle'
   | 'glossary'
-  | 'score';
+  | 'score'
+  | 'about';
 
 export interface Route {
   view: View;
@@ -65,6 +66,7 @@ function parse(search: string): Route {
     'settle',
     'glossary',
     'score',
+    'about',
   ];
   const gameId = params.get('game');
   return {

@@ -103,12 +103,12 @@ export const ROUTES: Route[] = [
     },
   },
   {
+    // A screen now rather than a sheet. The name is kept so the before and
+    // after shots of it still line up for review.
     name: 'about-sheet',
     go: async (page) => {
-      await page.goto('/');
+      await page.goto('/?view=about');
       await settle(page);
-      await page.getByRole('button', { name: 'How this works' }).click();
-      await page.waitForTimeout(500);
     },
   },
   {

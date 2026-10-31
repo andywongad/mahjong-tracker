@@ -1,17 +1,19 @@
 // @vitest-environment happy-dom
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { AboutSheet } from '../AboutSheet';
+import { AboutSections } from '../AboutScreen';
 
+/**
+ * The prose, on its own. It is a screen now rather than a sheet, and the
+ * screen needs the navigation and games providers; the wording does not, so
+ * it is rendered here without them. The handoff to the glossary, which does
+ * navigate, is covered in e2e/nav.spec.ts.
+ */
 function setup() {
-  const onClose = vi.fn();
-  const onOpenGlossary = vi.fn();
-  render(<AboutSheet open onClose={onClose} onOpenGlossary={onOpenGlossary} />);
-  return { onClose, onOpenGlossary, user: userEvent.setup() };
+  render(<AboutSections />);
 }
 
-describe('the how it works sheet', () => {
+describe('what the how-it-works screen says', () => {
   it('teaches the record flow in the order the app asks for it', () => {
     setup();
     const steps = screen
@@ -36,10 +38,4 @@ describe('the how it works sheet', () => {
     expect(section?.textContent).not.toMatch(/sign in|synced|backed up/i);
   });
 
-  it('hands off to the glossary and gets out of the way', async () => {
-    const { onClose, onOpenGlossary, user } = setup();
-    await user.click(screen.getByRole('button', { name: /glossary/i }));
-    expect(onOpenGlossary).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
-  });
 });

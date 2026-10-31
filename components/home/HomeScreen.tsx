@@ -22,14 +22,12 @@ import { formatGameDate } from '@/lib/game/format';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { HintAnchor, useHint } from '@/components/ui/Hint';
 import { GameSheet } from '@/components/sheets/GameSheet';
-import { AboutSheet } from '@/components/sheets/AboutSheet';
 import { formatSigned } from '@/components/ui/Score';
 
 export function HomeScreen() {
   const { games, loading, createGame } = useGames();
   const { go } = useNavigation();
   const [newGameOpen, setNewGameOpen] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
 
   const summaries = useMemo(() => summarise(games), [games]);
 
@@ -183,7 +181,7 @@ export function HomeScreen() {
             Glossary
           </SmallButton>
           <SmallButton
-            onClick={() => setAboutOpen(true)}
+            onClick={() => go('about', null)}
             hint="A short tour of recording a hand, the rules and sharing the tally"
             hintAlign="end"
           >
@@ -212,14 +210,6 @@ export function HomeScreen() {
           const game = await createGame(draft);
           setNewGameOpen(false);
           go('table', game.id);
-        }}
-      />
-      <AboutSheet
-        open={aboutOpen}
-        onClose={() => setAboutOpen(false)}
-        onOpenGlossary={() => {
-          setAboutOpen(false);
-          go('glossary', null);
         }}
       />
     </>
