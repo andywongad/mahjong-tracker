@@ -67,27 +67,27 @@ export function ScreenHeader({
       tone={view === 'table' ? 'felt' : 'page'}
       title={title}
       subtitle={subtitle}
-      left={
-        <HeaderButton
-          onClick={() => go('home', null)}
-          label="Home"
-          // Already here: the control stays so the bar does not shift, and
-          // says so rather than pretending it goes somewhere.
-          current={atHome}
-          hint={atHome ? 'You are here' : 'Back to the start'}
-        >
-          <HomeIcon />
-        </HeaderButton>
-      }
       right={
-        <HeaderButton
-          onClick={() => openSheet('settings')}
-          label="Settings"
-          hint="Light or dark, and the language the app speaks"
-          hintAlign="end"
-        >
-          <SettingsIcon />
-        </HeaderButton>
+        <>
+          <HeaderButton
+            onClick={() => go('home', null)}
+            label="Home"
+            // Already here: the control stays so the bar does not shift, and
+            // says so rather than pretending it goes somewhere.
+            current={atHome}
+            hint={atHome ? 'You are here' : 'Back to the start'}
+          >
+            <HomeIcon />
+          </HeaderButton>
+          <HeaderButton
+            onClick={() => openSheet('settings')}
+            label="Settings"
+            hint="Light or dark, and the language the app speaks"
+            hintAlign="end"
+          >
+            <SettingsIcon />
+          </HeaderButton>
+        </>
       }
       nav={
         <>

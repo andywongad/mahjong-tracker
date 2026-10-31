@@ -23,7 +23,6 @@ import { HintAnchor, useHint } from './Hint';
 export function AppHeader({
   title,
   subtitle,
-  left,
   right,
   nav,
   actions,
@@ -34,8 +33,6 @@ export function AppHeader({
 }: {
   title: string;
   subtitle?: string;
-  /** Navigation, before the back button if both are given. */
-  left?: React.ReactNode;
   /** What can be done on this screen. */
   right?: React.ReactNode;
   /**
@@ -87,20 +84,13 @@ export function AppHeader({
         style={barTokens as React.CSSProperties}
       >
         <div className={wide ? 'page-wide' : 'page-column'}>
-          {/* One arrangement on both tones, so only the colour changes from
-            screen to screen. A grid, not flex: two side tracks of 1fr are
-            equal by definition, which is what puts the title in the true
-            centre whether a side holds two buttons or none. Flex sides grow
-            from different bases, which left it up to 47px off centre.
-
-            The title is 16px on a phone because that is what fits between
-            the buttons: the middle track is 120px wide at 320px, and
-            "Aug 19, 2026" needs 122px at 18px against 108px at 16px. */}
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-            <div className="flex min-w-0 items-center gap-1">{left}</div>
-
-            <div className="min-w-0 text-center">
-              <h1 className="truncate text-base leading-tight font-semibold tablet:text-lg">
+          {/* Title on the left at full size, controls together on the
+            right. Nothing is centred, so nothing has to be squeezed between
+            two buttons: the title gets the whole width that the controls do
+            not take, which is what lets it be read at a glance. */}
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-2xl leading-tight font-bold tablet:text-3xl">
                 {title}
               </h1>
               {subtitle && (
@@ -113,7 +103,7 @@ export function AppHeader({
               )}
             </div>
 
-            <div className="flex min-w-0 items-center justify-end gap-1">
+            <div className="flex shrink-0 items-center gap-1">
               {rightSide}
               {onClose && <CloseButton onClose={onClose} label={closeLabel} />}
             </div>

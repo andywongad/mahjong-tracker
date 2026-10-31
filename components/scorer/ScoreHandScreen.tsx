@@ -104,7 +104,10 @@ export function ScoreHandScreen() {
   return (
     <>
       <ScreenHeader
-        title="What's this hand worth?"
+        // Named for the button that opens it and the row it sits in,
+        // rather than for the question it answers. The question is still
+        // asked by the sheet inside a game, which has the room for it.
+        title="Score a hand"
         subtitle={`${ruleSetName} · ${rules.minFaan} to ${rules.faanCap} faan`}
       />
 

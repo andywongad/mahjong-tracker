@@ -13,7 +13,7 @@ async function open(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle');
   await page.getByRole('button', { name: 'Score a hand' }).click();
   await expect(
-    page.getByRole('heading', { name: "What's this hand worth?" }),
+    page.getByRole('heading', { name: 'Score a hand' }),
   ).toBeVisible();
 }
 
