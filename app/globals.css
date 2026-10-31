@@ -222,6 +222,9 @@
   /* Named breakpoints for the three moments the app is designed for: a phone in
      one hand, a tablet shared across the table, a desktop after the game. The
      default sm/md/lg scale is left alone so existing utilities do not move. */
+  /* Above the narrowest phones. A game's header carries three actions as
+     well as its date, and at 320px the two do not both fit at full size. */
+  --breakpoint-phone: 360px;
   --breakpoint-tablet: 600px;
   --breakpoint-desktop: 1024px;
 }

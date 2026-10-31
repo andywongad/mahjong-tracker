@@ -54,6 +54,16 @@ export function StatsIcon() {
   );
 }
 
+/** The four seats round a table, seen from above. */
+export function TableIcon() {
+  return (
+    <svg {...common}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M9 4v4M15 4v4M4 9h4M4 15h4M16 9h4M16 15h4M9 16v4M15 16v4" />
+    </svg>
+  );
+}
+
 export function SettingsIcon() {
   return (
     <svg {...common}>

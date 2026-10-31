@@ -19,7 +19,7 @@ import { useNavigation } from '@/lib/game/navigation';
 import { summarise } from '@/lib/game/standings';
 import { playedGames, resumable } from '@/lib/game/resume';
 import { formatGameDate } from '@/lib/game/format';
-import { ScreenHeader, SectionNav } from '@/components/ui/ScreenHeader';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { HintAnchor, useHint } from '@/components/ui/Hint';
 import { GameSheet } from '@/components/sheets/GameSheet';
 import { formatSigned } from '@/components/ui/Score';
@@ -47,10 +47,6 @@ export function HomeScreen() {
       <ScreenHeader
         title="Mahjong tracker"
         subtitle="Hong Kong scoring, kept at the table"
-        // Placed in the page below, not in the header above: starting a game
-        // and scoring a hand are what people open this screen for, and a
-        // sticky row would put the three they reach for least on top.
-        showSections={false}
       />
 
       <main
@@ -166,16 +162,16 @@ export function HomeScreen() {
         </section>
 
         {/* Three things you read rather than use. Quieter, and together. */}
-        {/* Under the two actions, where the order matches how often each is
-          wanted. History, Rules and Stats are about a game that already
-          exists; starting one comes first. */}
-        <nav aria-label="Sections" className="flex items-center gap-1.5">
-          <SectionNav />
-        </nav>
-
-        {/* Things you read rather than use, quieter again. No History here:
-          it is in the row just above. */}
-        <nav aria-label="Reference" className="grid grid-cols-2 gap-2">
+        {/* Under the two actions, because starting a game and scoring a hand
+          are what people open this screen for. Rules and Stats are not here
+          at all: they belong to a game, and this screen is not one. */}
+        <nav aria-label="Reference" className="grid grid-cols-3 gap-2">
+          <SmallButton
+            onClick={() => go('games', null)}
+            hint="Every game you have played, with its final scores"
+          >
+            History
+          </SmallButton>
           <SmallButton
             onClick={() => go('glossary', null)}
             hint="Every term the app uses, in characters and in English"

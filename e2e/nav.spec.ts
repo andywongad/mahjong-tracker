@@ -1,119 +1,125 @@
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * The two bars at the top of every screen.
+ * What the top of each screen carries.
  *
- * The point of them is that they are the same everywhere: Home on the left,
- * Settings on the right, and History, Rules and Stats under the title. So
- * what is worth testing is that they are present and work from a screen that
- * has nothing to do with a game, and that where you already are says so.
+ * The rule: Settings is on every screen because it is about the app, and Home
+ * on every screen but home itself. A game adds two things of its own — Rules,
+ * which is to a game what Settings is to the app, and tabs for the two ways of
+ * looking at that game. A screen with no game in it carries neither, because
+ * they would be pointing at a game that is not on it.
  */
 
-const SCREENS = [
-  ['/', 'home'],
+const GAME = '/?game=seed-aug-19-2026';
+const STATS = '/?view=stats&game=seed-aug-19-2026';
+
+const NO_GAME = [
   ['/?view=games', 'history'],
   ['/?view=glossary', 'glossary'],
   ['/?view=score', 'score a hand'],
-  ['/?game=seed-aug-19-2026', 'a game'],
   ['/?view=settle', 'tally details'],
   ['/?view=about', 'how this works'],
 ] as const;
 
 const header = (page: Page) => page.locator('header');
+const tabs = (page: Page) => page.getByRole('navigation', { name: 'This game' });
 
-for (const [url, name] of SCREENS) {
-  test(`${name} has the same chrome as everything else`, async ({ page }) => {
-    await page.goto(url);
-    await page.waitForLoadState('networkidle');
+async function open(page: Page, url: string) {
+  await page.goto(url);
+  await page.waitForLoadState('networkidle');
+}
+
+test('home carries settings and nothing that belongs to a game', async ({
+  page,
+}) => {
+  await open(page, '/');
+
+  await expect(header(page).getByRole('button', { name: 'Settings' })).toBeVisible();
+  // No Home on home: a control that goes where you already are does nothing.
+  await expect(header(page).getByRole('button', { name: 'Home' })).toHaveCount(0);
+  await expect(header(page).getByRole('button', { name: 'Rules' })).toHaveCount(0);
+  await expect(tabs(page)).toHaveCount(0);
+});
+
+for (const [url, name] of NO_GAME) {
+  test(`${name} carries the way out and nothing about a game`, async ({ page }) => {
+    await open(page, url);
 
     await expect(header(page).getByRole('button', { name: 'Home' })).toBeVisible();
-    await expect(
-      header(page).getByRole('button', { name: 'Settings' }),
-    ).toBeVisible();
-
-    const nav = page.getByRole('navigation', { name: 'Sections' });
-    for (const button of ['History', 'Rules', 'Stats']) {
-      await expect(nav.getByRole('button', { name: button })).toBeEnabled();
-    }
+    await expect(header(page).getByRole('button', { name: 'Settings' })).toBeVisible();
+    await expect(header(page).getByRole('button', { name: 'Rules' })).toHaveCount(0);
+    await expect(tabs(page)).toHaveCount(0);
   });
 }
 
-test('the rules of the game being played open from anywhere', async ({
+for (const [url, name] of [
+  [GAME, 'the table'],
+  [STATS, 'the stats'],
+] as const) {
+  test(`${name} carries its own rules and both tabs`, async ({ page }) => {
+    await open(page, url);
+
+    await expect(header(page).getByRole('button', { name: 'Rules' })).toBeVisible();
+    await expect(tabs(page).getByRole('button', { name: 'Table' })).toBeVisible();
+    await expect(tabs(page).getByRole('button', { name: 'Stats' })).toBeVisible();
+  });
+}
+
+test('the tabs move between the two views of one game, and mark which', async ({
   page,
 }) => {
-  // Not from the table: the point is that it reaches the current game from a
-  // screen that is not it.
-  await page.goto('/?view=glossary');
-  await page.waitForLoadState('networkidle');
+  await open(page, GAME);
+  await expect(tabs(page).getByRole('button', { name: 'Table' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
 
-  await page
-    .getByRole('navigation', { name: 'Sections' })
-    .getByRole('button', { name: 'Rules' })
-    .click();
+  await tabs(page).getByRole('button', { name: 'Stats' }).click();
+  await expect(page).toHaveURL(/view=stats/);
+  await expect(tabs(page).getByRole('button', { name: 'Stats' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  // The same game, not whichever one was newest.
+  await expect(page).toHaveURL(/game=seed-aug-19-2026/);
 
-  await expect(
-    page.getByRole('dialog').getByText(/faan/i).first(),
-  ).toBeVisible();
+  await tabs(page).getByRole('button', { name: 'Table' }).click();
+  await expect(page).toHaveURL(/game=seed-aug-19-2026/);
+  await expect(page).not.toHaveURL(/view=stats/);
+});
+
+test("a game's rules open from its header", async ({ page }) => {
+  await open(page, GAME);
+  await header(page).getByRole('button', { name: 'Rules' }).click();
+  await expect(page.getByRole('dialog').getByText(/faan/i).first()).toBeVisible();
 });
 
 test('settings open from anywhere', async ({ page }) => {
-  await page.goto('/?view=score');
-  await page.waitForLoadState('networkidle');
-
-  await page
-    .locator('header')
-    .getByRole('button', { name: 'Settings' })
-    .click();
-
+  await open(page, '/?view=score');
+  await header(page).getByRole('button', { name: 'Settings' }).click();
   await expect(
     page.getByRole('dialog').getByRole('radiogroup', { name: 'Appearance' }),
   ).toBeVisible();
 });
 
-test('stats reach the game you are playing from another screen', async ({
-  page,
-}) => {
-  await page.goto('/?view=glossary');
-  await page.waitForLoadState('networkidle');
-
+test('history is reached from home rather than from a game', async ({ page }) => {
+  await open(page, '/');
   await page
-    .getByRole('navigation', { name: 'Sections' })
-    .getByRole('button', { name: 'Stats' })
+    .getByRole('navigation', { name: 'Reference' })
+    .getByRole('button', { name: 'History' })
     .click();
-
-  await expect(page.getByRole('heading', { name: 'Stats' })).toBeVisible();
-});
-
-test('the screen you are on marks itself rather than offering to go there', async ({
-  page,
-}) => {
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-  await expect(
-    page.locator('header').getByRole('button', { name: 'Home' }),
-  ).toHaveAttribute('aria-current', 'page');
-
-  await page.goto('/?view=games');
-  await page.waitForLoadState('networkidle');
-  await expect(
-    page.getByRole('navigation', { name: 'Sections' }).getByRole('button', { name: 'History' }),
-  ).toHaveAttribute('aria-current', 'page');
+  await expect(page).toHaveURL(/view=games/);
+  await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
 });
 
 test('how this works is a place, not a dialog', async ({ page }) => {
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
+  await open(page, '/');
   await page.getByRole('button', { name: 'How this works' }).click();
 
-  // It has an address, so it can be linked to and reloaded into, and the
-  // page scrolls rather than being locked behind a modal.
   await expect(page).toHaveURL(/view=about/);
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(
-    page.getByRole('heading', { name: 'How this works' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'How this works' })).toBeVisible();
 
-  // And it hands off to the glossary, which used to be its footer button.
   await page.getByRole('button', { name: /glossary/i }).click();
   await expect(page).toHaveURL(/view=glossary/);
 });

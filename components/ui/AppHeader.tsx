@@ -90,7 +90,7 @@ export function AppHeader({
             not take, which is what lets it be read at a glance. */}
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-2xl leading-tight font-bold tablet:text-3xl">
+              <h1 className="truncate text-xl leading-tight font-bold phone:text-2xl tablet:text-3xl">
                 {title}
               </h1>
               {subtitle && (
@@ -113,17 +113,17 @@ export function AppHeader({
 
       {nav && (
         <div
-          // Page colour above the buttons as well as below them. Without it
-          // they sit flush against the felt on a game, which reads as one
-          // bar in two colours rather than a bar and the row under it.
-          className="px-4 pt-2 pb-2"
+          // Page colour above the tabs, and none below: a tab's underline
+          // belongs on the hairline that closes the header, which is what
+          // joins the marked one to the screen under it.
+          className="px-4 pt-3"
           style={{
             background: 'var(--page)',
             borderBottom: '1px solid var(--line)',
           }}
         >
           <div className={wide ? 'page-wide' : 'page-column'}>
-            <nav aria-label="Sections" className="flex items-center gap-1.5">
+            <nav aria-label="This game" className="flex items-center gap-5">
               {nav}
             </nav>
           </div>
