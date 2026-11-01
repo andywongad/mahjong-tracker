@@ -141,7 +141,7 @@ export function GameSheet({
               }}
             >
               This is for the date, players and penalty. To record a hand, close
-              this and tap whoever won, or use Record hand under the table.
+              this and tap whoever won.
             </p>
           )}
 

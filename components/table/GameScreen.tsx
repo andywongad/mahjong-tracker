@@ -83,14 +83,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
     setSheetOpen(true);
   }
 
-  /** The same sheet with nobody chosen yet, for the button rather than the table. */
-  function openWithPicker() {
-    setEditing(null);
-    setPresetSeat(null);
-    setUndoable(null);
-    setSheetOpen(true);
-  }
-
   function openEdit(row: HandRow) {
     setEditing(row);
     setPresetSeat(null);
@@ -148,7 +140,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
       <main
         id="main"
         tabIndex={-1}
-        className={`page-wide px-4 py-4 ${live ? 'pad-record-bar' : 'pad-safe-bottom'}`}
+        className="page-wide pad-safe-bottom px-4 py-4"
       >
         {/* One column until there is room for two. On a desktop the table and
           the log take the left, and what you read while scrolling them stays
@@ -200,18 +192,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {/* The table is the fast way in on a phone, where the pinned bar
-              carries the same action. With room beside it, the button is the
-              one that should be obvious. */}
-                <button
-                  type="button"
-                  onClick={openWithPicker}
-                  className="touch hidden w-full rounded-xl py-3 text-sm font-semibold tablet:block"
-                  style={{ background: 'var(--tile-back)', color: '#fff' }}
-                >
-                  Record hand {nextHand}
-                </button>
-
                 {/* A draw belongs to nobody, so it is the one hand still
               recorded from under the table rather than from a seat. */}
                 <SecondaryAction
@@ -315,8 +295,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
         </div>
       </main>
 
-      {/* Pinned to the bottom edge, where a thumb already is. The toast sits
-        above the bar so neither hides the other. */}
+      {/* Pinned to the bottom edge, where a thumb already is. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-2 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="flex w-full max-w-[36rem] flex-col gap-2">
           {undoable && (
@@ -328,25 +307,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
             />
           )}
 
-          {live && (
-            <button
-              type="button"
-              onClick={openWithPicker}
-              className="touch pointer-events-auto w-full rounded-xl px-4 py-2.5 text-center tablet:hidden"
-              style={{
-                background: 'var(--tile-back)',
-                color: '#fff',
-                boxShadow: 'var(--shadow-sheet)',
-              }}
-            >
-              <span className="block text-sm font-semibold">
-                Record hand {nextHand}
-              </span>
-              <span className="block text-xs opacity-80">
-                or tap the winner on the table
-              </span>
-            </button>
-          )}
         </div>
       </div>
 
