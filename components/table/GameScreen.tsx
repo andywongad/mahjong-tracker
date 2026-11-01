@@ -158,17 +158,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
               pulseSeats={live && neverRecorded && result.handCount < 3}
             />
 
-            {/* Once, rather than on each of the four cards: the same two
-              labels repeated four times would be more noise than the numbers
-              they explain. */}
-            <p
-              className="-mt-2 text-xs"
-              style={{ color: 'var(--muted)' }}
-            >
-              The big number is a player&rsquo;s running total. The small one
-              is what the last hand did to them.
-            </p>
-
             {endedEarly ? (
               <div
                 className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"

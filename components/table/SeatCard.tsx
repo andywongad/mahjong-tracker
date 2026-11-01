@@ -14,6 +14,35 @@ import { Delta } from '@/components/ui/Score';
  * says they won it. The strip underneath says they called a win they did not
  * have, which is not a kind of winning and so is not reached through one.
  */
+/**
+ * The quiet word over a number, saying which number it is.
+ *
+ * Allowed to wrap. On the narrow side seats "Last hand" does not fit beside
+ * "Total" on one line, and two short lines cost a few pixels of height where
+ * truncating to "Tot…" would cost the meaning.
+ */
+function NumberLabel({
+  children,
+  align = 'left',
+  compact = false,
+}: {
+  children: React.ReactNode;
+  align?: 'left' | 'right';
+  /** The side seats, which have about 60px to fit both labels into. */
+  compact?: boolean;
+}) {
+  return (
+    <span
+      className={`min-w-min ${
+        compact ? 'text-[0.55rem]' : 'text-[0.6rem]'
+      } leading-tight font-semibold ${align === 'right' ? 'text-right' : ''}`}
+      style={{ color: 'var(--muted)' }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function SeatCard({
   seat,
   name,
@@ -61,22 +90,27 @@ export function SeatCard({
         </span>
       </div>
 
-      {/* Two numbers that look alike and mean different things. Nothing on
-        the card can say which is which without crowding four of these onto a
-        phone, so the line under the table says it once for all four, and
-        each number says it for itself to anything reading the card aloud. */}
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="flex items-baseline">
-          <span className="sr-only">Total </span>
+      {/* Two numbers that look alike and mean different things, so each one
+        is named over the top of it. The names are small and quiet: they are
+        read once and then never again, while the numbers under them are read
+        every hand. */}
+      <div className="flex items-end justify-between gap-1">
+        {/* The columns give way so the label can wrap, but a label never
+          goes below its longest word, which is what stopped "Total" being
+          squeezed out of shape by a wide change like -39. */}
+        <span className="flex min-w-0 flex-col">
+          <NumberLabel compact={compact}>Total</NumberLabel>
           <span
             className={`tnum font-bold ${compact ? 'text-xl' : 'text-2xl'}`}
           >
             {score}
           </span>
         </span>
-        <span className="text-xs">
-          <span className="sr-only">Last hand </span>
-          <Delta value={lastDelta} />
+        <span className="flex min-w-0 flex-col items-end">
+          <NumberLabel align="right" compact={compact}>
+            Last hand
+          </NumberLabel>
+          <Delta value={lastDelta} className="text-xs" />
         </span>
       </div>
     </>
