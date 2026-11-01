@@ -61,11 +61,21 @@ export function SeatCard({
         </span>
       </div>
 
+      {/* Two numbers that look alike and mean different things. Nothing on
+        the card can say which is which without crowding four of these onto a
+        phone, so the line under the table says it once for all four, and
+        each number says it for itself to anything reading the card aloud. */}
       <div className="flex items-baseline justify-between gap-2">
-        <span className={`tnum font-bold ${compact ? 'text-xl' : 'text-2xl'}`}>
-          {score}
+        <span className="flex items-baseline">
+          <span className="sr-only">Total </span>
+          <span
+            className={`tnum font-bold ${compact ? 'text-xl' : 'text-2xl'}`}
+          >
+            {score}
+          </span>
         </span>
         <span className="text-xs">
+          <span className="sr-only">Last hand </span>
           <Delta value={lastDelta} />
         </span>
       </div>
