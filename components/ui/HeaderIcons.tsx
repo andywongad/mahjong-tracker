@@ -64,6 +64,15 @@ export function TableIcon() {
   );
 }
 
+export function AccountIcon() {
+  return (
+    <svg {...common}>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5" />
+    </svg>
+  );
+}
+
 export function SettingsIcon() {
   return (
     <svg {...common}>

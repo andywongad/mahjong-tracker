@@ -24,6 +24,7 @@ import {
   subscribeSheet,
 } from '@/lib/ui/sheets';
 import { SettingsSheet } from '@/components/sheets/SettingsSheet';
+import { AccountSheet } from '@/components/sheets/AccountSheet';
 import { RulesSheet } from '@/components/sheets/RulesSheet';
 
 export function GlobalSheets() {
@@ -52,6 +53,7 @@ export function GlobalSheets() {
   return (
     <>
       <SettingsSheet open={open === 'settings'} onClose={closeSheet} />
+      <AccountSheet open={open === 'account'} onClose={closeSheet} />
       {game && (
         <RulesSheet
           // Keyed on the game and its last change, so the fields start from

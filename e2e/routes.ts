@@ -32,6 +32,15 @@ export const ROUTES: Route[] = [
     },
   },
   {
+    name: 'sign-in-sheet',
+    go: async (page) => {
+      await page.goto('/');
+      await settle(page);
+      await page.getByRole('button', { name: 'Sign in' }).click();
+      await page.waitForTimeout(500);
+    },
+  },
+  {
     name: 'settings-sheet',
     go: async (page) => {
       await page.goto('/');

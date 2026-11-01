@@ -107,8 +107,8 @@ export function HomeScreen() {
           // wants it.
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
             Keep score for a Hong Kong mahjong table. Tap whoever won, and the
-            payments, the dealer and the round look after themselves. Nothing
-            to sign up for, and it works with no signal.
+            payments, the dealer and the round look after themselves. No
+            account needed, and it works with no signal.
             {hasGames && (
               <>
                 {' '}

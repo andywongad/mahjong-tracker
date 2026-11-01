@@ -16,12 +16,53 @@
  * AppHeader stays presentational and knows none of this, because the shared
  * game view at /g/[slug] renders it from outside the games provider.
  */
+import { useSyncExternalStore } from 'react';
+import {
+  accountsAvailable,
+  getAccount,
+  getAccountOnServer,
+  subscribeAccount,
+} from '@/lib/auth/session';
 import { useGames } from '@/lib/game/GamesProvider';
 import { useNavigation } from '@/lib/game/navigation';
 import { openSheet } from '@/lib/ui/sheets';
 import { AppHeader, HeaderButton } from './AppHeader';
 import { GameTabs } from './GameTabs';
-import { HomeIcon, RulesIcon, SettingsIcon } from './HeaderIcons';
+import { AccountIcon, HomeIcon, RulesIcon, SettingsIcon } from './HeaderIcons';
+
+/**
+ * Signing in, next to settings on home.
+ *
+ * On home rather than on every screen: it is read once when somebody decides
+ * to have an account, and then almost never. The rest of the time it would be
+ * a third control crowding the two that are used.
+ *
+ * It says which it is. "Sign in" when nobody is, "Account" when somebody is,
+ * so the same button never means two things without saying so.
+ */
+function AccountButton() {
+  const account = useSyncExternalStore(
+    subscribeAccount,
+    getAccount,
+    getAccountOnServer,
+  );
+
+  if (!accountsAvailable()) return null;
+
+  return (
+    <HeaderButton
+      onClick={() => openSheet('account')}
+      label={account ? 'Account' : 'Sign in'}
+      hint={
+        account
+          ? `Signed in as ${account.email}`
+          : 'Optional. Keeps your games on every device you use'
+      }
+    >
+      <AccountIcon />
+    </HeaderButton>
+  );
+}
 
 export function ScreenHeader({
   title,
@@ -61,6 +102,7 @@ export function ScreenHeader({
           )}
           {/* Not on home itself. A control that goes where you already are
             is a button that does nothing, and it crowds the ones that do. */}
+          {atHome && <AccountButton />}
           {!atHome && (
             <HeaderButton
               onClick={() => go('home', null)}

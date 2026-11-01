@@ -41,6 +41,37 @@ test('home carries settings and nothing that belongs to a game', async ({
   await expect(tabs(page)).toHaveCount(0);
 });
 
+test('signing in is offered on home, beside settings, and nowhere else', async ({
+  page,
+}) => {
+  await open(page, '/');
+  await expect(header(page).getByRole('button', { name: 'Sign in' })).toBeVisible();
+
+  await header(page).getByRole('button', { name: 'Sign in' }).click();
+  const sheet = page.getByRole('dialog');
+  await expect(sheet.getByRole('heading', { name: 'Sign in' })).toBeVisible();
+  // It says plainly that it is optional, because it is.
+  await expect(sheet.getByText(/Optional/)).toBeVisible();
+  await sheet.getByRole('button', { name: 'Close' }).click();
+
+  // Read once and then almost never, so it does not crowd the screens that
+  // are used while playing.
+  await open(page, GAME);
+  await expect(header(page).getByRole('button', { name: 'Sign in' })).toHaveCount(0);
+});
+
+test('an address that is not one is refused before anything is sent', async ({
+  page,
+}) => {
+  await open(page, '/');
+  await header(page).getByRole('button', { name: 'Sign in' }).click();
+  const sheet = page.getByRole('dialog');
+
+  await sheet.getByPlaceholder('you@example.com').fill('not-an-address');
+  await sheet.getByRole('button', { name: /Email me a link/ }).click();
+  await expect(sheet.getByText(/does not look like an email/)).toBeVisible();
+});
+
 for (const [url, name] of NO_GAME) {
   test(`${name} carries the way out and nothing about a game`, async ({ page }) => {
     await open(page, url);
