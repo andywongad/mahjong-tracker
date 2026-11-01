@@ -19,7 +19,7 @@ import { Sheet } from './Sheet';
 import { romanOf } from '@/lib/terms';
 import { glossOf } from '@/lib/terms';
 
-/** The three ways a table usually splits a discard win. */
+/** The ways a table can split a discard win, in order of how much moves. */
 /** The role word in lower case, for the middle of a sentence. */
 const LOWER_SHOOTER = glossOf('cheut_chung').toLowerCase();
 
@@ -36,6 +36,13 @@ const DISCARD_SPLITS: {
     detail: 'The whole table pays, the shooter pays most',
     shooter: 2,
     others: 1,
+  },
+  {
+    id: 'shooter_face',
+    label: `Only the ${LOWER_SHOOTER} pays, at face value`,
+    detail: 'The winner collects the hand once, from the shooter alone',
+    shooter: 1,
+    others: 0,
   },
   {
     id: 'shooter_only',

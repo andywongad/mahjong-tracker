@@ -61,3 +61,26 @@ test('a rules change holds after a reload, and only touches this game', async ({
   await page.getByRole('button', { name: 'Start a game' }).click();
   await expect(page.getByText(/Hong Kong standard/)).toBeVisible();
 });
+
+test('a table can settle a discard between two people only', async ({
+  page,
+}) => {
+  await page.goto(GAME);
+  await page.waitForLoadState('networkidle');
+  await expect(seatScore(page, 'Player C')).toHaveText('64');
+
+  await page.locator('header').getByRole('button', { name: 'Rules' }).click();
+  const sheet = page.getByRole('dialog');
+  await sheet.getByText('Only the shooter pays, at face value').click();
+
+  await sheet.getByRole('button', { name: 'Apply rules' }).click();
+  await page.getByRole('button', { name: 'Recalculate 19 hands' }).click();
+
+  // Same nineteen hands, same faan, settled between two people instead of
+  // four: every discard win in the game is now one payment.
+  await expect(seatScore(page, 'Player C')).toHaveText('59');
+  await expect(seatScore(page, 'Player A')).toHaveText('-12');
+  await expect(seatScore(page, 'Player B')).toHaveText('-32');
+  await expect(seatScore(page, 'Player D')).toHaveText('-15');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});

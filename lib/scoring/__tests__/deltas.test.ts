@@ -79,6 +79,59 @@ describe('HK standard', () => {
   });
 });
 
+/**
+ * A table where a discard win is settled between two people only: the shooter
+ * hands over what the hand is worth, once, and the other two neither gain nor
+ * lose. It is the smallest settlement the engine can express — one payment.
+ */
+const SHOOTER_FACE: Rules = {
+  ...OUR_TABLE,
+  discardShooterMult: 1,
+  discardOthersMult: 0,
+};
+
+describe('only the shooter pays, at face value', () => {
+  it('moves the hand once, from the shooter to the winner', () => {
+    // Five faan on the linear curve is five, so five changes hands.
+    expect(deltas(ceotCung(0, 1, 5), SHOOTER_FACE)).toEqual([5, -5, 0, 0]);
+  });
+
+  it('leaves the two who did not deal in untouched', () => {
+    const out = deltas(ceotCung(2, 3, 7), SHOOTER_FACE);
+    expect(out[0]).toBe(0);
+    expect(out[1]).toBe(0);
+    expect(out[2]).toBe(7);
+    expect(out[3]).toBe(-7);
+  });
+
+  it('still sums to zero, at every faan', () => {
+    for (const faan of faanValues(SHOOTER_FACE)) {
+      expect(sum(deltas(ceotCung(0, 2, faan), SHOOTER_FACE))).toBe(0);
+    }
+  });
+
+  it('pays half of what the same hand costs when the shooter pays double', () => {
+    const face = deltas(ceotCung(0, 1, 6), SHOOTER_FACE);
+    const double = deltas(ceotCung(0, 1, 6), {
+      ...SHOOTER_FACE,
+      discardShooterMult: 2,
+    });
+    expect(face[0] * 2).toBe(double[0]);
+  });
+
+  it('leaves a self drawn win alone, which is settled by everyone', () => {
+    // The split only describes a discard. A self draw still takes from all
+    // three, or nobody would pay for one.
+    expect(deltas(ziMo(0, 5), SHOOTER_FACE)).toEqual([30, -10, -10, -10]);
+  });
+
+  it('carries the dealer bonus on the one payment there is', () => {
+    const withBonus: Rules = { ...SHOOTER_FACE, dealerMult: 2 };
+    // Seat 1 is the dealer and deals in, so the single payment doubles.
+    expect(deltas(ceotCung(0, 1, 5), withBonus, 1)).toEqual([10, -10, 0, 0]);
+  });
+});
+
 describe('limit hands', () => {
   const bigThreeDragons = (faan: number): Hand => ({
     type: 'ceot_cung',
