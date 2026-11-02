@@ -28,6 +28,9 @@ export function HomeScreen() {
   const { games, loading, createGame } = useGames();
   const { go } = useNavigation();
   const [newGameOpen, setNewGameOpen] = useState(false);
+  // Which door this open of the sheet came through. Asked here rather than
+  // inside the sheet so nobody taps twice to start a game.
+  const [walkthroughFirst, setWalkthroughFirst] = useState(false);
 
   const summaries = useMemo(() => summarise(games), [games]);
 
@@ -98,6 +101,7 @@ export function HomeScreen() {
                 ))}
               </span>
             </button>
+
           </section>
         )}
 
@@ -127,39 +131,43 @@ export function HomeScreen() {
           </p>
         )}
 
-        {/* No heading over these two. "Current game" earns one because it
-          names a specific game; a heading here would only be a word for "the
-          buttons", and the buttons already say what they are. */}
-        <section className="flex flex-col gap-2">
-          <ActionButton
-            onClick={() => setNewGameOpen(true)}
-            hint="Name the four players, pick the house rules, and sit down"
-            className="tile-pressable touch w-full rounded-xl py-4 text-base font-semibold"
-            style={
-              inProgress
-                ? {
-                    background: 'var(--tile-face)',
-                    border: '1px solid var(--line-strong)',
-                  }
-                : {
-                    background: 'var(--tile-back)',
-                    color: '#fff',
-                      }
-            }
-          >
-            Start a game
-          </ActionButton>
+        {/* The heading earns its place here: it names one thing a person can
+          do and the two buttons under it are both ways of doing it. Asked on
+          the way in rather than on a screen of its own, so starting a game is
+          still one tap.
 
-          {/* The other thing the app does, for a table playing for fun: what
-            is this hand worth, with no game and no score kept. */}
-          <ActionButton
-            onClick={() => go('score', null)}
-            hint="Tap the tiles in and be told what the hand is worth, with no game and no score kept"
-            className="tile-sm tile-pressable touch w-full rounded-xl py-3.5 text-sm font-semibold"
-          >
-            Score a hand
-          </ActionButton>
+          Neither is the default. A fork with a primary button is a
+          recommendation, and which of these to recommend depends on who is
+          holding the phone — which is the thing the question is asking. */}
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold">Start a game</h2>
+          <DoorButton
+            onClick={() => {
+              setWalkthroughFirst(true);
+              setNewGameOpen(true);
+            }}
+            label="I'm still learning"
+            detail="Four questions about how your table plays, each answered in what a hand actually costs"
+          />
+          <DoorButton
+            onClick={() => {
+              setWalkthroughFirst(false);
+              setNewGameOpen(true);
+            }}
+            label="I know what I'm doing"
+            detail="Straight to the players and the house rules"
+          />
         </section>
+
+        {/* The other thing the app does, for a table playing for fun: what
+          is this hand worth, with no game and no score kept. */}
+        <ActionButton
+          onClick={() => go('score', null)}
+          hint="Tap the tiles in and be told what the hand is worth, with no game and no score kept"
+          className="tile-sm tile-pressable touch w-full rounded-xl py-3.5 text-sm font-semibold"
+        >
+          Score a hand
+        </ActionButton>
 
         {/* Three things you read rather than use. Quieter, and together. */}
         {/* Under the two actions, because starting a game and scoring a hand
@@ -195,8 +203,13 @@ export function HomeScreen() {
         )}
       </main>
 
+      {/* Keyed so each open starts fresh: from the last game's names rather
+        than from whatever was half typed into it before, and on the
+        walkthrough or not depending on which door was taken. */}
       <GameSheet
+        key={newGameOpen ? (walkthroughFirst ? 'new-walk' : 'new') : 'closed'}
         open={newGameOpen}
+        startInWalkthrough={walkthroughFirst}
         editing={null}
         // The last game's table is nearly always this game's table, so the
         // names and the house rules come forward rather than being retyped.
@@ -245,26 +258,59 @@ function ActionButton({
   );
 }
 
-/** A quiet button for the reading material. */
+/** One of the two ways into a new game, drawn as the other one's equal. */
+function DoorButton({
+  onClick,
+  label,
+  detail,
+}: {
+  onClick: () => void;
+  label: string;
+  detail: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="tile-sm tile-pressable touch flex w-full flex-col gap-1 rounded-xl px-4 py-3.5 text-left"
+    >
+      <span className="text-base font-semibold">{label}</span>
+      <span className="text-xs" style={{ color: 'var(--muted)' }}>
+        {detail}
+      </span>
+    </button>
+  );
+}
+
+/**
+ * A quiet button for the reading material.
+ *
+ * Fills its grid cell by default; `compact` sizes it to its label instead, for
+ * the row it shares with Delete under the current game.
+ */
 function SmallButton({
   onClick,
   hint,
   hintAlign,
+  compact = false,
   children,
 }: {
   onClick: () => void;
   hint: string;
   hintAlign?: 'center' | 'end';
+  compact?: boolean;
   children: React.ReactNode;
 }) {
   const { anchorProps, targetProps, bubble } = useHint(hint, hintAlign);
   return (
-    <HintAnchor className="w-full" {...anchorProps}>
+    <HintAnchor className={compact ? '' : 'w-full'} {...anchorProps}>
       <button
         type="button"
         onClick={onClick}
         {...targetProps}
-        className="tile-sm tile-pressable touch w-full rounded-xl px-1 py-3 text-xs font-semibold"
+        className={`tile-sm tile-pressable touch rounded-xl text-xs font-semibold ${
+          compact ? 'px-4 py-2' : 'w-full px-1 py-3'
+        }`}
       >
         {children}
       </button>

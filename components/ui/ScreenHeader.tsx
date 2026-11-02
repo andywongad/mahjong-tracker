@@ -4,9 +4,10 @@
  * The top of every screen inside the app.
  *
  * Home and Settings on the right on every screen, because they are about the
- * app. A game adds two things of its own: Rules beside Settings, since Rules
- * is to a game what Settings is to the app, and a row of tabs for the two
- * ways of looking at that game.
+ * app. A game adds two things of its own: Rules, which is to a game what
+ * Settings is to the app and so sits next to it, and a row of tabs for the
+ * two ways of looking at that game. Home leads, furthest from the thumb,
+ * because leaving is not one of the things the screen does.
  *
  * Screens with no game in them — the glossary, how it works, the standalone
  * scorer, history — carry neither. They are a header and their content, and
@@ -91,18 +92,10 @@ export function ScreenHeader({
       subtitle={subtitle}
       right={
         <>
-          {shownGame && (
-            <HeaderButton
-              onClick={() => openSheet('rules')}
-              label="Rules"
-              hint="What this table counts and what it pays, changeable mid game"
-            >
-              <RulesIcon />
-            </HeaderButton>
-          )}
-          {/* Not on home itself. A control that goes where you already are
-            is a button that does nothing, and it crowds the ones that do. */}
-          {atHome && <AccountButton />}
+          {/* Leftmost, and so the furthest from the thumb: the way out, not
+            one of the things this screen does. Not on home itself — a
+            control that goes where you already are is a button that does
+            nothing, and it crowds the ones that do. */}
           {!atHome && (
             <HeaderButton
               onClick={() => go('home', null)}
@@ -112,6 +105,16 @@ export function ScreenHeader({
               <HomeIcon />
             </HeaderButton>
           )}
+          {shownGame && (
+            <HeaderButton
+              onClick={() => openSheet('rules')}
+              label="Rules"
+              hint="What this table counts and what it pays, changeable mid game"
+            >
+              <RulesIcon />
+            </HeaderButton>
+          )}
+          {atHome && <AccountButton />}
           <HeaderButton
             onClick={() => openSheet('settings')}
             label="Settings"

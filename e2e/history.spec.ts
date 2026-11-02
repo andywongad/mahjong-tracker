@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openNewGame } from './newgame';
 
 /**
  * History is paged, because a group that plays weekly has a long list by the
@@ -11,9 +12,7 @@ async function startGames(page: Page, count: number): Promise<void> {
   for (let i = 0; i < count; i += 1) {
     // Games are started from home, and starting one opens its table, so each
     // round trip goes back to home rather than clicking its way there.
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    await page.getByRole('button', { name: 'Start a game' }).click();
+    await openNewGame(page);
     await page.getByRole('button', { name: 'Start game' }).click();
     // Saving opens the new game's table. Waiting for that rather than for a
     // moment keeps the next loop from navigating over the write.

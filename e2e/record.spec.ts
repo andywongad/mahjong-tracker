@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { chooseRuleSet, openNewGame } from './newgame';
 
 /**
  * The record flow, end to end, for all four kinds of hand.
@@ -11,9 +12,10 @@ import { expect, test, type Page } from '@playwright/test';
 const UNIT = 4;
 
 async function startGame(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-  await page.getByRole('button', { name: 'Start a game' }).click();
+  await openNewGame(page);
+  // Said out loud rather than inherited: every number below is Everyone pays
+  // arithmetic, where one unit is the hand's faan.
+  await chooseRuleSet(page, 'Everyone pays');
   await page.getByRole('button', { name: 'Start game' }).click();
   // The new game opens on its own table.
   await expect(seat(page, 1)).toBeVisible();

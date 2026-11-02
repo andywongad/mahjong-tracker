@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { SEATS, WIND_CHARS, type PlayerNames, type Seat } from '@/lib/scoring';
 import { HK_STANDARD, presetFor, type Rules } from '@/lib/rules/types';
 import { RulesSheet } from './RulesSheet';
+import { RulesWalkthroughSheet } from './RulesWalkthroughSheet';
 import { formatStake } from '@/lib/game/settle';
 import { SEAT_WINDS, seatSolid } from '@/lib/game/seats';
 import { todayIso } from '@/lib/game/ids';
@@ -22,6 +23,7 @@ export function GameSheet({
   lastPlayers,
   lastRules,
   lastRuleSetName,
+  startInWalkthrough = false,
   onClose,
   onSave,
   onDelete,
@@ -33,6 +35,12 @@ export function GameSheet({
   /** Rules from the most recent game: a table rarely changes them between games. */
   lastRules?: Rules;
   lastRuleSetName?: string;
+  /**
+   * Open straight into the rules walkthrough. Home asks which kind of table
+   * this is before the sheet opens, so the answer arrives with it. Read once,
+   * on mount, so the parent keys the sheet per open.
+   */
+  startInWalkthrough?: boolean;
   onClose: () => void;
   onSave: (input: NewGameInput) => void | Promise<void>;
   onDelete?: () => void | Promise<void>;
@@ -58,6 +66,7 @@ export function GameSheet({
       (lastRules ? lastRuleSetName : 'Hong Kong standard'),
   );
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [walkthroughOpen, setWalkthroughOpen] = useState(startInWalkthrough);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const namesOk = names.every((name) => name.trim() !== '');
@@ -88,8 +97,8 @@ export function GameSheet({
   return (
     <>
       <Sheet
-        open={open && !rulesOpen}
-        title={editing ? 'Game settings' : 'New game'}
+        open={open && !rulesOpen && !walkthroughOpen}
+        title={editing ? 'Game settings' : 'Start a game'}
         onClose={onClose}
         footer={
           <div className="flex gap-2">
@@ -211,6 +220,10 @@ export function GameSheet({
             <button
               type="button"
               onClick={() => setRulesOpen(true)}
+              // Without this the button announces its whole summary line and
+              // ends on a stray chevron. The summary is still read, as the
+              // content of the sheet it opens.
+              aria-label={`House rules: ${ruleSetLabel(rules, ruleSetName)}`}
               className="tile-sm touch flex items-center justify-between gap-3 px-3 py-2 text-left"
             >
               <span className="min-w-0">
@@ -232,9 +245,43 @@ export function GameSheet({
                 &rsaquo;
               </span>
             </button>
+
+            {/* With the rules it is about, rather than down in the footer
+              beside Start game: it is a way of answering this question, not
+              a second way of starting the game. Here for every new game, not
+              only a table's first — a group picks up new players long after
+              its own first night, and this is the only way in. Deliberately
+              not labelled "first time" or "new to this": people skip
+              anything that asks them to call themselves a beginner, and this
+              is the path that gets the rules right. */}
+            {!editing && (
+              <button
+                type="button"
+                onClick={() => setWalkthroughOpen(true)}
+                className="touch w-full rounded-xl text-sm font-semibold"
+                style={{ color: 'var(--accent)' }}
+              >
+                Help me pick the rules
+              </button>
+            )}
           </div>
         </div>
       </Sheet>
+
+      {/* Mounted only while it is open, so it always starts on the first
+        question and from whatever the rules are now, rather than resuming
+        wherever it was left. */}
+      {walkthroughOpen && (
+        <RulesWalkthroughSheet
+          open
+          rules={rules}
+          onClose={() => setWalkthroughOpen(false)}
+          onApply={(next, set) => {
+            setRules(next);
+            setRuleSetName(set?.name);
+          }}
+        />
+      )}
 
       <RulesSheet
         open={rulesOpen}

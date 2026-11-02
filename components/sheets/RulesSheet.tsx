@@ -15,59 +15,14 @@ import {
   type CurveKind,
   type Rules,
 } from '@/lib/rules/types';
+import { NumberRow } from '@/components/ui/NumberRow';
+import {
+  DISCARD_SPLITS,
+  splitIdFor,
+} from '@/lib/rules/discardSplits';
 import { Sheet } from './Sheet';
 import { romanOf } from '@/lib/terms';
 import { glossOf } from '@/lib/terms';
-
-/** The ways a table can split a discard win, in order of how much moves. */
-/** The role word in lower case, for the middle of a sentence. */
-const LOWER_SHOOTER = glossOf('cheut_chung').toLowerCase();
-
-const DISCARD_SPLITS: {
-  id: string;
-  label: string;
-  detail: string;
-  shooter: number;
-  others: number;
-}[] = [
-  {
-    id: 'shared',
-    label: `${glossOf('cheut_chung')} pays double, others pay one each`,
-    detail: 'The whole table pays, the shooter pays most',
-    shooter: 2,
-    others: 1,
-  },
-  {
-    id: 'shooter_face',
-    label: `Only the ${LOWER_SHOOTER} pays, at face value`,
-    detail: 'The winner collects the hand once, from the shooter alone',
-    shooter: 1,
-    others: 0,
-  },
-  {
-    id: 'shooter_only',
-    label: `Only the ${LOWER_SHOOTER} pays, at double`,
-    detail: `The other two pay nothing`,
-    shooter: 2,
-    others: 0,
-  },
-  {
-    id: 'shooter_all',
-    label: `Only the ${LOWER_SHOOTER} pays, the full amount`,
-    detail: 'The shooter covers what all three would have paid',
-    shooter: 4,
-    others: 0,
-  },
-];
-
-function splitIdFor(rules: Rules): string {
-  const match = DISCARD_SPLITS.find(
-    (split) =>
-      split.shooter === rules.discardShooterMult &&
-      split.others === rules.discardOthersMult,
-  );
-  return match?.id ?? 'custom';
-}
 
 export function RulesSheet({
   open,
@@ -519,61 +474,6 @@ function Field({
       <legend className="mb-1 text-xs font-semibold">{label}</legend>
       {children}
     </fieldset>
-  );
-}
-
-function NumberRow({
-  label,
-  hint,
-  value,
-  min,
-  max,
-  step = 1,
-  onChange,
-}: {
-  label: string;
-  hint?: string;
-  value: number;
-  min: number;
-  max: number;
-  step?: number;
-  onChange: (value: number) => void;
-}) {
-  const clamp = (next: number) =>
-    Math.min(max, Math.max(min, Math.round(next / step) * step));
-
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="min-w-0 flex-1">
-        <span className="block text-xs font-semibold">{label}</span>
-        {hint && (
-          <span className="block text-xs" style={{ color: 'var(--muted)' }}>
-            {hint}
-          </span>
-        )}
-      </span>
-      <span className="flex shrink-0 items-center gap-1">
-        <button
-          type="button"
-          onClick={() => onChange(clamp(value - step))}
-          className="tile-sm touch w-11 text-lg font-semibold"
-          aria-label={`Decrease ${label}`}
-        >
-          &minus;
-        </button>
-        <span className="tnum w-12 text-center text-sm font-bold">
-          {Number.isInteger(value) ? value : value.toFixed(2)}
-        </span>
-        <button
-          type="button"
-          onClick={() => onChange(clamp(value + step))}
-          className="tile-sm touch w-11 text-lg font-semibold"
-          aria-label={`Increase ${label}`}
-        >
-          +
-        </button>
-      </span>
-    </div>
   );
 }
 
