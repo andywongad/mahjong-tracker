@@ -26,16 +26,26 @@ describe('what the how-it-works screen says', () => {
     expect(steps[3]).toMatch(/faan/i);
   });
 
-  it('says where games live without promising a backup', () => {
+  it('says games live on the device, and what an account adds', () => {
     setup();
     const where = screen.getByRole('heading', {
       name: /where your games live/i,
     });
     const section = where.closest('section');
+
+    // The promise that must survive every change: a hand is recorded here
+    // first, with or without a connection.
     expect(section?.textContent).toMatch(/this device/i);
-    // There are no accounts, so nothing here may read as a backup.
-    expect(section?.textContent).toMatch(/no accounts/i);
-    expect(section?.textContent).not.toMatch(/sign in|synced|backed up/i);
+    expect(section?.textContent).toMatch(/no signal/i);
+
+    // With no account, it must still say plainly that nothing is kept for
+    // you. This was the whole of the old text and is now half of it.
+    expect(section?.textContent).toMatch(/do not follow you to another device/i);
+
+    // And it must say what signing in actually does, rather than leaving
+    // somebody to find out that a copy exists.
+    expect(section?.textContent).toMatch(/sign in/i);
   });
+
 
 });

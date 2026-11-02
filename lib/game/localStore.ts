@@ -201,6 +201,28 @@ export async function pendingCount(): Promise<number> {
   return (await db()).count('outbox');
 }
 
+/**
+ * The queued changes themselves, oldest first.
+ *
+ * Order is the point: they are replayed in the order they were made, so a
+ * game created and then deleted does not arrive the other way round.
+ */
+export async function pendingEntries(): Promise<Required<OutboxEntry>[]> {
+  const all = await (await db()).getAll('outbox');
+  return (all as Required<OutboxEntry>[]).sort((a, b) => a.id - b.id);
+}
+
+/**
+ * Write a game that came from the account.
+ *
+ * Unlike every other write here this one does not queue an outbox entry: it
+ * is the server's own copy arriving, and sending it straight back would be a
+ * loop. It also clears pendingSync, since by definition this one is settled.
+ */
+export async function saveFromServer(game: GameRecord): Promise<void> {
+  await (await db()).put('games', { ...game, pendingSync: false });
+}
+
 /** Drop outbox entries once they have reached the server. */
 export async function clearOutbox(upToId?: number): Promise<void> {
   const database = await db();

@@ -144,13 +144,18 @@ export function AboutSections() {
 
       <Section title="Where your games live">
         <p className="text-sm">
-          In this browser, on this device, and nowhere else. They survive
-          closing the tab, restarting the phone and having no signal.
+          In this browser, on this device. They survive closing the tab,
+          restarting the phone and having no signal, and every hand is
+          recorded here first, whether or not there is a connection.
         </p>
         <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          They do not follow you to another device, and clearing this
-          site&rsquo;s data deletes them. There are no accounts: one person
-          keeps score, and sends the tally round at the end.
+          With no account that is the whole story: the games do not follow you
+          to another device, and clearing this site&rsquo;s data deletes them.
+          Sign in and a copy is kept for you as well, so the same games are on
+          every device you sign in to. Either way nobody else can read them —
+          a game is readable only by the account that owns it, and the tally
+          you send round is a link to one game that shows the scores and
+          nothing else.
         </p>
       </Section>
     </div>

@@ -76,8 +76,8 @@ function AccountBody({ onClose }: { onClose: () => void }) {
           Signed in as <strong>{account.email}</strong>.
         </p>
         <p className="text-xs" style={{ color: 'var(--muted)' }}>
-          Your games are on this device. Copying them to your account, so they
-          follow you to another one, is being switched on next.
+          Your games are on this device and copied to your account, so the
+          same games are on every device you sign in to.
         </p>
         <button
           type="button"
@@ -97,8 +97,8 @@ function AccountBody({ onClose }: { onClose: () => void }) {
     <section className="flex flex-col gap-2">
       <p className="text-xs" style={{ color: 'var(--muted)' }}>
         Optional, and it stays that way: the app records hands without an
-        account, offline and all. An account is what will let the same games
-        follow you to another device.
+        account, offline and all. An account adds one thing — the same games
+        on every device you sign in to.
       </p>
 
       {state.kind === 'sent' ? (

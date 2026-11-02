@@ -1,12 +1,23 @@
 'use client';
 
 import {
+  getAccount,
+  getAccountOnServer,
+  subscribeAccount,
+} from '@/lib/auth/session';
+import {
+  announceLocalChange,
+  useSync,
+  type SyncState,
+} from '@/lib/sync/useSync';
+import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import type { Hand } from '@/lib/scoring';
 import { ensureSeeded, localStore, pendingCount } from './localStore';
@@ -35,6 +46,8 @@ interface GamesContextValue {
     >,
   ) => Promise<void>;
   deleteGame: (id: string) => Promise<void>;
+  /** What the account sync is doing, or off when signed out. */
+  sync: SyncState;
   /** Resolves with the new hand's id, so it can be undone by hand rather than by position. */
   addHand: (gameId: string, hand: Hand) => Promise<string>;
   updateHand: (gameId: string, handId: string, hand: Hand) => Promise<void>;
@@ -49,6 +62,11 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
   const [pending, setPending] = useState(0);
   const [online, setOnline] = useState(true);
   const [storageError, setStorageError] = useState<Error | null>(null);
+  const account = useSyncExternalStore(
+    subscribeAccount,
+    getAccount,
+    getAccountOnServer,
+  );
 
   const refresh = useCallback(async () => {
     const [list, count] = await Promise.all([
@@ -58,6 +76,19 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
     setGames(list);
     setPending(count);
   }, []);
+
+  /**
+   * After a change made here: show it, then offer it to the account.
+   *
+   * A pull refreshes too and deliberately does not announce, or every game
+   * that came down would be sent straight back up.
+   */
+  const afterLocalWrite = useCallback(async () => {
+    await refresh();
+    announceLocalChange();
+  }, [refresh]);
+
+  const sync = useSync(account?.id ?? null, refresh);
 
   // First run seeds the reference game so the app is never empty on arrival.
   useEffect(() => {
@@ -103,34 +134,35 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
       storageError,
       pending,
       online,
+      sync,
       async createGame(input) {
         const game = await localStore.createGame(input);
-        await refresh();
+        await afterLocalWrite();
         return game;
       },
       async updateGame(id, patch) {
         await localStore.updateGame(id, patch);
-        await refresh();
+        await afterLocalWrite();
       },
       async deleteGame(id) {
         await localStore.deleteGame(id);
-        await refresh();
+        await afterLocalWrite();
       },
       async addHand(gameId, hand) {
         const saved = await localStore.addHand(gameId, hand);
-        await refresh();
+        await afterLocalWrite();
         return saved.hands[saved.hands.length - 1].id;
       },
       async updateHand(gameId, handId, hand) {
         await localStore.updateHand(gameId, handId, hand);
-        await refresh();
+        await afterLocalWrite();
       },
       async deleteHand(gameId, handId) {
         await localStore.deleteHand(gameId, handId);
-        await refresh();
+        await afterLocalWrite();
       },
     }),
-    [games, loading, storageError, pending, online, refresh],
+    [games, loading, storageError, pending, online, sync, afterLocalWrite],
   );
 
   return (
