@@ -72,7 +72,16 @@ export async function syncOnce(
       }
       await local.clearPending(entry.id);
       report.pushed += 1;
-    } catch {
+    } catch (cause) {
+      // Said out loud, because the silence is what made the last one so hard
+      // to find: one rejected row stopped the whole queue, and the only
+      // symptom was games quietly coming back. Nothing else here reaches a
+      // logger — this file is written against two small interfaces so it can
+      // be tested without a browser — so console is the whole of it.
+      console.warn(
+        `[sync] push failed, queue stopped at ${entry.kind} ${entry.gameId}:`,
+        cause,
+      );
       // Leave it queued. A failed push is a retry, not a loss, and stopping
       // here keeps the queue in the order it was written.
       report.failed += 1;

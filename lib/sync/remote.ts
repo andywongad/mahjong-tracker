@@ -75,8 +75,13 @@ function toHand(row: HandRow): Hand {
   }
 }
 
-/** Flatten a hand back into the columns the table has. */
-function toRow(gameId: string, hand: HandRecord) {
+/**
+ * Flatten a hand back into the columns the table has.
+ *
+ * Exported for its test: which columns may be null is a property of the
+ * table, and getting it wrong here stops every push, not just this one.
+ */
+export function toRow(gameId: string, hand: HandRecord) {
   const win = hand.type === 'ceot_cung' || hand.type === 'zi_mo';
   return {
     id: hand.id,
@@ -87,7 +92,10 @@ function toRow(gameId: string, hand: HandRecord) {
     discarder_seat: hand.type === 'ceot_cung' ? hand.discarderSeat : null,
     offender_seat: hand.type === 'zaa_wu' ? hand.offenderSeat : null,
     faan: win ? hand.faan : null,
-    is_limit: win ? (hand.isLimit ?? false) : null,
+    // Not nullable in the table, which defaults it to false — and an
+    // explicit null defeats a default rather than falling back to it. A draw
+    // and a false win are not limit hands, so false is also the true answer.
+    is_limit: win ? (hand.isLimit ?? false) : false,
     patterns: win ? (hand.patterns ?? null) : null,
     tiles: win ? (hand.tiles ?? null) : null,
   };
