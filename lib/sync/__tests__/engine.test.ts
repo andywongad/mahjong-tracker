@@ -148,3 +148,52 @@ describe('one pass of syncing', () => {
     expect(report).toEqual({ pushed: 0, pulled: 0, merged: 0, failed: 0 });
   });
 });
+
+describe('deleting the sample game', () => {
+  /**
+   * The sample is never pushed, so the account has nothing to delete — and
+   * its id is not a uuid, so asking the account to delete it fails. A failed
+   * push stays queued and stops the loop, which is right for a network blip
+   * and fatal for a request that can never succeed: every later change, every
+   * later delete included, waits behind it forever while the pull keeps
+   * handing those games back.
+   */
+  it('never asks the account to delete a game it was never given', async () => {
+    const f = fakes([], [], [
+      { id: 1, gameId: SEED_GAME_ID, kind: 'game:delete' },
+    ]);
+
+    const report = await syncOnce(f.local, f.remote);
+
+    expect(f.remote.remove).not.toHaveBeenCalled();
+    expect(report.failed).toBe(0);
+    expect(f.left()).toEqual([]);
+  });
+
+  it('does not wedge the deletes queued behind it', async () => {
+    // The account holds a real game; this device has deleted the sample and
+    // then that game, in that order.
+    const f = fakes([], [game('g1')], [
+      { id: 1, gameId: SEED_GAME_ID, kind: 'game:delete' },
+      { id: 2, gameId: 'g1', kind: 'game:delete' },
+    ]);
+    // The real account rejects the sample's id outright: the column is a
+    // uuid and "seed-aug-19-2026" is not one, so this never succeeds however
+    // many times it is retried.
+    const removing = f.remote.remove as unknown as ReturnType<typeof vi.fn>;
+    const real = removing.getMockImplementation()!;
+    removing.mockImplementation(async (id: string) => {
+      if (id === SEED_GAME_ID) {
+        throw new Error('invalid input syntax for type uuid');
+      }
+      return real(id);
+    });
+
+    await syncOnce(f.local, f.remote);
+
+    expect(f.remote.remove).toHaveBeenCalledWith('g1');
+    expect([...f.remotes.keys()]).toEqual([]);
+    // And the pull did not hand it straight back.
+    expect([...f.locals.keys()]).toEqual([]);
+  });
+});

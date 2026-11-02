@@ -43,8 +43,16 @@ export interface SyncReport {
  * It is the same record on every device, so syncing it would put a copy of a
  * game nobody played into an account, and hand it back to every other device
  * that already has its own.
+ *
+ * Keyed on the id rather than the record, because a delete only has the id —
+ * and a delete is the case that bites. The sample is never pushed, so the
+ * account has nothing to delete, and its id is not a uuid, so asking anyway
+ * fails every time it is tried. A failed push stays queued and stops the
+ * loop, which is right for a network blip and fatal for a request that can
+ * never succeed: every change behind it waits forever while the pull keeps
+ * handing those games back.
  */
-const isOwn = (game: GameRecord) => game.id !== SEED_GAME_ID;
+const isOwn = (id: string) => id !== SEED_GAME_ID;
 
 export async function syncOnce(
   local: LocalGames,
@@ -57,10 +65,10 @@ export async function syncOnce(
   for (const entry of queued) {
     try {
       if (entry.kind === 'game:delete') {
-        await remote.remove(entry.gameId);
+        if (isOwn(entry.gameId)) await remote.remove(entry.gameId);
       } else {
         const game = await local.get(entry.gameId);
-        if (game && isOwn(game)) await remote.upsert(game);
+        if (game && isOwn(game.id)) await remote.upsert(game);
       }
       await local.clearPending(entry.id);
       report.pushed += 1;
@@ -110,7 +118,7 @@ export async function syncOnce(
   //    sign-in this is everything, which is what claims them to the account.
   const known = new Set(theirs.map((game) => game.id));
   for (const game of mine) {
-    if (known.has(game.id) || !isOwn(game)) continue;
+    if (known.has(game.id) || !isOwn(game.id)) continue;
     try {
       await remote.upsert(game);
       report.pushed += 1;
