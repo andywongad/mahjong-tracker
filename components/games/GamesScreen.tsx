@@ -9,6 +9,7 @@ import { formatGameDate } from '@/lib/game/format';
 import { seatColor } from '@/lib/game/seats';
 import type { GameRecord } from '@/lib/game/types';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { DeletedGameToast } from '@/components/ui/DeletedGameToast';
 import { GameSheet } from '@/components/sheets/GameSheet';
 import { formatSigned } from '@/components/ui/Score';
 import { formatMoney } from '@/lib/game/settle';
@@ -27,6 +28,17 @@ export function GamesScreen() {
   // History grows a game a night. Enough to recognise the last few sessions,
   // then more on request, rather than a list that runs off the screen.
   const [shown, setShown] = useState(FIRST_PAGE);
+
+  /**
+   * Delete, and let the provider offer it back.
+   *
+   * No "are you sure": this is the same bargain the record flow strikes, where
+   * a mis-tap is undone afterwards rather than guarded against beforehand. It
+   * is what lets Delete sit on the card instead of two screens away.
+   */
+  async function remove(game: GameRecord) {
+    await deleteGame(game.id);
+  }
 
   const summaries = useMemo(() => summarise(games), [games]);
   const table = useMemo(() => standings(games), [games]);
@@ -105,7 +117,7 @@ export function GamesScreen() {
                   onClick={() => go('table', summary.id)}
                   className="touch w-full px-3 py-2.5 text-left"
                 >
-                  <span className="flex items-baseline gap-2 pr-20">
+                  <span className="flex items-baseline gap-2 pr-28">
                     <span className="text-sm font-semibold">
                       {formatGameDate(summary.date)}
                     </span>
@@ -181,25 +193,41 @@ export function GamesScreen() {
                   </span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    const game = games.find(
-                      (candidate) => candidate.id === summary.id,
-                    );
-                    if (!game) return;
-                    setEditing(game);
-                    setSheetOpen(true);
-                  }}
-                  // Named for the game it edits. "Settings" would now collide
-                  // with the app's own Settings in the header, which is a
-                  // different thing entirely.
-                  aria-label={`Edit ${formatGameDate(summary.date)}`}
-                  className="absolute top-0.5 right-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-2 text-xs"
-                  style={{ color: 'var(--muted)' }}
-                >
-                  Edit
-                </button>
+                <span className="absolute top-0.5 right-1 flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const game = games.find(
+                        (candidate) => candidate.id === summary.id,
+                      );
+                      if (!game) return;
+                      setEditing(game);
+                      setSheetOpen(true);
+                    }}
+                    // Named for the game it edits. "Settings" would now
+                    // collide with the app's own Settings in the header,
+                    // which is a different thing entirely.
+                    aria-label={`Edit ${formatGameDate(summary.date)}`}
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-2 text-xs"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const game = games.find(
+                        (candidate) => candidate.id === summary.id,
+                      );
+                      if (game) void remove(game);
+                    }}
+                    aria-label={`Delete ${formatGameDate(summary.date)}`}
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-2 text-xs"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    Delete
+                  </button>
+                </span>
               </li>
             ))}
           </ul>
@@ -361,6 +389,8 @@ export function GamesScreen() {
         )}
       </main>
 
+      <DeletedGameToast />
+
       {/* Keyed so the fields start from the game being edited, or from the last
           game's names for a new one, on every open. */}
       <GameSheet
@@ -379,13 +409,7 @@ export function GamesScreen() {
             go('table', game.id);
           }
         }}
-        onDelete={
-          editing
-            ? async () => {
-                await deleteGame(editing.id);
-              }
-            : undefined
-        }
+        onDelete={editing ? () => remove(editing) : undefined}
       />
     </>
   );

@@ -46,6 +46,18 @@ interface GamesContextValue {
     >,
   ) => Promise<void>;
   deleteGame: (id: string) => Promise<void>;
+  /** Put a deleted game back, for the undo that follows a delete. */
+  restoreGame: (game: GameRecord) => Promise<void>;
+  /**
+   * The game just deleted, until the offer to put it back lapses.
+   *
+   * Here rather than in a screen because a delete can outlive the screen it
+   * was made on: deleting the game you are sitting in sends you back to home,
+   * and the way out of that mistake has to travel with you.
+   */
+  justDeleted: GameRecord | null;
+  /** Let the offer lapse without taking it. */
+  dismissDeleted: () => void;
   /** What the account sync is doing, or off when signed out. */
   sync: SyncState;
   /** Resolves with the new hand's id, so it can be undone by hand rather than by position. */
@@ -62,6 +74,7 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
   const [pending, setPending] = useState(0);
   const [online, setOnline] = useState(true);
   const [storageError, setStorageError] = useState<Error | null>(null);
+  const [justDeleted, setJustDeleted] = useState<GameRecord | null>(null);
   const account = useSyncExternalStore(
     subscribeAccount,
     getAccount,
@@ -144,8 +157,19 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
         await localStore.updateGame(id, patch);
         await afterLocalWrite();
       },
+      justDeleted,
+      dismissDeleted: () => setJustDeleted(null),
       async deleteGame(id) {
+        // Held before the write, because afterwards there is nothing left to
+        // read it from.
+        const going = games.find((candidate) => candidate.id === id) ?? null;
         await localStore.deleteGame(id);
+        setJustDeleted(going);
+        await afterLocalWrite();
+      },
+      async restoreGame(game) {
+        await localStore.restoreGame(game);
+        setJustDeleted(null);
         await afterLocalWrite();
       },
       async addHand(gameId, hand) {
@@ -162,7 +186,16 @@ export function GamesProvider({ children }: { children: React.ReactNode }) {
         await afterLocalWrite();
       },
     }),
-    [games, loading, storageError, pending, online, sync, afterLocalWrite],
+    [
+      games,
+      loading,
+      storageError,
+      pending,
+      online,
+      sync,
+      justDeleted,
+      afterLocalWrite,
+    ],
   );
 
   return (

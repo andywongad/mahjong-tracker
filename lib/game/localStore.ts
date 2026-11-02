@@ -171,6 +171,13 @@ export const localStore: GameStore = {
     await tx.done;
   },
 
+  async restoreGame(game) {
+    // An ordinary upsert: the outbox already holds the delete, and the two
+    // are replayed in the order they were made, so the account ends up with
+    // the game back rather than gone.
+    return put(game);
+  },
+
   async addHand(gameId, hand: Hand) {
     const game = await load(gameId);
     const record = { ...hand, id: newId(), seq: game.hands.length };

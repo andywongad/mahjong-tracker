@@ -57,6 +57,13 @@ export interface GameStore {
     >,
   ): Promise<GameRecord>;
   deleteGame(id: string): Promise<void>;
+  /**
+   * Put a deleted game back exactly as it was, id and all.
+   *
+   * The way out of a delete is undo rather than a confirmation, so the whole
+   * record is kept until the offer lapses and written back untouched.
+   */
+  restoreGame(game: GameRecord): Promise<GameRecord>;
   addHand(gameId: string, hand: Hand): Promise<GameRecord>;
   updateHand(gameId: string, handId: string, hand: Hand): Promise<GameRecord>;
   deleteHand(gameId: string, handId: string): Promise<GameRecord>;

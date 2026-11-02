@@ -31,14 +31,22 @@ interface Undoable {
 }
 
 export function GameScreen({ gameId }: { gameId: string }) {
-  const { game, loading, addHand, updateHand, deleteHand, updateGame } =
-    useGame(gameId);
+  const {
+    game,
+    loading,
+    addHand,
+    updateHand,
+    deleteHand,
+    updateGame,
+    deleteGame,
+  } = useGame(gameId);
   const { go } = useNavigation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<HandRow | null>(null);
   const [presetSeat, setPresetSeat] = useState<Seat | null>(null);
   const [undoable, setUndoable] = useState<Undoable | null>(null);
   const [confirmingEnd, setConfirmingEnd] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const neverRecorded = useFirstRecord();
 
   // Keep the screen awake while a game is on the table.
@@ -280,6 +288,33 @@ export function GameScreen({ gameId }: { gameId: string }) {
                   : 'End game early'}
               </button>
             )}
+
+            {/* Asked twice, unlike Delete on the history list. Not because
+              it is less reversible — the same offer to put it back follows
+              you home — but because it tears you out of the game you are
+              sitting in, and the destructive neighbour of "End game early"
+              should not be the easier of the two to set off by accident. */}
+            <button
+              type="button"
+              onClick={() => {
+                if (!confirmingDelete) {
+                  setConfirmingDelete(true);
+                  return;
+                }
+                void (async () => {
+                  await deleteGame(game!.id);
+                  go('home', null);
+                })();
+              }}
+              className="touch mx-auto px-3 text-xs underline underline-offset-2"
+              style={{
+                color: confirmingDelete ? 'var(--accent)' : 'var(--muted)',
+              }}
+            >
+              {confirmingDelete
+                ? 'Tap again to delete this game'
+                : 'Delete this game'}
+            </button>
           </aside>
         </div>
       </main>

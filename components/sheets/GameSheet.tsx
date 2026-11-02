@@ -67,7 +67,6 @@ export function GameSheet({
   );
   const [rulesOpen, setRulesOpen] = useState(false);
   const [walkthroughOpen, setWalkthroughOpen] = useState(startInWalkthrough);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const namesOk = names.every((name) => name.trim() !== '');
   const complete = namesOk && date !== '';
@@ -84,12 +83,10 @@ export function GameSheet({
     onClose();
   }
 
+  // No second tap. Deleting a game offers it straight back afterwards, so
+  // the way out of a mis-tap is undo rather than a question asked first.
   async function remove() {
     if (!onDelete) return;
-    if (!confirmingDelete) {
-      setConfirmingDelete(true);
-      return;
-    }
     await onDelete();
     onClose();
   }
@@ -107,16 +104,12 @@ export function GameSheet({
                 type="button"
                 onClick={remove}
                 className="touch rounded-xl px-4 text-sm font-semibold"
-                style={
-                  confirmingDelete
-                    ? { background: 'var(--accent)', color: '#fff' }
-                    : {
-                        border: '1px solid var(--line-strong)',
-                        color: 'var(--accent)',
-                      }
-                }
+                style={{
+                  border: '1px solid var(--line-strong)',
+                  color: 'var(--accent)',
+                }}
               >
-                {confirmingDelete ? 'Tap again to delete' : 'Delete game'}
+                Delete game
               </button>
             )}
             <button

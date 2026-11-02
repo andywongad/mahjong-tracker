@@ -22,10 +22,11 @@ import { formatGameDate } from '@/lib/game/format';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { HintAnchor, useHint } from '@/components/ui/Hint';
 import { GameSheet } from '@/components/sheets/GameSheet';
+import { DeletedGameToast } from '@/components/ui/DeletedGameToast';
 import { formatSigned } from '@/components/ui/Score';
 
 export function HomeScreen() {
-  const { games, loading, createGame } = useGames();
+  const { games, loading, createGame, deleteGame } = useGames();
   const { go } = useNavigation();
   const [newGameOpen, setNewGameOpen] = useState(false);
   // Which door this open of the sheet came through. Asked here rather than
@@ -102,6 +103,30 @@ export function HomeScreen() {
               </span>
             </button>
 
+            {/* The two things to do with a game that is not the game: look
+              at the ones before it, or get rid of this one. They share a row
+              because neither deserves one of its own.
+
+              Delete is one tap, because the offer to put it back appears on
+              this same screen. The version at the table asks twice instead,
+              since deleting there throws you out of the screen you are on. */}
+            <div className="flex items-center justify-between gap-2">
+              <SmallButton
+                compact
+                onClick={() => go('games', null)}
+                hint="Every game you have played, with its final scores"
+              >
+                History
+              </SmallButton>
+              <button
+                type="button"
+                onClick={() => void deleteGame(inProgress.id)}
+                className="touch px-3 text-xs underline underline-offset-2"
+                style={{ color: 'var(--accent)' }}
+              >
+                Delete this game
+              </button>
+            </div>
           </section>
         )}
 
@@ -173,13 +198,20 @@ export function HomeScreen() {
         {/* Under the two actions, because starting a game and scoring a hand
           are what people open this screen for. Rules and Stats are not here
           at all: they belong to a game, and this screen is not one. */}
-        <nav aria-label="Reference" className="grid grid-cols-3 gap-2">
-          <SmallButton
-            onClick={() => go('games', null)}
-            hint="Every game you have played, with its final scores"
-          >
-            History
-          </SmallButton>
+        {/* History is here only when it is not already up beside Delete, so
+          it appears exactly once however the screen is arranged. */}
+        <nav
+          aria-label="Reference"
+          className={`grid gap-2 ${inProgress ? 'grid-cols-2' : 'grid-cols-3'}`}
+        >
+          {!inProgress && (
+            <SmallButton
+              onClick={() => go('games', null)}
+              hint="Every game you have played, with its final scores"
+            >
+              History
+            </SmallButton>
+          )}
           <SmallButton
             onClick={() => go('glossary', null)}
             hint="Every term the app uses, in characters and in English"
@@ -202,6 +234,10 @@ export function HomeScreen() {
           </p>
         )}
       </main>
+
+      {/* Deleting the game you were sitting in sends you here, so the offer
+        to put it back has to be here too. */}
+      <DeletedGameToast />
 
       {/* Keyed so each open starts fresh: from the last game's names rather
         than from whatever was half typed into it before, and on the
