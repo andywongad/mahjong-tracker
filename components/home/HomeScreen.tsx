@@ -41,10 +41,8 @@ export function HomeScreen() {
   // spelled out and tested.
   const inProgress = useMemo(() => resumable(summaries), [summaries]);
   const hasGames = summaries.length > 0;
-  const isNewcomer = useMemo(
-    () => playedGames(summaries).length === 0,
-    [summaries],
-  );
+  const played = useMemo(() => playedGames(games), [games]);
+  const isNewcomer = played.length === 0;
 
   return (
     <>
@@ -249,9 +247,12 @@ export function HomeScreen() {
         editing={null}
         // The last game's table is nearly always this game's table, so the
         // names and the house rules come forward rather than being retyped.
-        lastPlayers={games[0]?.players}
-        lastRules={games[0]?.rules}
-        lastRuleSetName={games[0]?.ruleSetName}
+        // The sample game is not one of theirs, so it carries nothing
+        // forward: a first time table would otherwise find four strangers
+        // and somebody else's house rules already filled in.
+        lastPlayers={played[0]?.players}
+        lastRules={played[0]?.rules}
+        lastRuleSetName={played[0]?.ruleSetName}
         onClose={() => setNewGameOpen(false)}
         onSave={async (draft) => {
           const game = await createGame(draft);

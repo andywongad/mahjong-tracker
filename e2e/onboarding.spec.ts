@@ -118,6 +118,24 @@ test('taking it leads through the questions and back to the new game', async ({
   await expect(page.getByRole('button', { name: 'Start game' })).toBeEnabled();
 });
 
+test('a first game inherits nothing from the seeded sample', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  await page.getByRole('button', { name: /I know what I'm doing/ }).click();
+
+  // Empty seats rather than the sample table's four players.
+  await expect(
+    page.getByPlaceholder('East, deals first', { exact: true }),
+  ).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'Start game' })).toBeDisabled();
+  // And the app's own default, not the sample's house rules.
+  await expect(
+    page.getByRole('button', { name: /^House rules: Hong Kong standard/ }),
+  ).toBeVisible();
+});
+
 test('a named set goes on the game and into the list for the next one', async ({
   page,
 }) => {

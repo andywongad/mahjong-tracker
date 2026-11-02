@@ -255,23 +255,66 @@ export async function markSynced(gameId: string): Promise<void> {
 }
 
 /**
+ * Whether the sample game has already had its one turn in this browser.
+ *
+ * Kept beside the database rather than in it, because recording it in the
+ * database would mean a schema version for a single boolean. Clearing site
+ * data clears both, which is right: that is a fresh browser asking for a
+ * fresh start.
+ */
+const SEEDED_KEY = 'mahjong-seeded';
+
+function seededBefore(): boolean {
+  try {
+    return localStorage.getItem(SEEDED_KEY) !== null;
+  } catch {
+    // Nothing to remember with. Falling back to "seed when empty" is the old
+    // behaviour: a sample that comes back beats one that never arrives.
+    return false;
+  }
+}
+
+function rememberSeeded(): void {
+  try {
+    localStorage.setItem(SEEDED_KEY, '1');
+  } catch {
+    /* Nothing to remember it with. */
+  }
+}
+
+/**
  * Put the reference game in place on first run, exactly once.
  *
- * Both halves matter. The check and the insert share one readwrite transaction,
- * which IndexedDB serialises, so two callers cannot both find the store empty.
- * The promise is cached at module level so React's development double render
- * does not start a second attempt at all.
+ * Three halves matter now.
+ *
+ * The check and the insert share one readwrite transaction, which IndexedDB
+ * serialises, so two callers cannot both find the store empty. The promise is
+ * cached at module level so React's development double render does not start
+ * a second attempt at all.
+ *
+ * And "first run" is remembered, rather than inferred from an empty store. It
+ * used to be inferred, which was fine while deleting a game was buried four
+ * taps deep in a sheet: now that Delete sits on the card and at the table,
+ * deleting the sample — or the last game of any kind — left the store empty,
+ * and the next load read that as a first run and put the sample back. A game
+ * that returns from the dead is worse than no sample at all.
  */
 let seeding: Promise<void> | null = null;
 
 export function ensureSeeded(): Promise<void> {
   if (!seeding) {
     seeding = (async () => {
+      const already = seededBefore();
       const database = await db();
       const tx = database.transaction('games', 'readwrite');
       const store = tx.objectStore('games');
-      if ((await store.count()) === 0) await store.put(buildSeedGame());
+      if (!already && (await store.count()) === 0) {
+        await store.put(buildSeedGame());
+      }
       await tx.done;
+      // Either it was just placed, or it had been placed before and has since
+      // been deleted on purpose. Either way its turn is over.
+      rememberSeeded();
     })();
   }
   return seeding;

@@ -17,9 +17,14 @@
 import { SEED_GAME_ID } from './seed';
 import type { GameSummary } from './standings';
 
-/** The games this person actually played, newest first. */
-export function playedGames(summaries: GameSummary[]): GameSummary[] {
-  return summaries.filter((summary) => summary.id !== SEED_GAME_ID);
+/**
+ * The games this person actually played, newest first.
+ *
+ * Generic over the record, because both the summaries home reads and the full
+ * games the new game sheet is prefilled from have to leave out the sample.
+ */
+export function playedGames<T extends { id: string }>(games: T[]): T[] {
+  return games.filter((game) => game.id !== SEED_GAME_ID);
 }
 
 /** The game to offer, or null when there is nothing to carry on with. */

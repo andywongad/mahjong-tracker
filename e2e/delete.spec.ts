@@ -74,3 +74,23 @@ test('the game that comes back is the same game, hands and all', async ({
   ).toBeVisible();
 });
 
+test('a deleted game stays deleted across a reload', async ({ page }) => {
+  // The sample game is the one people reach for first, and deleting the last
+  // game of any kind leaves the store empty. That used to read as a first run
+  // on the next load, which put the sample straight back.
+  await page.goto('/?view=games');
+  await page.waitForLoadState('networkidle');
+  const listed = page.locator('section:has(h2:text-is("Games played")) li');
+  await expect(listed).toHaveCount(1);
+
+  await page
+    .getByRole('button', { name: /^Delete / })
+    .first()
+    .click();
+  await expect(listed).toHaveCount(0);
+
+  await page.goto('/?view=games');
+  await page.waitForLoadState('networkidle');
+  await expect(listed).toHaveCount(0);
+  await expect(page.getByText('Start a game from home')).toBeVisible();
+});
