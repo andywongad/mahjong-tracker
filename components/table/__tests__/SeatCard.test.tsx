@@ -91,6 +91,8 @@ describe('a seat at the table', () => {
       />,
     );
     expect(screen.queryAllByRole('button')).toHaveLength(0);
-    expect(screen.getByText('64')).toBeVisible();
+    // Signed, always: a score read across a table must never be mistaken
+    // for the wrong direction.
+    expect(screen.getByText('+64')).toBeVisible();
   });
 });

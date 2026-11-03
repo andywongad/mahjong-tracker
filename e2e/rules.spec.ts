@@ -11,6 +11,7 @@ import { expect, test } from '@playwright/test';
 
 const GAME = '/?game=seed-aug-19-2026';
 
+/** A seat's running total, which is always signed. */
 function seatScore(page: import('@playwright/test').Page, name: string) {
   return page.locator(`[aria-label*="won by ${name}"] .tnum`).first();
 }
@@ -20,7 +21,7 @@ test('the rules can be changed from the table, and say what that costs first', a
 }) => {
   await page.goto(GAME);
   await page.waitForLoadState('networkidle');
-  await expect(seatScore(page, 'Player C')).toHaveText('64');
+  await expect(seatScore(page, 'Player C')).toHaveText('+64');
 
   await page.getByRole('button', { name: 'Rules' }).click();
   await page.getByRole('button', { name: /Hong Kong standard/ }).click();
@@ -35,7 +36,7 @@ test('the rules can be changed from the table, and say what that costs first', a
   await page.getByRole('button', { name: 'Recalculate 19 hands' }).click();
 
   // Same hands, same faan, different rules: the scores are worked out again.
-  await expect(seatScore(page, 'Player C')).toHaveText('104');
+  await expect(seatScore(page, 'Player C')).toHaveText('+104');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
@@ -49,11 +50,11 @@ test('a rules change holds after a reload, and only touches this game', async ({
   await page.getByRole('button', { name: /Hong Kong standard/ }).click();
   await page.getByRole('button', { name: 'Apply rules' }).click();
   await page.getByRole('button', { name: 'Recalculate 19 hands' }).click();
-  await expect(seatScore(page, 'Player C')).toHaveText('104');
+  await expect(seatScore(page, 'Player C')).toHaveText('+104');
 
   await page.reload();
   await page.waitForLoadState('networkidle');
-  await expect(seatScore(page, 'Player C')).toHaveText('104');
+  await expect(seatScore(page, 'Player C')).toHaveText('+104');
 
   // A new game starts from the rules of the last one played, not from the
   // rules a saved set happens to hold.
@@ -67,7 +68,7 @@ test('a table can settle a discard between two people only', async ({
 }) => {
   await page.goto(GAME);
   await page.waitForLoadState('networkidle');
-  await expect(seatScore(page, 'Player C')).toHaveText('64');
+  await expect(seatScore(page, 'Player C')).toHaveText('+64');
 
   await page.locator('header').getByRole('button', { name: 'Rules' }).click();
   const sheet = page.getByRole('dialog');
@@ -78,7 +79,7 @@ test('a table can settle a discard between two people only', async ({
 
   // Same nineteen hands, same faan, settled between two people instead of
   // four: every discard win in the game is now one payment.
-  await expect(seatScore(page, 'Player C')).toHaveText('59');
+  await expect(seatScore(page, 'Player C')).toHaveText('+59');
   await expect(seatScore(page, 'Player A')).toHaveText('-12');
   await expect(seatScore(page, 'Player B')).toHaveText('-32');
   await expect(seatScore(page, 'Player D')).toHaveText('-15');

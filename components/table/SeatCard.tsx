@@ -3,8 +3,8 @@
 import { DEALER_CHAR, type Seat } from '@/lib/scoring';
 import { SEAT_WINDS, seatColor } from '@/lib/game/seats';
 import { TERM_BY_ID, termForHandType } from '@/lib/terms';
-import { Wind } from '@/components/ui/Wind';
-import { Delta } from '@/components/ui/Score';
+import { Wind, windLabel } from '@/components/ui/Wind';
+import { formatSigned } from '@/components/ui/Score';
 
 /**
  * One player's tile at the table: their wind, name, running score, what the
@@ -15,32 +15,20 @@ import { Delta } from '@/components/ui/Score';
  * have, which is not a kind of winning and so is not reached through one.
  */
 /**
- * The quiet word over a number, saying which number it is.
+ * A name that fits, or steps down once, or wraps.
  *
- * Allowed to wrap. On the narrow side seats "Last hand" does not fit beside
- * "Total" on one line, and two short lines cost a few pixels of height where
- * truncating to "Tot…" would cost the meaning.
+ * Ten characters is the bar: at 390px the side seats have about 110px, which
+ * holds ten characters at 15px and thirteen at 13px. Past that it goes to two
+ * lines rather than to an ellipsis, because half a name is worse than a name
+ * on two lines when four people are reading it from a metre away.
  */
-function NumberLabel({
-  children,
-  align = 'left',
-  compact = false,
-}: {
-  children: React.ReactNode;
-  align?: 'left' | 'right';
-  /** The side seats, which have about 60px to fit both labels into. */
-  compact?: boolean;
-}) {
-  return (
-    <span
-      className={`min-w-min ${
-        compact ? 'text-[0.55rem]' : 'text-[0.6rem]'
-      } leading-tight font-semibold ${align === 'right' ? 'text-right' : ''}`}
-      style={{ color: 'var(--muted)' }}
-    >
-      {children}
-    </span>
-  );
+function seatNameClass(name: string, compact: boolean): string {
+  // A side seat has about 110px against the top and bottom seats' 150, so it
+  // reaches the step down sooner. Ten characters fit either way, which is the
+  // bar; past that the size drops once and then the word is allowed to break,
+  // since a single long name has no space in it to wrap at.
+  const fits = compact ? 8 : 10;
+  return name.length <= fits ? 'text-[0.9375rem]' : 'text-[0.8125rem]';
 }
 
 export function SeatCard({
@@ -79,39 +67,62 @@ export function SeatCard({
 
   const inner = (
     <>
-      <div className="flex items-baseline gap-1.5">
-        <Wind wind={wind} className="text-base leading-none" label />
-        <span
-          className={`min-w-0 truncate font-semibold ${
-            compact ? 'text-sm' : 'text-[0.95rem]'
-          }`}
-        >
-          {name}
-        </span>
-      </div>
-
-      {/* Two numbers that look alike and mean different things, so each one
-        is named over the top of it. The names are small and quiet: they are
-        read once and then never again, while the numbers under them are read
-        every hand. */}
-      <div className="flex items-end justify-between gap-1">
-        {/* The columns give way so the label can wrap, but a label never
-          goes below its longest word, which is what stopped "Total" being
-          squeezed out of shape by a wide change like -39. */}
-        <span className="flex min-w-0 flex-col">
-          <NumberLabel compact={compact}>Total</NumberLabel>
-          <span
-            className={`tnum font-bold ${compact ? 'text-xl' : 'text-2xl'}`}
-          >
-            {score}
+      {/* Wind and dealer share a row of their own, so the name below gets
+        the whole width of the card. Both were competing with it before: the
+        stacked wind took a column, and the dealer badge was floating over the
+        corner the name ends in. */}
+      <div className="flex items-center justify-between gap-1">
+        <span className="flex items-baseline gap-1">
+          <Wind wind={wind} className="text-sm leading-none" />
+          <span className="text-xs leading-none" style={{ color: 'var(--muted)' }}>
+            {windLabel(wind)}
           </span>
         </span>
-        <span className="flex min-w-0 flex-col items-end">
-          <NumberLabel align="right" compact={compact}>
-            Last hand
-          </NumberLabel>
-          <Delta value={lastDelta} className="text-xs" />
+        {isDealer && (
+          <span
+            className="inline-flex shrink-0 items-center gap-1 rounded-pill px-1.5 py-0.5 text-xs leading-none font-semibold"
+            style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}
+          >
+            <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+              {DEALER_CHAR}
+            </span>
+            Dealer
+          </span>
+        )}
+      </div>
+
+      <span
+        className={`leading-tight font-semibold break-words ${seatNameClass(name, compact)}`}
+      >
+        {name}
+      </span>
+
+      {/* The hero. Signed always, so a score is never read as the wrong
+        direction, and tabular so it does not jump as it changes. */}
+      <div className="flex flex-col gap-1">
+        <span
+          className={`tnum display leading-none font-bold ${
+            compact ? 'text-hero' : 'text-hero'
+          } tablet:text-hero-lg`}
+        >
+          {formatSigned(score)}
         </span>
+
+        {/* Only when the last hand actually moved this player. Before the
+          first hand, and on a hand that cost them nothing, there is nothing
+          to say and the card stays quiet. */}
+        {lastDelta !== 0 && (
+          <span
+            className="self-start rounded-pill px-1.5 py-0.5 text-xs leading-none font-semibold"
+            style={{
+              background: lastDelta > 0 ? 'var(--gain)' : 'var(--loss)',
+              color: '#fff',
+            }}
+          >
+            <span className="sr-only">Last hand </span>
+            {formatSigned(lastDelta)}
+          </span>
+        )}
       </div>
     </>
   );
@@ -123,26 +134,13 @@ export function SeatCard({
   // The two things a player can do to a hand are peers, so they are drawn as
   // peers: the same outlined chip, the same size, one above the other.
   const barClass =
-    'seat-action flex w-full items-center justify-center gap-1 overflow-hidden px-1 text-[0.7rem] leading-none font-semibold whitespace-nowrap';
+    'seat-action flex w-full items-center justify-center gap-1 overflow-hidden px-1 text-xs leading-none font-semibold whitespace-nowrap';
   const barStyle = { minHeight: 30 };
   const style = { borderTopColor: color, borderTopWidth: 3 };
-
-  const badge = isDealer && (
-    <span
-      className="absolute -top-2 -right-1.5 z-10 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.6rem] leading-none font-semibold shadow-sm"
-      style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}
-    >
-      <span lang="zh-Hant" className="hanzi text-xs" aria-hidden="true">
-        {DEALER_CHAR}
-      </span>
-      Dealer
-    </span>
-  );
 
   if (!onSelect) {
     return (
       <div className="tile relative w-full" style={style}>
-        {badge}
         <div className={infoClass}>{inner}</div>
       </div>
     );
@@ -153,8 +151,6 @@ export function SeatCard({
       className={`tile tile-pressable relative w-full${pulse ? ' seat-pulse' : ''}`}
       style={style}
     >
-      {badge}
-
       {/* The whole upper half is the button, so the win stays the easiest thing
         to hit, but it now says so rather than leaving the scorekeeper to guess
         that a card full of numbers is also a control. */}
