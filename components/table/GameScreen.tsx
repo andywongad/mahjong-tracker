@@ -194,6 +194,9 @@ export function GameScreen({ gameId }: { gameId: string }) {
               // Only on a game that has barely started: a nudge over a sample game
               // already nineteen hands deep is noise, not help.
               pulseSeats={live && neverRecorded && result.handCount < 3}
+              // Retires with the nudge: once a hand has been recorded on
+              // this device you have watched the numbers move.
+              explainNumbers={neverRecorded}
             />
 
             {endedEarly ? (

@@ -3,18 +3,18 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * What the top of each screen carries.
  *
- * The rule: Settings is on every screen because it is about the app, and Home
- * on every screen but home itself. A game adds two things of its own — Rules,
- * which is to a game what Settings is to the app, and tabs for the two ways of
- * looking at that game. A screen with no game in it carries neither, because
- * they would be pointing at a game that is not on it.
+ * The rule: Settings is on every screen because it is about the app, and the
+ * name block is the way home from all but home itself. A game adds Rules,
+ * which is to a game what Settings is to the app. The tab row carries the
+ * two views of a game and History beside them, so it is on History too — a
+ * tab that takes you where the tabs vanish is not a tab. History still has
+ * no Rules, because there is no one game there for them to be about.
  */
 
 const GAME = '/?game=seed-aug-19-2026';
 const STATS = '/?view=stats&game=seed-aug-19-2026';
 
 const NO_GAME = [
-  ['/?view=games', 'history'],
   ['/?view=glossary', 'glossary'],
   ['/?view=score', 'score a hand'],
   ['/?view=settle', 'tally details'],
@@ -22,7 +22,7 @@ const NO_GAME = [
 ] as const;
 
 const header = (page: Page) => page.locator('header');
-const tabs = (page: Page) => page.getByRole('navigation', { name: 'This game' });
+const tabs = (page: Page) => page.getByRole('navigation', { name: 'Games' });
 
 async function open(page: Page, url: string) {
   await page.goto(url);
@@ -96,12 +96,13 @@ for (const [url, name] of [
   [GAME, 'the table'],
   [STATS, 'the stats'],
 ] as const) {
-  test(`${name} carries its own rules and both tabs`, async ({ page }) => {
+  test(`${name} carries its own rules and all three tabs`, async ({ page }) => {
     await open(page, url);
 
     await expect(header(page).getByRole('button', { name: 'Rules' })).toBeVisible();
-    await expect(tabs(page).getByRole('button', { name: 'Table' })).toBeVisible();
-    await expect(tabs(page).getByRole('button', { name: 'Stats' })).toBeVisible();
+    for (const tab of ['Table', 'Stats', 'History']) {
+      await expect(tabs(page).getByRole('button', { name: tab })).toBeVisible();
+    }
   });
 }
 
@@ -176,4 +177,22 @@ test('the name block is the way home, from anywhere', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: 'Start a game' }),
   ).toBeVisible();
+});
+
+test('history keeps the tab row but carries no rules of its own', async ({
+  page,
+}) => {
+  await open(page, '/?view=games');
+
+  // The row is here, with History marked, so a tab never lands somewhere the
+  // tabs have disappeared.
+  await expect(
+    tabs(page).getByRole('button', { name: 'History' }),
+  ).toHaveAttribute('aria-current', 'page');
+  await expect(tabs(page).getByRole('button', { name: 'Table' })).toBeVisible();
+
+  // But no Rules: History is every game, not one of them.
+  await expect(header(page).getByRole('button', { name: 'Rules' })).toHaveCount(
+    0,
+  );
 });

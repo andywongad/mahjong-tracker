@@ -385,3 +385,22 @@ test.describe('taking a hand back', () => {
     );
   });
 });
+
+test.describe('naming the two numbers on a card', () => {
+  const caption = /The big number is each player/;
+
+  test('is said while the numbers are new, and retires once a hand lands', async ({
+    page,
+  }) => {
+    await startGame(page);
+    await expect(page.getByText(caption)).toBeVisible();
+
+    await seat(page, 'Player A').click();
+    await page.getByRole('button', { name: /Zi Mo/ }).click();
+    await pick(page, 'How many faan?', '4').click();
+    await page.getByRole('button', { name: 'Save hand 1' }).click();
+
+    // By now you have watched the numbers move and know which is which.
+    await expect(page.getByText(caption)).toHaveCount(0);
+  });
+});

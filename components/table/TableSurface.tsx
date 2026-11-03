@@ -18,6 +18,7 @@ export function TableSurface({
   onSelectSeat,
   endedEarly = false,
   pulseSeats = false,
+  explainNumbers = false,
 }: {
   game: GameRecord;
   replay: ReplayResult;
@@ -27,10 +28,20 @@ export function TableSurface({
   endedEarly?: boolean;
   /** Nudges the seats until the first hand has ever been recorded. */
   pulseSeats?: boolean;
+  /**
+   * Names the two numbers on a card.
+   *
+   * Decided by the caller rather than here: at the table it retires once a
+   * hand has been recorded, because by then you have watched the numbers
+   * move and know which is which. On a shared tally it always shows, since
+   * whoever opened the link may never have used the app at all.
+   */
+  explainNumbers?: boolean;
 }) {
   return (
+    <div className="mx-auto flex w-full max-w-[40rem] flex-col gap-2">
     <div
-      className="mx-auto w-full max-w-[40rem] rounded-2xl p-2.5 sm:p-4"
+      className="rounded-2xl p-2.5 sm:p-4"
       style={{ background: 'var(--felt)' }}
     >
       <div
@@ -102,6 +113,18 @@ export function TableSurface({
           </div>
         </div>
       </div>
+    </div>
+
+    {/* The two numbers on a card look alike and mean different things, so
+      they are named once under the table rather than eight times on it: a
+      caption over every number would be competing with the numbers, which
+      are the thing worth reading. */}
+    {explainNumbers && (
+      <p className="px-1 text-xs" style={{ color: 'var(--muted)' }}>
+        The big number is each player&rsquo;s total. The pill under it is what
+        the last hand did to them.
+      </p>
+    )}
     </div>
   );
 }

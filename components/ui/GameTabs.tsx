@@ -1,11 +1,13 @@
 'use client';
 
 /**
- * The views of one game: the table, and its numbers.
+ * The table, its numbers, and every game before it.
  *
- * Tabs rather than buttons, because that is what they are — the same game
- * looked at two ways, with the one you are on marked. They sit under the
- * title, attached to the screen they belong to.
+ * The first two are one game looked at two ways. History is a wider thing —
+ * all your games, not this one — and it sits here because the row is where
+ * somebody at a table looks when they want to leave it, not because it is a
+ * third view of the same game. It is also why the row is shown on History
+ * itself: a tab that takes you somewhere the tabs disappear is not a tab.
  *
  * Deliberately not role="tab". That role is for switching panels in place,
  * which is what the scorer does; these change route, and the right thing to
@@ -14,7 +16,7 @@
  * the scorer's tabs already carry.
  */
 import { useNavigation } from '@/lib/game/navigation';
-import { StatsIcon, TableIcon } from './HeaderIcons';
+import { HistoryIcon, StatsIcon, TableIcon } from './HeaderIcons';
 import { HintAnchor, useHint } from './Hint';
 
 export function GameTabs({ gameId }: { gameId: string }) {
@@ -37,6 +39,14 @@ export function GameTabs({ gameId }: { gameId: string }) {
         icon={<StatsIcon />}
       >
         Stats
+      </GameTab>
+      <GameTab
+        current={view === 'games'}
+        onClick={() => go('games', null)}
+        hint="Every game you have played, with its final scores"
+        icon={<HistoryIcon />}
+      >
+        History
       </GameTab>
     </>
   );

@@ -81,11 +81,16 @@ export function ScreenHeader({
   const { view, gameId, go } = useNavigation();
 
   const atHome = view === 'home';
-  // The game views. Everything else has no game to act on.
+  // A game is on screen, so there is a set of rules to act on.
   const onGame = view === 'table' || view === 'stats';
+  // History joins the two game views in the tab row, so the row shows there
+  // too: a tab that takes you where the tabs vanish is not a tab. It is not
+  // a game view though, which is why Rules is kept to onGame — on History
+  // there is no one game for it to be about.
+  const withTabs = onGame || view === 'games';
   // The table falls back to the newest game when the route names none, the
   // same way the view itself does, so the tabs point where the screen does.
-  const shownGame = onGame ? (gameId ?? games[0]?.id ?? null) : null;
+  const shownGame = withTabs ? (gameId ?? games[0]?.id ?? null) : null;
 
   return (
     <AppHeader
@@ -98,7 +103,7 @@ export function ScreenHeader({
       onHome={atHome ? undefined : () => go('home', null)}
       right={
         <>
-          {shownGame && (
+          {onGame && shownGame && (
             <HeaderButton
               onClick={() => openSheet('rules')}
               label="Rules"

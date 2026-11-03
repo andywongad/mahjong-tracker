@@ -129,7 +129,7 @@ export function AppHeader({
           }}
         >
           <div className={wide ? 'page-wide' : 'page-column'}>
-            <nav aria-label="This game" className="flex items-center gap-5">
+            <nav aria-label="Games" className="flex items-center gap-5">
               {nav}
             </nav>
           </div>
