@@ -10,7 +10,7 @@ import {
 import { useGame } from '@/lib/game/GamesProvider';
 import { useNavigation } from '@/lib/game/navigation';
 import { formatGameDate } from '@/lib/game/format';
-import { describeHand } from '@/lib/game/describe';
+import { summariseSave } from '@/lib/game/describe';
 import { useWakeLock } from '@/lib/hooks/useWakeLock';
 import {
   dismissSeatHint,
@@ -29,10 +29,14 @@ import { OtherOutcomeSheet } from '@/components/sheets/OtherOutcomeSheet';
 import { TallySummary } from './TallySummary';
 import { ScoreChart } from '@/components/stats/ScoreChart';
 
-/** What the undo toast is currently offering to take back. */
+/**
+ * What the undo toast is currently offering to take back.
+ *
+ * The id only. What the toast says is worked out from the hand list at render
+ * time, so the line and the log can never disagree about what was just saved.
+ */
 interface Undoable {
   handId: string;
-  message: string;
 }
 
 export function GameScreen({ gameId }: { gameId: string }) {
@@ -105,19 +109,19 @@ export function GameScreen({ gameId }: { gameId: string }) {
     setSheetOpen(true);
   }
 
-  /** Every new hand lands the same way: saved, then undoable for six seconds. */
+  /** Every new hand lands the same way: saved, then undoable for a few seconds. */
   async function record(hand: Hand) {
     const handId = await addHand(game!.id, hand);
     markRecorded();
-    setUndoable({ handId, message: describeHand(hand, game!.players) });
+    setUndoable({ handId });
   }
 
   /**
    * A false win, straight from the seat of whoever called it.
    *
    * Nothing else is needed: there is no winner, and the penalty comes from the
-   * rules. Like a draw it is one tap, and like every other hand it is undoable
-   * for six seconds afterwards.
+   * rules. Like a draw it is one tap, and like every other hand it can be
+   * taken back for a few seconds afterwards.
    */
   async function recordFalseWin(seat: Seat) {
     setUndoable(null);
@@ -348,7 +352,10 @@ export function GameScreen({ gameId }: { gameId: string }) {
           {undoable && (
             <UndoToast
               key={undoable.handId}
-              message={undoable.message}
+              message={summariseSave(
+                result.rows[result.rows.length - 1],
+                game.players,
+              )}
               onUndo={undo}
               onDismiss={() => setUndoable(null)}
             />

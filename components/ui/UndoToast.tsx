@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 
 /** How long a mis-tap stays undoable, in milliseconds. */
-export const UNDO_MS = 6000;
+export const UNDO_MS = 8000;
 
 /**
  * Confirms what was just recorded and offers to take it back.
  *
- * Six seconds is long enough to notice a mis-tap and short enough that it never
- * sits in the way of the next hand. It is also why the sheet no longer needs to
- * ask twice: the way out of a mistake is here rather than in a confirmation.
+ * Eight seconds is long enough to read the line, look at the table and decide,
+ * and short enough that it never sits in the way of the next hand. It is also
+ * why the sheet no longer needs to ask twice: the way out of a mistake is here
+ * rather than in a confirmation.
  */
 export function UndoToast({
   message,
@@ -37,6 +38,10 @@ export function UndoToast({
   return (
     <div
       role="status"
+      // Spelled out as well as implied by the role: this is the only
+      // confirmation that a hand was saved, so it has to be heard.
+      aria-live="polite"
+      aria-atomic="true"
       className="pointer-events-auto flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5"
       style={{
         background: 'var(--surface)',

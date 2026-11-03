@@ -182,9 +182,9 @@ test.describe('recording each kind of hand', () => {
     // Never who won, because nobody did: straight into the log once the
     // offender is named, and undoable from the toast like any other hand.
     await expect(page.getByRole('dialog')).toHaveCount(0);
-    await expect(
-      page.getByRole('status').getByText('Player B called a false win'),
-    ).toBeVisible();
+    await expect(page.getByRole('status')).toHaveText(
+      /Hand 1 saved · Player B -\d+/,
+    );
     await expect(seat(page)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
   });
@@ -318,5 +318,70 @@ test.describe('the hint over the table', () => {
     await expect(
       page.getByText('Tap the winner’s seat to record a hand.'),
     ).toHaveCount(0);
+  });
+});
+
+test.describe('taking a hand back', () => {
+  test('restores the scores and the count exactly', async ({ page }) => {
+    await startGame(page);
+
+    // Two hands in, so undo is undoing the last of several rather than the
+    // only one there has ever been.
+    await seat(page, 'Player A').click();
+    await page.getByRole('button', { name: /Zi Mo/ }).click();
+    await pick(page, 'How many faan?', '4').click();
+    await page.getByRole('button', { name: 'Save hand 1' }).click();
+
+    await seat(page, 'Player C').click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Cheut Chung/ })
+      .click();
+    await pick(page, 'Who was the shooter?', 'Player D').click();
+    await pick(page, 'How many faan?', '5').click();
+    await page.getByRole('button', { name: 'Save hand 2' }).click();
+    await expect(page.getByText('2 played')).toBeVisible();
+
+    const before = await scores(page);
+
+    // A third, then take it straight back.
+    await seat(page, 'Player B').click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Zi Mo/ })
+      .click();
+    await pick(page, 'How many faan?', '6').click();
+    await page.getByRole('button', { name: 'Save hand 3' }).click();
+
+    await expect(page.getByRole('status')).toContainText('Hand 3 saved');
+    await expect(page.getByText('3 played')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Undo' }).click();
+
+    await expect(page.getByText('2 played')).toBeVisible();
+    await expect.poll(() => scores(page)).toEqual(before);
+  });
+
+  test('names the hand and what it did to whoever it turned on', async ({
+    page,
+  }) => {
+    await startGame(page);
+
+    await seat(page, 'Player A').click();
+    await page.getByRole('button', { name: /Zi Mo/ }).click();
+    await pick(page, 'How many faan?', '4').click();
+    await page.getByRole('button', { name: 'Save hand 1' }).click();
+
+    // Our table at 4 faan: a self drawn win takes two units from each of the
+    // other three, so the winner is up 24.
+    await expect(page.getByRole('status')).toHaveText(
+      /Hand 1 saved · Player A \+24/,
+    );
+
+    // And a draw turned on nobody, so there is nobody to name.
+    await otherOutcome(page, /Draw/);
+    await expect(page.getByRole('status')).toHaveText(
+      /Hand 2 saved · Nobody won/,
+    );
   });
 });

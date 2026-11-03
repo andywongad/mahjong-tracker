@@ -1,4 +1,4 @@
-import type { Hand } from '@/lib/scoring';
+import type { Hand, HandRow } from '@/lib/scoring';
 import { termForHandType } from '@/lib/terms';
 import type { GameRecord } from './types';
 
@@ -22,4 +22,31 @@ export function describeHand(
     case 'draw':
       return 'Nobody won';
   }
+}
+
+/**
+ * What the toast says after a hand is saved.
+ *
+ * The hand number, then the player the hand turned on and what it did to
+ * them: "Hand 7 saved · Player B +20". Not the full sentence the log carries,
+ * because this is read in passing, by somebody deciding in a second or two
+ * whether they tapped the right seat.
+ */
+export function summariseSave(
+  row: Pick<HandRow, 'handNumber' | 'hand' | 'deltas'>,
+  players: GameRecord['players'],
+): string {
+  const saved = `Hand ${row.handNumber} saved`;
+  const seat =
+    row.hand.type === 'ceot_cung' || row.hand.type === 'zi_mo'
+      ? row.hand.winnerSeat
+      : row.hand.type === 'zaa_wu'
+        ? row.hand.offenderSeat
+        : null;
+
+  // A draw turned on nobody, so there is nobody to name.
+  if (seat === null) return `${saved} \u00b7 Nobody won`;
+
+  const delta = row.deltas[seat];
+  return `${saved} \u00b7 ${players[seat]} ${delta > 0 ? '+' : ''}${delta}`;
 }

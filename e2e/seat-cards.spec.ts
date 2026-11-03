@@ -88,7 +88,8 @@ test('the change pill is there only when the last hand moved you', async ({
   // Before any hand, nobody has moved, so no card carries a change.
   await expect(page.getByText(/^Last hand /)).toHaveCount(0);
 
-  await page.getByRole('button', { name: new RegExp(`won by ${NAMES[0]}`) }).click();
+  // The whole card is the control now, and its name leads with the player.
+  await page.getByRole('button', { name: new RegExp(`^${NAMES[0]}, `) }).click();
   await page.getByRole('dialog').getByRole('button', { name: /Zi Mo/ }).click();
   await page
     .getByRole('dialog')
