@@ -113,7 +113,13 @@ export function Sheet({
         tabIndex={-1}
         onClick={onClose}
         className="absolute inset-0 cursor-default"
-        style={{ background: '#17211e73' }}
+        // Darker than it was, and blurred where the browser supports it, so
+        // the page behind reads as out of play rather than merely dimmed.
+        style={{
+          background: 'var(--scrim)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}
       />
 
       <div
@@ -122,7 +128,7 @@ export function Sheet({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`pad-safe-bottom relative flex max-h-[90vh] w-full flex-col rounded-t-2xl outline-none tablet:max-h-[85vh] tablet:rounded-2xl tablet:pb-0 ${
+        className={`pad-safe-bottom relative flex max-h-[90vh] w-full flex-col rounded-t-sheet outline-none tablet:max-h-[85vh] tablet:rounded-sheet tablet:pb-0 ${
           tall ? 'h-[90vh] tablet:h-[85vh]' : ''
         } ${
           wide
