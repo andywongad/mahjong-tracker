@@ -18,7 +18,10 @@ async function startGame(page: Page) {
 
 async function deleteFromMenu(page: Page) {
   await page.getByRole('button', { name: 'This game' }).click();
-  await page.getByRole('button', { name: /^Delete game/ }).click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /^Delete game/ })
+    .click();
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
 }
 

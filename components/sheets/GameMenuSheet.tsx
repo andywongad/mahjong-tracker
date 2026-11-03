@@ -20,6 +20,7 @@ import { Sheet } from './Sheet';
 
 export function GameMenuSheet({
   open,
+  startConfirming = false,
   date,
   handCount,
   canEndEarly,
@@ -30,6 +31,12 @@ export function GameMenuSheet({
   onDelete,
 }: {
   open: boolean;
+  /**
+   * Opens straight on the question, for the Delete game link under the
+   * table. One confirmation, asked the same way wherever it is reached
+   * from, rather than a second one worded slightly differently.
+   */
+  startConfirming?: boolean;
   date: string;
   handCount: number;
   /** Hands have been played, and nobody has called it yet. */
@@ -40,7 +47,7 @@ export function GameMenuSheet({
   onEndEarly: () => void;
   onDelete: () => void;
 }) {
-  const [confirming, setConfirming] = useState(false);
+  const [confirming, setConfirming] = useState(startConfirming);
   const named = formatGameDate(date);
 
   // Asked afresh each time it opens, so a sheet reopened after a cancel does

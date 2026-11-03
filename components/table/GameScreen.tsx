@@ -19,6 +19,7 @@ import {
   useSeatHint,
 } from '@/lib/hooks/useFirstRecord';
 import { logEvent } from '@/lib/telemetry/events';
+import { openSheet } from '@/lib/ui/sheets';
 import { termForHandType } from '@/lib/terms';
 import { OfflineBadge } from '@/components/ui/OfflineBadge';
 import { UndoToast } from '@/components/ui/UndoToast';
@@ -55,6 +56,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const [undoable, setUndoable] = useState<Undoable | null>(null);
   const neverRecorded = useFirstRecord();
   const showSeatHint = useSeatHint();
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
 
   // Keep the screen awake while a game is on the table.
   useWakeLock(Boolean(game));
@@ -232,6 +234,48 @@ export function GameScreen({ gameId }: { gameId: string }) {
                     void record({ type: 'draw' });
                   }}
                 />
+
+                {/* Both are in the game's menu as well, which is the one
+                  place that holds all of them and the only way to reach
+                  them from Stats. They are repeated here because the table
+                  is where somebody is sitting when a night ends, and
+                  opening a menu to say so is a step too many. */}
+                <div className="flex items-center justify-between gap-3 px-1">
+                  {result.handCount > 0 && !result.isComplete ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!confirmingEnd) {
+                          setConfirmingEnd(true);
+                          return;
+                        }
+                        void updateGame(game!.id, {
+                          endedAt: new Date().toISOString(),
+                        });
+                        setConfirmingEnd(false);
+                      }}
+                      className="touch px-2 text-xs underline underline-offset-2"
+                      style={{
+                        color: confirmingEnd ? 'var(--accent)' : 'var(--muted)',
+                      }}
+                    >
+                      {confirmingEnd
+                        ? `Tap again to end after ${result.handCount} hands`
+                        : 'End game early'}
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => openSheet('game-delete')}
+                    className="touch px-2 text-xs underline underline-offset-2"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    Delete game
+                  </button>
+                </div>
               </div>
             )}
 

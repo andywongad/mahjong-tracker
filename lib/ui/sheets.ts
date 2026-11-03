@@ -17,6 +17,7 @@ export type GlobalSheet =
   | 'rules'
   | 'account'
   | 'game-menu'
+  | 'game-delete'
   | null;
 
 let current: GlobalSheet = null;

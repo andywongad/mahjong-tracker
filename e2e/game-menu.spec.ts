@@ -19,22 +19,17 @@ async function startGame(page: Page) {
   await page.waitForURL(/\?game=/);
 }
 
-test('the loose links are gone from the table and from home', async ({
+test('home no longer offers to delete the game it is only mentioning', async ({
   page,
 }) => {
   await startGame(page);
-
-  await expect(
-    page.getByRole('button', { name: 'Delete this game' }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByRole('button', { name: /End game early/ }),
-  ).toHaveCount(0);
-
   await page.goto('/');
   await page.waitForLoadState('networkidle');
+
+  // The table keeps its own End game early and Delete game under the felt;
+  // home is not a game, so it carries neither.
   await expect(
-    page.getByRole('button', { name: 'Delete this game' }),
+    page.getByRole('button', { name: /Delete/ }),
   ).toHaveCount(0);
 });
 
@@ -61,13 +56,15 @@ test('deleting asks first, and cancelling leaves the game alone', async ({
   const url = page.url();
 
   await menu(page).click();
-  await page.getByRole('button', { name: /^Delete game/ }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /^Delete game/ }).click();
   await expect(
     page.getByRole('heading', { name: 'Delete this game?' }),
   ).toBeVisible();
 
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await expect(page.getByRole('button', { name: /Delete game/ })).toBeVisible();
+  await expect(
+    page.getByRole('dialog').getByRole('button', { name: /Delete game/ }),
+  ).toBeVisible();
 
   // Closing and reopening does not come back still holding the question.
   await page.getByRole('button', { name: 'Close' }).last().click();
@@ -85,7 +82,7 @@ test('confirming deletes it and sends you home, with the way back', async ({
   await startGame(page);
 
   await menu(page).click();
-  await page.getByRole('button', { name: /^Delete game/ }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /^Delete game/ }).click();
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: 'Start a game' })).toBeVisible();
@@ -96,7 +93,10 @@ test('the rules still open, now from inside the menu', async ({ page }) => {
   await startGame(page);
 
   await menu(page).click();
-  await page.getByRole('button', { name: /House rules/ }).click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /House rules/ })
+    .click();
 
   await expect(
     page.getByRole('heading', { name: 'House rules' }),
@@ -118,7 +118,45 @@ test('ending early is offered once there are hands to end after', async ({
   await page.getByRole('button', { name: 'Save hand 1' }).click();
 
   await menu(page).click();
-  await page.getByRole('button', { name: /End game early/ }).click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /End game early/ })
+    .click();
+
+  await expect(page.getByText(/Game ended after 1 hand/)).toBeVisible();
+});
+
+test('the table keeps its own way to end and to delete', async ({ page }) => {
+  await startGame(page);
+
+  // Both are in the menu as well. They are repeated under the felt because
+  // the table is where somebody is sitting when a night ends.
+  const foot = page.getByRole('button', { name: 'Delete game' });
+  await expect(foot).toBeVisible();
+
+  await foot.click();
+  // The same question the menu asks, not a second one worded differently.
+  await expect(
+    page.getByRole('heading', { name: 'Delete this game?' }),
+  ).toBeVisible();
+});
+
+test('ending early from under the table asks twice', async ({ page }) => {
+  await startGame(page);
+  await page.getByRole('button', { name: /^Player A, / }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Zi Mo/ }).click();
+  await page
+    .getByRole('dialog')
+    .locator('section')
+    .filter({ has: page.getByRole('heading', { name: 'How many faan?' }) })
+    .getByRole('button', { name: '4' })
+    .click();
+  await page.getByRole('button', { name: 'Save hand 1' }).click();
+
+  await page.getByRole('button', { name: 'End game early' }).click();
+  await page
+    .getByRole('button', { name: /Tap again to end after 1 hand/ })
+    .click();
 
   await expect(page.getByText(/Game ended after 1 hand/)).toBeVisible();
 });

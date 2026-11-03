@@ -65,7 +65,11 @@ export function GlobalSheets() {
       <AccountSheet open={open === 'account'} onClose={closeSheet} />
       {game && (
         <GameMenuSheet
-          open={open === 'game-menu'}
+          // Keyed on which door it came through, so the one that opens on
+          // the question starts there and the other starts on the menu.
+          key={open === 'game-delete' ? 'delete' : 'menu'}
+          open={open === 'game-menu' || open === 'game-delete'}
+          startConfirming={open === 'game-delete'}
           date={game.date}
           handCount={handCount}
           canEndEarly={canEndEarly}
