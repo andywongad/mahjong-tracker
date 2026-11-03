@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 export const SIZES = [
   { name: 'phone', width: 390, height: 844 },
   { name: 'tablet', width: 820, height: 1180 },
-  { name: 'desktop', width: 1280, height: 800 },
+  { name: 'desktop', width: 1440, height: 900 },
 ] as const;
 
 /** The seeded reference game, which every fresh browser profile starts with. */
@@ -79,6 +79,40 @@ export const ROUTES: Route[] = [
     },
   },
   {
+    name: 'record-hand-shooter',
+    go: async (page) => {
+      await page.goto(`/?game=${GAME}`);
+      await settle(page);
+      await page
+        .getByRole('button', { name: /Record hand \d+ won by/ })
+        .first()
+        .click();
+      await page.waitForTimeout(400);
+      await page
+        .getByRole('dialog')
+        .getByRole('button', { name: /Cheut Chung/ })
+        .click();
+      await page.waitForTimeout(400);
+    },
+  },
+  {
+    name: 'record-hand-faan',
+    go: async (page) => {
+      await page.goto(`/?game=${GAME}`);
+      await settle(page);
+      await page
+        .getByRole('button', { name: /Record hand \d+ won by/ })
+        .first()
+        .click();
+      await page.waitForTimeout(400);
+      await page
+        .getByRole('dialog')
+        .getByRole('button', { name: /Zi Mo/ })
+        .click();
+      await page.waitForTimeout(500);
+    },
+  },
+  {
     name: 'hand-scorer',
     go: async (page) => {
       await page.goto(`/?game=${GAME}`);
@@ -125,6 +159,21 @@ export const ROUTES: Route[] = [
     go: async (page) => {
       await page.goto('/?view=score');
       await settle(page);
+    },
+  },
+  {
+    name: 'score-hand-full',
+    go: async (page) => {
+      await page.goto('/?view=score');
+      await settle(page);
+      // Enough tiles to show the hand taking shape.
+      const tiles = page.getByRole('button', { name: /^Add / });
+      const count = Math.min(await tiles.count(), 8);
+      for (let index = 0; index < count; index += 1) {
+        await tiles.nth(index).click();
+        await page.waitForTimeout(80);
+      }
+      await page.waitForTimeout(500);
     },
   },
   {

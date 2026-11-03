@@ -27,7 +27,10 @@ if (phase && phase !== 'before' && phase !== 'after') {
   throw new Error(`SHOT_PHASE must be before or after, got ${phase}`);
 }
 
-const outDir = `design-review/${phase}`;
+// SHOT_ROOT keeps each review round's set apart; a before set cannot be
+// re-taken without checking the old code back out.
+const root = process.env.SHOT_ROOT ?? 'design-review';
+const outDir = `${root}/${phase}`;
 if (phase) mkdirSync(outDir, { recursive: true });
 
 for (const route of routes) {

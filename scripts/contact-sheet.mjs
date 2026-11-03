@@ -1,19 +1,24 @@
 /*
- * Build design-review/index.html: every route at every width, before beside
- * after, so a change can be judged rather than described.
+ * Build a contact sheet: every route at every width, before beside after, so
+ * a change can be judged rather than described.
  *
  *   node scripts/contact-sheet.mjs
+ *   SHOT_ROOT=design-review/round2 node scripts/contact-sheet.mjs
+ *
+ * SHOT_ROOT keeps a round's before set from being overwritten by the next
+ * round's, since a before set cannot be re-taken without checking the old
+ * code back out.
  *
  * Images are referenced, never copied, and the whole folder is gitignored.
  */
 import { existsSync, readdirSync, writeFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const ROOT = 'design-review';
+const ROOT = process.env.SHOT_ROOT ?? 'design-review';
 const SIZES = [
   { name: 'phone', label: '390 x 844' },
   { name: 'tablet', label: '820 x 1180' },
-  { name: 'desktop', label: '1280 x 800' },
+  { name: 'desktop', label: '1440 x 900' },
 ];
 
 function shotsIn(phase) {
@@ -110,6 +115,6 @@ writeFileSync(
 );
 
 console.log(
-  `design-review/index.html written: ${routes.length} routes, ` +
+  `${ROOT}/index.html written: ${routes.length} routes, ` +
     `${before.size} before, ${after.size} after`,
 );
