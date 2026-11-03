@@ -47,15 +47,12 @@ export function GameScreen({ gameId }: { gameId: string }) {
     updateHand,
     deleteHand,
     updateGame,
-    deleteGame,
   } = useGame(gameId);
   const { go } = useNavigation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<HandRow | null>(null);
   const [presetSeat, setPresetSeat] = useState<Seat | null>(null);
   const [undoable, setUndoable] = useState<Undoable | null>(null);
-  const [confirmingEnd, setConfirmingEnd] = useState(false);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const neverRecorded = useFirstRecord();
   const showSeatHint = useSeatHint();
 
@@ -221,7 +218,12 @@ export function GameScreen({ gameId }: { gameId: string }) {
               <div className="flex flex-col gap-2">
                 {/* A draw belongs to nobody, so it is recorded from under
                   the table rather than from a seat. A false win belongs to
-                  whoever called it, and is on their card. */}
+                  whoever called it, and is on their card.
+
+                  Ending and deleting the game used to sit here too. They are
+                  in the game's own menu now: neither is why anybody came to
+                  this screen, and one of them cannot be undone by tapping
+                  again. */}
                 <SecondaryAction
                   hanzi={termForHandType('draw').zh}
                   label={termForHandType('draw').english}
@@ -294,58 +296,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
               </button>
             )}
 
-            {result.handCount > 0 && !endedEarly && !result.isComplete && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (!confirmingEnd) {
-                    setConfirmingEnd(true);
-                    return;
-                  }
-                  void updateGame(game!.id, {
-                    endedAt: new Date().toISOString(),
-                  });
-                  setConfirmingEnd(false);
-                }}
-                // A rare, deliberate, reversible action. Kept as a plain link so it
-                // does not compete with settling, which is the common next step.
-                className="touch mx-auto px-3 text-xs underline underline-offset-2"
-                style={{
-                  color: confirmingEnd ? 'var(--accent)' : 'var(--muted)',
-                }}
-              >
-                {confirmingEnd
-                  ? `Tap again to end after ${result.handCount} hands`
-                  : 'End game early'}
-              </button>
-            )}
-
-            {/* Asked twice, unlike Delete on the history list. Not because
-              it is less reversible — the same offer to put it back follows
-              you home — but because it tears you out of the game you are
-              sitting in, and the destructive neighbour of "End game early"
-              should not be the easier of the two to set off by accident. */}
-            <button
-              type="button"
-              onClick={() => {
-                if (!confirmingDelete) {
-                  setConfirmingDelete(true);
-                  return;
-                }
-                void (async () => {
-                  await deleteGame(game!.id);
-                  go('home', null);
-                })();
-              }}
-              className="touch mx-auto px-3 text-xs underline underline-offset-2"
-              style={{
-                color: confirmingDelete ? 'var(--accent)' : 'var(--muted)',
-              }}
-            >
-              {confirmingDelete
-                ? 'Tap again to delete this game'
-                : 'Delete this game'}
-            </button>
           </aside>
         </div>
       </main>

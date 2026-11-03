@@ -1,51 +1,66 @@
-import { expect, test } from '@playwright/test';
-import { openNewGame } from './newgame';
+import { expect, test, type Page } from '@playwright/test';
+import { openNewGame, TABLE } from './newgame';
 
 /**
- * Deleting the game you are sitting in.
+ * Deleting the game you are looking at, and getting it back.
  *
- * Asked twice, because it ejects you from the screen — and then offered back
- * on home, because by that point the screen the delete was made on is gone.
+ * The confirmation is game-menu.spec's subject; this is about what happens
+ * to the data afterwards — that undo restores the same game rather than a
+ * copy of it, and that walking away from the offer really does leave it
+ * deleted.
  */
-test('the game at the table can be deleted, and comes back', async ({
-  page,
-}) => {
+
+async function startGame(page: Page) {
   await openNewGame(page);
   await page.getByRole('button', { name: 'Start game' }).click();
   await page.waitForURL(/\?game=/);
+}
+
+async function deleteFromMenu(page: Page) {
+  await page.getByRole('button', { name: 'This game' }).click();
+  await page.getByRole('button', { name: /^Delete game/ }).click();
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+}
+
+test('undo restores the same game, hands and all', async ({ page }) => {
+  await startGame(page);
   const table = page.url();
 
-  // One tap arms it, and says what it is about to do.
-  await page.getByRole('button', { name: 'Delete this game' }).click();
-  await expect(
-    page.getByRole('button', { name: 'Tap again to delete this game' }),
-  ).toBeVisible();
+  // A hand, so there is something to lose beyond the game itself.
+  await page.getByRole('button', { name: new RegExp(`^${TABLE[0]}, `) }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Zi Mo/ }).click();
+  await page
+    .getByRole('dialog')
+    .locator('section')
+    .filter({ has: page.getByRole('heading', { name: 'How many faan?' }) })
+    .getByRole('button', { name: '4' })
+    .click();
+  await page.getByRole('button', { name: 'Save hand 1' }).click();
 
-  await page.getByRole('button', { name: 'Tap again to delete this game' }).click();
-
-  // Home, with the offer to put it back.
-  await expect(page.getByRole('heading', { name: 'Start a game' })).toBeVisible();
+  await deleteFromMenu(page);
   await expect(page.getByRole('status')).toContainText('Deleted');
 
   await page.getByRole('button', { name: 'Undo' }).click();
-  await expect(page.getByRole('status')).toHaveCount(0);
 
-  // The same game, at the same address.
+  // Wait for the restore to land rather than racing the navigation: home
+  // shows the game again as soon as it is back.
+  await expect(
+    page.getByRole('heading', { name: 'Current game' }),
+  ).toBeVisible();
+
+  // The same id, so its own link still works and the hand is still on it.
   await page.goto(table);
   await expect(
-    page.getByRole('button', { name: /^Player A, / }),
+    page.getByRole('button', { name: new RegExp(`^${TABLE[0]}, `) }),
   ).toBeVisible();
+  await expect(page.getByText('1 played')).toBeVisible();
 });
 
-test('a game deleted at the table is gone from history if left alone', async ({
+test('left alone, the offer lapses and the game stays deleted', async ({
   page,
 }) => {
-  await openNewGame(page);
-  await page.getByRole('button', { name: 'Start game' }).click();
-  await page.waitForURL(/\?game=/);
-
-  await page.getByRole('button', { name: 'Delete this game' }).click();
-  await page.getByRole('button', { name: 'Tap again to delete this game' }).click();
+  await startGame(page);
+  await deleteFromMenu(page);
   await expect(page.getByRole('status')).toContainText('Deleted');
 
   // Walk away from the offer rather than taking it.
@@ -55,64 +70,26 @@ test('a game deleted at the table is gone from history if left alone', async ({
   await expect(listed).toHaveCount(1); // the seeded sample only
 });
 
-test('the current game can be deleted from home, and comes back', async ({
-  page,
-}) => {
-  await openNewGame(page);
-  await page.getByRole('button', { name: 'Start game' }).click();
-  await page.waitForURL(/\?game=/);
-  const table = page.url();
-
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-  await expect(page.getByRole('heading', { name: 'Current game' })).toBeVisible();
-
-  // One tap from home, where the offer to put it back then appears.
-  await page.getByRole('button', { name: 'Delete this game' }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Current game' }),
-  ).toHaveCount(0);
-  await expect(page.getByRole('status')).toContainText('Deleted');
-
-  await page.getByRole('button', { name: 'Undo' }).click();
-  await expect(page.getByRole('heading', { name: 'Current game' })).toBeVisible();
-
-  // The same game, at the same address.
-  await page.goto(table);
-  await expect(
-    page.getByRole('button', { name: /^Player A, / }),
-  ).toBeVisible();
-});
-
-test('History shares the row with Delete, and is never listed twice', async ({
+test('History sits with the current game, and is listed once', async ({
   page,
 }) => {
   const reference = page.getByRole('navigation', { name: 'Reference' });
 
-  // With no current game, History is one of the three reference buttons.
   await page.goto('/');
   await page.waitForLoadState('networkidle');
   await expect(
     reference.getByRole('button', { name: 'History' }),
   ).toBeVisible();
 
-  await openNewGame(page);
-  await page.getByRole('button', { name: 'Start game' }).click();
-  await page.waitForURL(/\?game=/);
+  await startGame(page);
   await page.goto('/');
   await page.waitForLoadState('networkidle');
 
-  // Now it sits beside Delete instead, and has left the reference row rather
-  // than appearing in both.
-  const row = page.locator('section:has(h2:text-is("Current game")) div', {
-    has: page.getByRole('button', { name: 'Delete this game' }),
-  });
-  await expect(row.getByRole('button', { name: 'History' })).toBeVisible();
+  // Now it sits beside the current game instead, and has left the reference
+  // row rather than appearing in both.
+  const current = page.locator('section:has(h2:text-is("Current game"))');
+  await expect(current.getByRole('button', { name: 'History' })).toBeVisible();
   await expect(reference.getByRole('button', { name: 'History' })).toHaveCount(
     0,
   );
-
-  // And it still goes to history.
-  await row.getByRole('button', { name: 'History' }).click();
-  await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
 });

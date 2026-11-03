@@ -20,13 +20,15 @@ test('a hint appears under the pointer and says what the button does', async ({
 
   await expect(tooltip(page)).toHaveCount(0);
 
-  await page.locator('header').getByRole('button', { name: 'Rules' }).hover();
-  await expect(tooltip(page)).toHaveText(/what it pays/i);
+  await page.locator('header').getByRole('button', { name: 'This game' }).hover();
+  await expect(tooltip(page)).toHaveText(/deleting it/i);
 
   // It describes the button rather than renaming it, so the name is still the
   // name a screen reader reads first.
-  const rules = page.locator('header').getByRole('button', { name: 'Rules' });
-  await expect(rules).toHaveAttribute('aria-describedby', /./);
+  const gameMenu = page
+    .locator('header')
+    .getByRole('button', { name: 'This game' });
+  await expect(gameMenu).toHaveAttribute('aria-describedby', /./);
 });
 
 test('the hint goes when the pointer does', async ({ page }) => {
@@ -66,7 +68,7 @@ test('a touch screen never shows one', async ({ browser }) => {
   // A finger arriving is not a pointer hovering; it is on its way to a press.
   await page
     .locator('header')
-    .getByRole('button', { name: 'Rules' })
+    .getByRole('button', { name: 'This game' })
     .evaluate((el) => {
       el.parentElement?.dispatchEvent(
         new PointerEvent('pointerenter', { pointerType: 'touch', bubbles: false }),
@@ -75,7 +77,7 @@ test('a touch screen never shows one', async ({ browser }) => {
   await expect(tooltip(page)).toHaveCount(0);
 
   // And tapping it still does what it always did.
-  await page.locator('header').getByRole('button', { name: 'Rules' }).tap();
+  await page.locator('header').getByRole('button', { name: 'This game' }).tap();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(tooltip(page)).toHaveCount(0);
   await context.close();

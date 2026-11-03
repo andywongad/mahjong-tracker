@@ -3,16 +3,21 @@
 /**
  * Which app-wide sheet is open.
  *
- * Settings, the house rules and the account are reachable from the top of a
- * screen rather than from inside one, so none of them can belong to the
- * screen that happens to be showing. They are rendered once, above the view,
+ * Settings, the house rules, the account and a game's own menu are reachable
+ * from the top of a screen rather than from inside one, so none of them can
+ * belong to the screen that happens to be showing. They are rendered once, above the view,
  * and opened through this.
  *
  * The same external-store shape as the theme: it is state that lives outside
  * React's tree, read through useSyncExternalStore rather than threaded down
  * as props through every screen that might want to open one.
  */
-export type GlobalSheet = 'settings' | 'rules' | 'account' | null;
+export type GlobalSheet =
+  | 'settings'
+  | 'rules'
+  | 'account'
+  | 'game-menu'
+  | null;
 
 let current: GlobalSheet = null;
 const listeners = new Set<() => void>();

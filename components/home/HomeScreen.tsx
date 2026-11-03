@@ -26,7 +26,7 @@ import { DeletedGameToast } from '@/components/ui/DeletedGameToast';
 import { formatSigned } from '@/components/ui/Score';
 
 export function HomeScreen() {
-  const { games, loading, createGame, deleteGame } = useGames();
+  const { games, loading, createGame } = useGames();
   const { go } = useNavigation();
   const [newGameOpen, setNewGameOpen] = useState(false);
   // Which door this open of the sheet came through. Asked here rather than
@@ -102,28 +102,18 @@ export function HomeScreen() {
               </span>
             </button>
 
-            {/* The two things to do with a game that is not the game: look
-              at the ones before it, or get rid of this one. They share a row
-              because neither deserves one of its own.
-
-              Delete is one tap, because the offer to put it back appears on
-              this same screen. The version at the table asks twice instead,
-              since deleting there throws you out of the screen you are on. */}
-            <div className="flex items-center justify-between gap-2">
+            {/* History sits with the current game because the two are the
+              same question asked twice: this night, and the ones before it.
+              Deleting used to sit here too, in the open on a screen nobody
+              came to in order to delete anything. It is in the game's own
+              menu now. */}
+            <div className="flex">
               <SmallButton
                 onClick={() => go('games', null)}
                 hint="Every game you have played, with its final scores"
               >
                 History
               </SmallButton>
-              <button
-                type="button"
-                onClick={() => void deleteGame(inProgress.id)}
-                className="touch px-3 text-xs underline underline-offset-2"
-                style={{ color: 'var(--accent)' }}
-              >
-                Delete this game
-              </button>
             </div>
           </section>
         )}

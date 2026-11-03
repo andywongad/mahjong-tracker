@@ -4,9 +4,13 @@
  * The top of every screen inside the app.
  *
  * Settings on the right on every screen, because it is about the app. A game
- * adds two things of its own: Rules, which is to a game what Settings is to
- * the app and so sits next to it, and a row of tabs for the two ways of
- * looking at that game.
+ * adds a menu of its own holding everything you can do to the game rather
+ * than in it — its rules, its players, ending it, deleting it — and a row of
+ * tabs for the ways of looking at it.
+ *
+ * Rules moved into that menu rather than sitting beside it: at 390px a third
+ * icon button cost the four player names, and Rules is a setting of this
+ * game, which is what the rest of the menu is too.
  *
  * Getting home is the name block on the left, not a button on the right. One
  * fewer control in a bar that never had room, and the two at the right are
@@ -32,7 +36,7 @@ import { useNavigation } from '@/lib/game/navigation';
 import { openSheet } from '@/lib/ui/sheets';
 import { AppHeader, HeaderButton } from './AppHeader';
 import { GameTabs } from './GameTabs';
-import { AccountIcon, RulesIcon, SettingsIcon } from './HeaderIcons';
+import { AccountIcon, MoreIcon, SettingsIcon } from './HeaderIcons';
 
 /**
  * Signing in, next to settings on home.
@@ -105,11 +109,11 @@ export function ScreenHeader({
         <>
           {onGame && shownGame && (
             <HeaderButton
-              onClick={() => openSheet('rules')}
-              label="Rules"
-              hint="What this table counts and what it pays, changeable mid game"
+              onClick={() => openSheet('game-menu')}
+              label="This game"
+              hint="Its rules, its players, and ending or deleting it"
             >
-              <RulesIcon />
+              <MoreIcon />
             </HeaderButton>
           )}
           {atHome && <AccountButton />}

@@ -4,8 +4,8 @@ import { expect, test, type Page } from '@playwright/test';
  * What the top of each screen carries.
  *
  * The rule: Settings is on every screen because it is about the app, and the
- * name block is the way home from all but home itself. A game adds Rules,
- * which is to a game what Settings is to the app. The tab row carries the
+ * name block is the way home from all but home itself. A game adds a menu of
+ * its own, holding everything you can do to the game rather than in it. The tab row carries the
  * two views of a game and History beside them, so it is on History too — a
  * tab that takes you where the tabs vanish is not a tab. History still has
  * no Rules, because there is no one game there for them to be about.
@@ -43,7 +43,7 @@ test('home carries settings and nothing that belongs to a game', async ({
   await expect(
     header(page).getByRole('heading', { name: /Mahjong\s*Tracker/ }),
   ).toBeVisible();
-  await expect(header(page).getByRole('button', { name: 'Rules' })).toHaveCount(0);
+  await expect(header(page).getByRole('button', { name: 'This game' })).toHaveCount(0);
   await expect(tabs(page)).toHaveCount(0);
 });
 
@@ -87,7 +87,7 @@ for (const [url, name] of NO_GAME) {
       header(page).getByRole('button', { name: /back to the start/ }),
     ).toBeVisible();
     await expect(header(page).getByRole('button', { name: 'Settings' })).toBeVisible();
-    await expect(header(page).getByRole('button', { name: 'Rules' })).toHaveCount(0);
+    await expect(header(page).getByRole('button', { name: 'This game' })).toHaveCount(0);
     await expect(tabs(page)).toHaveCount(0);
   });
 }
@@ -96,10 +96,10 @@ for (const [url, name] of [
   [GAME, 'the table'],
   [STATS, 'the stats'],
 ] as const) {
-  test(`${name} carries its own rules and all three tabs`, async ({ page }) => {
+  test(`${name} carries its own menu and all three tabs`, async ({ page }) => {
     await open(page, url);
 
-    await expect(header(page).getByRole('button', { name: 'Rules' })).toBeVisible();
+    await expect(header(page).getByRole('button', { name: 'This game' })).toBeVisible();
     for (const tab of ['Table', 'Stats', 'History']) {
       await expect(tabs(page).getByRole('button', { name: tab })).toBeVisible();
     }
@@ -129,9 +129,15 @@ test('the tabs move between the two views of one game, and mark which', async ({
   await expect(page).not.toHaveURL(/view=stats/);
 });
 
-test("a game's rules open from its header", async ({ page }) => {
+test("a game's own menu opens from its header", async ({ page }) => {
   await open(page, GAME);
-  await header(page).getByRole('button', { name: 'Rules' }).click();
+  await header(page).getByRole('button', { name: 'This game' }).click();
+
+  // The menu, and the rules one step inside it.
+  await expect(
+    page.getByRole('dialog').getByRole('button', { name: /House rules/ }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: /House rules/ }).click();
   await expect(page.getByRole('dialog').getByText(/faan/i).first()).toBeVisible();
 });
 
@@ -179,7 +185,7 @@ test('the name block is the way home, from anywhere', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('history keeps the tab row but carries no rules of its own', async ({
+test('history keeps the tab row but carries no menu of its own', async ({
   page,
 }) => {
   await open(page, '/?view=games');
@@ -192,7 +198,7 @@ test('history keeps the tab row but carries no rules of its own', async ({
   await expect(tabs(page).getByRole('button', { name: 'Table' })).toBeVisible();
 
   // But no Rules: History is every game, not one of them.
-  await expect(header(page).getByRole('button', { name: 'Rules' })).toHaveCount(
+  await expect(header(page).getByRole('button', { name: 'This game' })).toHaveCount(
     0,
   );
 });

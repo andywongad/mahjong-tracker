@@ -11,6 +11,12 @@ import { expect, test } from '@playwright/test';
 
 const GAME = '/?game=seed-aug-19-2026';
 
+/** The rules live in the game's own menu now, not beside Settings. */
+async function openRules(page: import('@playwright/test').Page) {
+  await page.locator('header').getByRole('button', { name: 'This game' }).click();
+  await page.getByRole('button', { name: /House rules/ }).click();
+}
+
 /** A seat's running total, which is always signed. */
 function seatScore(page: import('@playwright/test').Page, name: string) {
   return page.locator(`[aria-label^="${name}, "] .tnum`).first();
@@ -23,7 +29,7 @@ test('the rules can be changed from the table, and say what that costs first', a
   await page.waitForLoadState('networkidle');
   await expect(seatScore(page, 'Player C')).toHaveText('+64');
 
-  await page.getByRole('button', { name: 'Rules' }).click();
+  await openRules(page);
   await page.getByRole('button', { name: /Hong Kong standard/ }).click();
 
   // A change part way through never happens without saying what it does.
@@ -46,7 +52,7 @@ test('a rules change holds after a reload, and only touches this game', async ({
   await page.goto(GAME);
   await page.waitForLoadState('networkidle');
 
-  await page.getByRole('button', { name: 'Rules' }).click();
+  await openRules(page);
   await page.getByRole('button', { name: /Hong Kong standard/ }).click();
   await page.getByRole('button', { name: 'Apply rules' }).click();
   await page.getByRole('button', { name: 'Recalculate 19 hands' }).click();
@@ -70,7 +76,7 @@ test('a table can settle a discard between two people only', async ({
   await page.waitForLoadState('networkidle');
   await expect(seatScore(page, 'Player C')).toHaveText('+64');
 
-  await page.locator('header').getByRole('button', { name: 'Rules' }).click();
+  await openRules(page);
   const sheet = page.getByRole('dialog');
   await sheet.getByText('Only the shooter pays, at face value').click();
 
