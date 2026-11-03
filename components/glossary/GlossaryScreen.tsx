@@ -64,7 +64,7 @@ export function GlossaryScreen() {
 
         {groups.map((section) => (
           <section key={section.group} className="flex flex-col gap-2">
-            <h2 className="text-sm font-semibold">
+            <h2 className="text-lg font-bold">
               {GROUP_LABELS[section.group]}
             </h2>
             <ul className="flex flex-col gap-2">

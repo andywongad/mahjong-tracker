@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { HandDeltas, markFor } from '../HandDeltas';
+import { DeltaCell, DeltaLegend, HandDeltas, markFor } from '../HandDeltas';
 import type { Hand } from '@/lib/scoring';
 
 const DISCARD: Hand = {
@@ -70,5 +70,48 @@ describe('a hand’s four changes', () => {
     render(<HandDeltas hand={SELF_DRAW} deltas={[-16, -16, 48, -16]} />);
     expect(screen.getByText('+48')).toBeVisible();
     expect(screen.getAllByText('-16')).toHaveLength(3);
+  });
+});
+
+describe('the legend', () => {
+  it('names all three marks, in the order a hand creates them', () => {
+    render(<DeltaLegend />);
+
+    const labels = screen
+      .getAllByRole('listitem')
+      .map((item) => item.textContent);
+    expect(labels).toEqual(['Won', 'Shooter', 'Self pick']);
+  });
+
+  it('paints each swatch with the colour its chip uses', () => {
+    const { container } = render(
+      <>
+        <DeltaCell value={10} mark="won" />
+        <DeltaCell value={-10} mark="shooter" />
+        <DeltaCell value={30} mark="self-pick" />
+        <DeltaLegend />
+      </>,
+    );
+
+    // The legend reads from the same map as the chips, so a colour changed in
+    // one place cannot leave the other explaining the wrong thing.
+    const swatches = [
+      ...container.querySelectorAll<HTMLElement>('li span[aria-hidden]'),
+    ];
+    const chips = [...container.querySelectorAll<HTMLElement>('span.tnum')];
+    expect(swatches).toHaveLength(3);
+    swatches.forEach((swatch, index) => {
+      expect(swatch.getAttribute('style')).toBe(
+        `background: ${chips[index].style.background};`,
+      );
+    });
+  });
+
+  it('leaves the swatches out of the reading, since the chips announce themselves', () => {
+    render(<DeltaLegend />);
+
+    for (const swatch of document.querySelectorAll('li span[aria-hidden]')) {
+      expect(swatch.getAttribute('aria-hidden')).toBe('true');
+    }
   });
 });

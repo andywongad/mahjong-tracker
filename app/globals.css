@@ -74,8 +74,8 @@
   --self-pick: #2a2a8a;
   --on-self-pick: #ffffff;
 
-  --shadow-tile: 0 1px 2px #17211e14;
-  --shadow-tile-sm: 0 1px 2px #17211e0f;
+  --shadow-tile: 0 1px 3px #17211e1a;
+  --shadow-tile-sm: 0 1px 3px #17211e14;
   --shadow-sheet: 0 -8px 40px #17211e2e;
 
   --radius-tile: 16px;
@@ -267,8 +267,13 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Cards. A hairline, a large radius and the faintest shadow: enough to lift
-   off the page, not enough to be furniture.
+   Cards. A large radius and one soft shadow: enough to lift off the page, not
+   enough to be furniture.
+
+   They used to carry a hairline as well. Two devices to separate a card from
+   a page it is already almost the same colour as is one too many, and the
+   doubling is most of what made a screen of them look like a screen of
+   fenced-off boxes rather than a page.
 
    These used to carry a solid jade back edge so every card read as a mahjong
    tile. The drawn tiles still do, in Tile.tsx, which paints its own face and
@@ -277,16 +282,27 @@ body {
 --------------------------------------------------------------------------- */
 .tile {
   background: var(--tile-face);
-  border: 1px solid var(--tile-edge);
+  border: 1px solid transparent;
   border-radius: var(--radius-tile);
   box-shadow: var(--shadow-tile);
 }
 
 .tile-sm {
   background: var(--tile-face);
-  border: 1px solid var(--tile-edge);
-  border-radius: 14px;
+  border: 1px solid transparent;
+  border-radius: 16px;
   box-shadow: var(--shadow-tile-sm);
+}
+
+/* Inside a sheet the hairline goes back on.
+   Dropping it works on the page, where a card is a lighter shape on a grey
+   ground and a soft shadow finishes the job. A sheet is already the lighter
+   shape: its surface and a card's face are within one percent of each other,
+   so a shadow has nothing to cast against and the edge is the only thing
+   separating them. */
+[role='dialog'] .tile,
+[role='dialog'] .tile-sm {
+  border-color: var(--tile-edge);
 }
 
 /* A press dims the face rather than sinking it onto an edge it no longer has. */

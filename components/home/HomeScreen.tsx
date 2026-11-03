@@ -54,7 +54,7 @@ export function HomeScreen() {
       <main
         id="main"
         tabIndex={-1}
-        className="page-column pad-safe-bottom flex flex-col gap-6 px-4 py-4"
+        className="page-column pad-safe-bottom flex flex-col gap-7 px-4 py-5"
       >
         {loading && (
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
@@ -64,7 +64,7 @@ export function HomeScreen() {
 
         {!loading && inProgress && (
           <section className="flex flex-col gap-2">
-            <h2 className="text-sm font-semibold">Current game</h2>
+            <h2 className="text-lg font-bold">Current game</h2>
             <button
               type="button"
               onClick={() => go('table', inProgress.id)}
@@ -110,7 +110,6 @@ export function HomeScreen() {
               since deleting there throws you out of the screen you are on. */}
             <div className="flex items-center justify-between gap-2">
               <SmallButton
-                compact
                 onClick={() => go('games', null)}
                 hint="Every game you have played, with its final scores"
               >
@@ -132,7 +131,13 @@ export function HomeScreen() {
           // One short paragraph, read once in a person's life. Anything longer
           // is a manual nobody asked for; How this works is there for whoever
           // wants it.
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+          // Fifteen, not sixteen. Read once in a person's life and muted,
+          // so at full body size it became the largest thing on the screen
+          // and outran the two buttons it is there to introduce.
+          <p
+            className="text-[0.9375rem] leading-relaxed"
+            style={{ color: 'var(--muted)' }}
+          >
             Keep score for a Hong Kong mahjong table. Tap whoever won, and the
             payments, the dealer and the round look after themselves. No
             account needed, and it works with no signal.
@@ -175,7 +180,7 @@ export function HomeScreen() {
               setNewGameOpen(true);
             }}
             label="I'm still learning"
-            detail="Four questions about how your table plays, each answered in what a hand actually costs"
+            detail="We'll walk you through the scoring — four quick questions, each one in real numbers"
           />
           <DoorButton
             onClick={() => {
@@ -192,7 +197,7 @@ export function HomeScreen() {
         <ActionButton
           onClick={() => go('score', null)}
           hint="Tap the tiles in and be told what the hand is worth, with no game and no score kept"
-          className="tile-sm tile-pressable touch w-full rounded-xl py-3.5 text-sm font-semibold"
+          className="tile-sm tile-pressable touch w-full rounded-2xl py-4 text-base font-semibold"
         >
           Score a hand
         </ActionButton>
@@ -201,37 +206,37 @@ export function HomeScreen() {
         {/* Under the two actions, because starting a game and scoring a hand
           are what people open this screen for. Rules and Stats are not here
           at all: they belong to a game, and this screen is not one. */}
-        {/* History is here only when it is not already up beside Delete, so
-          it appears exactly once however the screen is arranged. */}
-        <nav
-          aria-label="Reference"
-          className={`grid gap-2 ${inProgress ? 'grid-cols-2' : 'grid-cols-3'}`}
-        >
+        {/* Not three little boxes. A card is for an object; these are links
+          to things you read, so they are grouped by a hairline and a gap
+          like a list rather than fenced off one by one. History is here only
+          when it is not already up beside Delete, so it appears exactly once
+          however the screen is arranged. */}
+        <nav aria-label="Reference" className="flex flex-col">
           {!inProgress && (
-            <SmallButton
+            <ReadingLink
               onClick={() => go('games', null)}
               hint="Every game you have played, with its final scores"
             >
               History
-            </SmallButton>
+            </ReadingLink>
           )}
-          <SmallButton
+          <ReadingLink
             onClick={() => go('glossary', null)}
             hint="Every term the app uses, in characters and in English"
           >
             Glossary
-          </SmallButton>
-          <SmallButton
+          </ReadingLink>
+          <ReadingLink
             onClick={() => go('about', null)}
             hint="A short tour of recording a hand, the rules and sharing the tally"
             hintAlign="end"
           >
             How this works
-          </SmallButton>
+          </ReadingLink>
         </nav>
 
         {hasGames && (
-          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>
             Games are kept on this device. Send the tally to the group when you
             are done.
           </p>
@@ -314,10 +319,13 @@ function DoorButton({
     <button
       type="button"
       onClick={onClick}
-      className="tile-sm tile-pressable touch flex w-full flex-col gap-1 rounded-xl px-4 py-3.5 text-left"
+      className="tile-sm tile-pressable touch flex w-full flex-col gap-1 rounded-2xl px-4 py-4 text-left"
     >
-      <span className="text-base font-semibold">{label}</span>
-      <span className="text-xs" style={{ color: 'var(--muted)' }}>
+      <span className="text-lg font-semibold">{label}</span>
+      <span
+        className="text-sm leading-snug"
+        style={{ color: 'var(--muted)' }}
+      >
         {detail}
       </span>
     </button>
@@ -325,34 +333,67 @@ function DoorButton({
 }
 
 /**
- * A quiet button for the reading material.
+ * One row of the reading list: a label, a chevron, a hairline under it.
  *
- * Fills its grid cell by default; `compact` sizes it to its label instead, for
- * the row it shares with Delete under the current game.
+ * Deliberately not a card. Three cards in a row read as three more things to
+ * do, competing with the two that matter; three rows read as a contents page,
+ * which is what they are.
  */
-function SmallButton({
+function ReadingLink({
   onClick,
   hint,
   hintAlign,
-  compact = false,
   children,
 }: {
   onClick: () => void;
   hint: string;
   hintAlign?: 'center' | 'end';
-  compact?: boolean;
   children: React.ReactNode;
 }) {
   const { anchorProps, targetProps, bubble } = useHint(hint, hintAlign);
   return (
-    <HintAnchor className={compact ? '' : 'w-full'} {...anchorProps}>
+    <HintAnchor className="w-full" {...anchorProps}>
       <button
         type="button"
         onClick={onClick}
         {...targetProps}
-        className={`tile-sm tile-pressable touch rounded-xl text-xs font-semibold ${
-          compact ? 'px-4 py-2' : 'w-full px-1 py-3'
-        }`}
+        className="touch flex w-full items-center justify-between gap-3 text-left text-sm font-semibold"
+        style={{ borderBottom: '1px solid var(--line)' }}
+      >
+        {children}
+        <span aria-hidden="true" style={{ color: 'var(--muted)' }}>
+          &rsaquo;
+        </span>
+      </button>
+      {bubble}
+    </HintAnchor>
+  );
+}
+
+/**
+ * A small bordered button, sized to its label.
+ *
+ * All that is left of it is the History beside Delete, where a box is right:
+ * it sits in a row with a destructive text link and needs to not look like
+ * one.
+ */
+function SmallButton({
+  onClick,
+  hint,
+  children,
+}: {
+  onClick: () => void;
+  hint: string;
+  children: React.ReactNode;
+}) {
+  const { anchorProps, targetProps, bubble } = useHint(hint);
+  return (
+    <HintAnchor {...anchorProps}>
+      <button
+        type="button"
+        onClick={onClick}
+        {...targetProps}
+        className="tile-sm tile-pressable touch rounded-xl px-4 py-2 text-xs font-semibold"
       >
         {children}
       </button>

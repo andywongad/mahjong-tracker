@@ -89,6 +89,46 @@ export function DeltaCell({
   );
 }
 
+/** The three marks, in the order a hand creates them. */
+const MARKS: DeltaMark[] = ['won', 'shooter', 'self-pick'];
+
+/**
+ * What the three colours mean.
+ *
+ * Built from the same map the chips are, so the legend cannot drift from the
+ * thing it explains. The swatch is hidden from assistive technology because
+ * it says nothing the label beside it does not — and because the chips
+ * themselves already announce their role, a reader never needs the legend at
+ * all. It is here for the eyes.
+ */
+export function DeltaLegend({
+  className = '',
+  style,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <ul
+      className={`flex flex-wrap items-center gap-x-3 gap-y-1 ${className}`}
+      style={style}
+    >
+      {MARKS.map((mark) => (
+        <li key={mark} className="flex items-center gap-1.5">
+          <span
+            aria-hidden="true"
+            className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
+            style={{ background: MARK_STYLE[mark].background }}
+          />
+          <span className="text-[0.65rem]" style={{ color: 'var(--muted)' }}>
+            {markLabel(mark)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /**
  * What one hand did to all four players, in seat order, aligned to the columns
  * above the log. One component for the log and the preview, so what you see

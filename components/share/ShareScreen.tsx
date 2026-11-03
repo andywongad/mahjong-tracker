@@ -101,7 +101,7 @@ export function ShareScreen({ slug }: { slug: string }) {
 
         <section className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-base font-bold">Hands</h2>
+            <h2 className="text-lg font-bold">Hands</h2>
             <span className="tnum text-xs" style={{ color: 'var(--muted)' }}>
               {result.handCount} played
             </span>

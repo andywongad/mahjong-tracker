@@ -34,7 +34,7 @@ export function FeedMatrix({
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold">Who feeds whom</h2>
+      <h2 className="text-lg font-bold">Who feeds whom</h2>
       <p className="text-xs" style={{ color: 'var(--muted)' }}>
         Rows are who fed, columns who won. Each cell is the{' '}
         <span className="font-semibold" style={{ color: 'var(--ink)' }}>

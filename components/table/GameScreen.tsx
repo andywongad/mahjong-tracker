@@ -206,7 +206,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
 
             <section className="flex flex-col gap-2">
               <div className="flex items-baseline justify-between">
-                <h2 className="text-base font-bold">Hands</h2>
+                <h2 className="text-lg font-bold">Hands</h2>
                 <span
                   className="tnum text-xs"
                   style={{ color: 'var(--muted)' }}
@@ -230,7 +230,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
               log. On a phone the chart lives on Stats and this is skipped. */}
             {result.handCount > 0 && (
               <section className="hidden flex-col gap-2 desktop:flex">
-                <h2 className="text-base font-bold">Running score</h2>
+                <h2 className="text-lg font-bold">Running score</h2>
                 <div className="tile-sm px-3 py-3">
                   <ScoreChart
                     series={result.series}

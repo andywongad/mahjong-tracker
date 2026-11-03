@@ -101,7 +101,7 @@ export function SettleScreen() {
         )}
 
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">Games included</h2>
+          <h2 className="text-lg font-bold">Games included</h2>
           <ul className="flex flex-col gap-2">
             {games.map((game) => {
               const on = selected.includes(game.id);
@@ -163,7 +163,7 @@ export function SettleScreen() {
         {chosen.length > 0 && (
           <>
             <section className="flex flex-col gap-2">
-              <h2 className="text-sm font-semibold">Where everyone stands</h2>
+              <h2 className="text-lg font-bold">Where everyone stands</h2>
               <div className="tile overflow-x-auto">
                 <table className="w-full text-sm">
                   <caption className="sr-only">Net result per player</caption>
@@ -241,7 +241,7 @@ export function SettleScreen() {
             </section>
 
             <section className="flex flex-col gap-2">
-              <h2 className="text-sm font-semibold">Payments to make</h2>
+              <h2 className="text-lg font-bold">Payments to make</h2>
               {settlement.transfers.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--muted)' }}>
                   Everyone is level. Nothing to settle.

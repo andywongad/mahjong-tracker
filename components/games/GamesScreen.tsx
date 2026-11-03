@@ -89,7 +89,7 @@ export function GamesScreen() {
 
         <section className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-2">
-            <h2 className="text-sm font-semibold">Games played</h2>
+            <h2 className="text-lg font-bold">Games played</h2>
             {summaries.length > 0 && (
               <p className="text-xs" style={{ color: 'var(--muted)' }}>
                 Tap a game to record hands
@@ -257,7 +257,7 @@ export function GamesScreen() {
 
         {table.length > 0 && (
           <section className="flex flex-col gap-2">
-            <h2 className="text-sm font-semibold">All time standings</h2>
+            <h2 className="text-lg font-bold">All time standings</h2>
             <p className="text-xs" style={{ color: 'var(--muted)' }}>
               Scroll the table sideways for the full picture.
             </p>

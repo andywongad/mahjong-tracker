@@ -4,7 +4,7 @@ import type { HandRow } from '@/lib/scoring';
 import type { GameRecord } from '@/lib/game/types';
 import { Wind } from '@/components/ui/Wind';
 import { Term } from '@/components/ui/Term';
-import { HandDeltas } from '@/components/ui/HandDeltas';
+import { DeltaLegend, HandDeltas } from '@/components/ui/HandDeltas';
 import { PlayerColumns } from './PlayerColumns';
 import { describeHand } from '@/lib/game/describe';
 import { termForHandType } from '@/lib/terms';
@@ -88,6 +88,12 @@ export function HandLog({
       <PlayerColumns
         players={game.players}
         className="px-1 py-2"
+        style={{ background: 'var(--surface)' }}
+      />
+
+      {/* Under the names, where the coloured numbers it explains line up. */}
+      <DeltaLegend
+        className="px-3 pb-2"
         style={{
           background: 'var(--surface)',
           borderBottom: '1px solid var(--line)',

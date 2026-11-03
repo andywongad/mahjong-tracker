@@ -19,6 +19,7 @@ import { formatSigned } from '@/components/ui/Score';
 import { formatMoney } from '@/lib/game/settle';
 import { Term, TermStack } from '@/components/ui/Term';
 import { glossOf } from '@/lib/terms';
+import { HighlightsSection } from './HighlightsSection';
 import { ScoreChart } from './ScoreChart';
 import { SwingSection } from './SwingSection';
 import { FeedMatrix } from './FeedMatrix';
@@ -65,8 +66,15 @@ export function StatsScreen({ gameId }: { gameId: string }) {
         tabIndex={-1}
         className="page-column flex flex-col gap-6 px-4 py-4 pad-safe-bottom"
       >
+        {/* Before the tables, because it is the thing somebody opening Stats
+          after a game actually came for. */}
+        <HighlightsSection
+          summary={summary}
+          finished={summary.isComplete || Boolean(game.endedAt)}
+        />
+
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">Summary</h2>
+          <h2 className="text-lg font-bold">Summary</h2>
           <div className="tile overflow-x-auto">
             <table className="w-full text-sm">
               <caption className="sr-only">
@@ -209,7 +217,7 @@ export function StatsScreen({ gameId }: { gameId: string }) {
         <PatternSection players={summary.players} />
 
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">Running score</h2>
+          <h2 className="text-lg font-bold">Running score</h2>
           <div className="tile px-3 py-3">
             <ScoreChart
               series={result.series}
@@ -301,7 +309,7 @@ function percent(value: number): string {
 function FormSection({ players }: { players: PlayerStats[] }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold">Form</h2>
+      <h2 className="text-lg font-bold">Form</h2>
       <div className="tile overflow-x-auto">
         <table className="w-full text-sm">
           <caption className="sr-only">
@@ -408,7 +416,7 @@ function PatternSection({ players }: { players: PlayerStats[] }) {
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold">Patterns</h2>
+      <h2 className="text-lg font-bold">Patterns</h2>
       <ul className="flex flex-col gap-2">
         {withPatterns.map((player) => {
           const top = Object.entries(player.patternCounts)
@@ -479,7 +487,7 @@ function ByFaanTable({
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold">{title}</h2>
+      <h2 className="text-lg font-bold">{title}</h2>
       {columns.length === 0 ? (
         <p className="text-sm" style={{ color: 'var(--muted)' }}>
           Nothing to show yet.

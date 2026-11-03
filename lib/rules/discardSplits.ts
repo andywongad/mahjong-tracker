@@ -4,6 +4,10 @@ import type { Rules } from './types';
 /**
  * The ways a table can split a discard win, gentlest first.
  *
+ * Gentlest by what actually changes hands at a given faan: one unit, then
+ * two, then four and four. A table reading down the list is reading up the
+ * amount it is playing for.
+ *
  * The thing tables most often disagree about, so it is asked in the rules
  * sheet and again in the walkthrough — from this one list, so the four can
  * never drift apart or fall out of step with what the engine does with them.
@@ -39,18 +43,18 @@ export const DISCARD_SPLITS: DiscardSplit[] = [
     recommended: true,
   },
   {
-    id: 'shared',
-    label: `${glossOf('cheut_chung')} pays double, others pay one each`,
-    detail: 'The whole table pays, the shooter pays most',
-    shooter: 2,
-    others: 1,
-  },
-  {
     id: 'shooter_only',
     label: `Only the ${LOWER_SHOOTER} pays, at double`,
     detail: 'The other two pay nothing',
     shooter: 2,
     others: 0,
+  },
+  {
+    id: 'shared',
+    label: `${glossOf('cheut_chung')} pays double, others pay one each`,
+    detail: 'The whole table pays, the shooter pays most',
+    shooter: 2,
+    others: 1,
   },
   {
     id: 'shooter_all',

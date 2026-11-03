@@ -60,10 +60,11 @@ describe('the discard question', () => {
   it('offers all four ways a table can split it, gentlest first', () => {
     setup();
 
+    // Ascending by what actually changes hands: one unit, two, four, four.
     const labels = [
       /Only the shooter pays, at face value/,
-      /Shooter pays double, others pay one each/,
       /Only the shooter pays, at double/,
+      /Shooter pays double, others pay one each/,
       /Only the shooter pays, the full amount/,
     ];
     for (const label of labels) {

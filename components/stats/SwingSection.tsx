@@ -19,7 +19,7 @@ export function SwingSection({ players }: { players: PlayerStats[] }) {
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold">Swings</h2>
+      <h2 className="text-lg font-bold">Swings</h2>
       <ul
         className="tile flex flex-col divide-y"
         style={{ borderColor: 'var(--line)' }}
