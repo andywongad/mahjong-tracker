@@ -76,10 +76,13 @@ export function HomeScreen() {
               }}
             >
               <span className="flex items-baseline justify-between gap-3">
-                <span className="text-base font-semibold">
+                {/* A point up on each line. The card is read from further
+                  away than the rest of this screen — it is the thing
+                  somebody opens the app at the table to get back to. */}
+                <span className="text-[1.0625rem] font-semibold">
                   {formatGameDate(inProgress.date)}
                 </span>
-                <span className="tnum text-xs opacity-80">
+                <span className="tnum text-[0.8125rem] opacity-80">
                   {inProgress.isComplete
                     ? 'Round finished'
                     : `Hand ${inProgress.handCount + 1}`}
@@ -91,7 +94,7 @@ export function HomeScreen() {
                 {inProgress.players.map((player, seat) => (
                   <span
                     key={seat}
-                    className="flex items-baseline justify-between gap-2 text-xs"
+                    className="flex items-baseline justify-between gap-2 text-[0.8125rem]"
                   >
                     <span className="truncate opacity-80">{player}</span>
                     <span className="tnum shrink-0 font-semibold">
