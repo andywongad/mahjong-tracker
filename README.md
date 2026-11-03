@@ -1,4 +1,4 @@
-# Mahjong tracker
+# Mahjong Tracker
 
 Hong Kong mahjong scorekeeping for the table: a mobile-first progressive web app
 that replaces the spreadsheet a group keeps during games.

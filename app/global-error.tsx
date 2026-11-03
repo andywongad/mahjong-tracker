@@ -28,7 +28,7 @@ export default function GlobalError({
           font: '16px/1.5 ui-sans-serif, system-ui, sans-serif',
         }}
       >
-        <h1 style={{ fontSize: 20, margin: 0 }}>Mahjong tracker could not start</h1>
+        <h1 style={{ fontSize: 20, margin: 0 }}>Mahjong Tracker could not start</h1>
         <p style={{ margin: 0, fontSize: 14 }}>
           Your games are stored in this browser and have not been touched.
         </p>

@@ -16,13 +16,13 @@ const SEATS = ['East, deals first', 'South', 'West', 'North'];
 /**
  * Open the new game sheet from home and name the four seats.
  *
- * Home asks which kind of table this is; a spec that is here to play takes
- * the door that goes straight to the players.
+ * One front door, and the names start empty, so a spec that is here to play
+ * types its own four.
  */
 export async function openNewGame(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await page.getByRole('button', { name: /I know what I'm doing/ }).click();
+  await page.getByRole('button', { name: 'New game' }).click();
   for (const [seat, placeholder] of SEATS.entries()) {
     await page.getByPlaceholder(placeholder, { exact: true }).fill(TABLE[seat]);
   }

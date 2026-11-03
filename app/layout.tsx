@@ -15,9 +15,9 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: 'Mahjong tracker',
+  title: 'Mahjong Tracker',
   description: 'Hong Kong mahjong scorekeeping for the table',
-  applicationName: 'Mahjong tracker',
+  applicationName: 'Mahjong Tracker',
   appleWebApp: {
     capable: true,
     title: 'Mahjong',

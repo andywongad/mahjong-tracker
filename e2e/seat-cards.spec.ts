@@ -14,7 +14,7 @@ const SEATS = ['East, deals first', 'South', 'West', 'North'];
 async function startWithLongNames(page: Page) {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await page.getByRole('button', { name: /I know what I'm doing/ }).click();
+  await page.getByRole('button', { name: 'New game' }).click();
   for (const [index, placeholder] of SEATS.entries()) {
     await page.getByPlaceholder(placeholder, { exact: true }).fill(NAMES[index]);
   }

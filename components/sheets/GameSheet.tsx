@@ -1,17 +1,16 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { SEATS, WIND_CHARS, type PlayerNames, type Seat } from '@/lib/scoring';
 import { HK_STANDARD, presetFor, type Rules } from '@/lib/rules/types';
 import { RulesSheet } from './RulesSheet';
-import { RulesWalkthroughSheet } from './RulesWalkthroughSheet';
 import { formatStake } from '@/lib/game/settle';
 import { SEAT_WINDS, seatSolid } from '@/lib/game/seats';
 import { todayIso } from '@/lib/game/ids';
+import { formatGameDate } from '@/lib/game/format';
 import { windLabel } from '@/components/ui/Wind';
 import type { GameRecord, NewGameInput } from '@/lib/game/types';
 import { Sheet } from './Sheet';
-import { romanOf } from '@/lib/terms';
 
 /**
  * New game, or edit an existing one. Names are entered by starting seat and
@@ -23,7 +22,6 @@ export function GameSheet({
   lastPlayers,
   lastRules,
   lastRuleSetName,
-  startInWalkthrough = false,
   onClose,
   onSave,
   onDelete,
@@ -35,12 +33,6 @@ export function GameSheet({
   /** Rules from the most recent game: a table rarely changes them between games. */
   lastRules?: Rules;
   lastRuleSetName?: string;
-  /**
-   * Open straight into the rules walkthrough. Home asks which kind of table
-   * this is before the sheet opens, so the answer arrives with it. Read once,
-   * on mount, so the parent keys the sheet per open.
-   */
-  startInWalkthrough?: boolean;
   onClose: () => void;
   onSave: (input: NewGameInput) => void | Promise<void>;
   onDelete?: () => void | Promise<void>;
@@ -48,12 +40,16 @@ export function GameSheet({
   // The parent remounts this sheet when it opens, so the fields can start from
   // the game being edited, or from the last game's names for a new one.
   const [date, setDate] = useState(() => editing?.date ?? todayIso());
+  /**
+   * Empty for a new game, even when the last group is known.
+   *
+   * Prefilled names look like a decision already taken, and the commonest
+   * mistake they cause is starting a game under somebody else's name because
+   * nobody read four fields that were already full. The last group is offered
+   * below instead, as one tap.
+   */
   const [names, setNames] = useState<string[]>(() =>
-    editing
-      ? [...editing.players]
-      : lastPlayers
-        ? [...lastPlayers]
-        : ['', '', '', ''],
+    editing ? [...editing.players] : ['', '', '', ''],
   );
   // A table that has played before keeps playing the same way. A table that has
   // not gets Hong Kong standard rather than somebody else's house rules, which
@@ -66,13 +62,14 @@ export function GameSheet({
       (lastRules ? lastRuleSetName : 'Hong Kong standard'),
   );
   const [rulesOpen, setRulesOpen] = useState(false);
-  const [walkthroughOpen, setWalkthroughOpen] = useState(startInWalkthrough);
-  // Whether the walkthrough is closing because it finished, as against being
-  // dismissed. Finishing hands its answers over and the form takes it from
-  // there; dismissing is somebody asking to be let out.
-  const walkthroughApplied = useRef(false);
+  // The date picker stays folded away until somebody says the date is wrong.
+  const [datingOpen, setDatingOpen] = useState(false);
+
 
   const namesOk = names.every((name) => name.trim() !== '');
+  // Once somebody has started typing, offering to fill the fields in for
+  // them is an offer to throw away what they just wrote.
+  const namesTouched = names.some((name) => name !== '');
   const complete = namesOk && date !== '';
 
   async function save() {
@@ -98,7 +95,7 @@ export function GameSheet({
   return (
     <>
       <Sheet
-        open={open && !rulesOpen && !walkthroughOpen}
+        open={open && !rulesOpen}
         title={editing ? 'Game settings' : 'Start a game'}
         onClose={onClose}
         footer={
@@ -151,21 +148,9 @@ export function GameSheet({
             </p>
           )}
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-semibold">Date</span>
-            <input
-              type="date"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              className="touch rounded-xl px-3"
-              style={{
-                background: 'var(--tile-face)',
-                border: '1px solid var(--line-strong)',
-                color: 'var(--ink)',
-              }}
-            />
-          </label>
 
+          {/* Players first. It is the only part nobody can skip, and the
+            part a table is holding in its head when it opens this. */}
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-1 text-sm font-semibold">
               Players by starting seat
@@ -212,88 +197,83 @@ export function GameSheet({
             ))}
           </fieldset>
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-semibold">House rules</span>
+          {/* The last group, offered rather than assumed. */}
+          {!editing && lastPlayers && !namesTouched && (
+            <button
+              type="button"
+              onClick={() => setNames([...lastPlayers])}
+              className="tile-sm touch self-start px-3 py-2 text-sm font-semibold"
+            >
+              Use last group: {lastPlayers.join(', ')}
+            </button>
+          )}
+
+          {/* One row, and a way to change it. The rules used to be a heading
+            with a card under it, which made a question out of something that
+            is already answered for nine tables in ten. */}
+          <div className="flex items-center justify-between gap-3">
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold">
+                {ruleSetLabel(rules, ruleSetName)}
+                {presetFor(rules) === 'hk_standard' && (
+                  <span
+                    className="font-normal"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    {' '}
+                    (recommended)
+                  </span>
+                )}
+              </span>
+              <span className="block text-xs" style={{ color: 'var(--muted)' }}>
+                {rulesSummary(rules)}
+              </span>
+            </span>
             <button
               type="button"
               onClick={() => setRulesOpen(true)}
-              // Without this the button announces its whole summary line and
-              // ends on a stray chevron. The summary is still read, as the
-              // content of the sheet it opens.
-              aria-label={`House rules: ${ruleSetLabel(rules, ruleSetName)}`}
-              className="tile-sm touch flex items-center justify-between gap-3 px-3 py-2 text-left"
+              aria-label={`Change the house rules, currently ${ruleSetLabel(rules, ruleSetName)}`}
+              className="touch shrink-0 px-2 text-sm font-semibold"
+              style={{ color: 'var(--accent)' }}
             >
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold">
-                  {ruleSetLabel(rules, ruleSetName)}
-                </span>
-                <span
-                  className="block text-xs"
-                  style={{ color: 'var(--muted)' }}
-                >
-                  {rules.minFaan} to {rules.faanCap} faan, {romanOf('zaa_wu')}{' '}
-                  {rules.zaaWuPenalty}
-                  {rules.baseUnit
-                    ? `, ${formatStake(rules.baseUnit, rules.currency)} a point`
-                    : ''}
-                </span>
-              </span>
-              <span aria-hidden="true" style={{ color: 'var(--muted)' }}>
-                &rsaquo;
-              </span>
+              Change
             </button>
+          </div>
 
-            {/* With the rules it is about, rather than down in the footer
-              beside Start game: it is a way of answering this question, not
-              a second way of starting the game. Here for every new game, not
-              only a table's first — a group picks up new players long after
-              its own first night, and this is the only way in. Deliberately
-              not labelled "first time" or "new to this": people skip
-              anything that asks them to call themselves a beginner, and this
-              is the path that gets the rules right. */}
-            {!editing && (
+          {/* Last, and quiet: it is right almost every time, and the times
+            it is not are somebody writing up last night's game. */}
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm" style={{ color: 'var(--muted)' }}>
+              Date: {date === todayIso() ? 'Today' : formatGameDate(date)}
+            </span>
+            {datingOpen ? (
+              <input
+                type="date"
+                value={date}
+                autoFocus
+                onChange={(event) => setDate(event.target.value)}
+                aria-label="Date"
+                className="touch shrink-0 rounded-xl px-2 text-sm"
+                style={{
+                  background: 'var(--tile-face)',
+                  border: '1px solid var(--line-strong)',
+                  color: 'var(--ink)',
+                }}
+              />
+            ) : (
               <button
                 type="button"
-                onClick={() => setWalkthroughOpen(true)}
-                className="touch w-full rounded-xl text-sm font-semibold"
+                onClick={() => setDatingOpen(true)}
+                aria-label="Change the date"
+                className="touch shrink-0 px-2 text-sm font-semibold"
                 style={{ color: 'var(--accent)' }}
               >
-                Help me pick the rules
+                Change
               </button>
             )}
           </div>
         </div>
       </Sheet>
-
-      {/* Gated on this sheet's own open, not just its own state: a closed
-        sheet must not leave a child of it on screen. It used to, which made
-        closing the form put the walkthrough back and the two of them trap
-        whoever was in there.
-
-        Mounted only while open, so it always starts on the first question and
-        from whatever the rules are now, rather than resuming where it was
-        left. */}
-      {open && walkthroughOpen && (
-        <RulesWalkthroughSheet
-          open
-          rules={rules}
-          onClose={() => {
-            setWalkthroughOpen(false);
-            const applied = walkthroughApplied.current;
-            walkthroughApplied.current = false;
-            // Close goes back where you came from. From the link inside the
-            // form that is the form; from home it is out altogether, since
-            // the questions were the whole reason this sheet opened and
-            // nobody asked for the form behind them.
-            if (startInWalkthrough && !applied) onClose();
-          }}
-          onApply={(next, set) => {
-            walkthroughApplied.current = true;
-            setRules(next);
-            setRuleSetName(set?.name);
-          }}
-        />
-      )}
 
       <RulesSheet
         open={open && rulesOpen}
@@ -308,6 +288,14 @@ export function GameSheet({
       />
     </>
   );
+}
+
+/** What the rules cost, in one line, without naming a single setting. */
+function rulesSummary(rules: Rules): string {
+  const money = rules.baseUnit
+    ? `, ${formatStake(rules.baseUnit, rules.currency)} a point`
+    : '';
+  return `${rules.minFaan} to ${rules.faanCap} faan${money}`;
 }
 
 /** What to call the current rules in a one line summary. */

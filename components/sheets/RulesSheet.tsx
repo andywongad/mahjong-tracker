@@ -20,6 +20,7 @@ import {
   DISCARD_SPLITS,
   splitIdFor,
 } from '@/lib/rules/discardSplits';
+import { RulesWalkthroughSheet } from './RulesWalkthroughSheet';
 import { Sheet } from './Sheet';
 import { romanOf } from '@/lib/terms';
 import { glossOf } from '@/lib/terms';
@@ -50,6 +51,7 @@ export function RulesSheet({
   const [sets, setSets] = useState<RuleSet[]>(BUILT_IN_RULE_SETS);
   const [saveName, setSaveName] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -89,8 +91,9 @@ export function RulesSheet({
   )?.id;
 
   return (
+    <>
     <Sheet
-      open={open}
+      open={open && !guideOpen}
       title="House rules"
       onClose={onClose}
       footer={
@@ -126,6 +129,24 @@ export function RulesSheet({
     >
       <div className="flex flex-col gap-6">
         <Section title="Rule set">
+          {/* The guide lives here, behind Change, rather than at the front
+            door. It used to be one of two things home asked before anything
+            else, which meant a beginner's first question was "on a discard
+            win, who pays?" — which is what they came here not knowing. */}
+          <button
+            type="button"
+            onClick={() => setGuideOpen(true)}
+            className="tile-sm touch flex flex-col gap-0.5 px-3 py-2.5 text-left"
+          >
+            <span className="text-sm font-semibold">
+              Help me choose
+            </span>
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>
+              Four questions about how your table plays, each one in real
+              numbers
+            </span>
+          </button>
+
           <div className="flex flex-col gap-2">
             {sets.map((set) => (
               <div key={set.id} className="flex items-stretch gap-2">
@@ -421,6 +442,20 @@ export function RulesSheet({
         </Section>
       </div>
     </Sheet>
+
+    {guideOpen && (
+      <RulesWalkthroughSheet
+        open
+        rules={rules}
+        onClose={() => setGuideOpen(false)}
+        onApply={(next, set) => {
+          setRules(next);
+          setAppliedName(set?.name);
+          setConfirming(false);
+        }}
+      />
+    )}
+    </>
   );
 }
 

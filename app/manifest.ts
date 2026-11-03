@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Mahjong tracker',
+    name: 'Mahjong Tracker',
     short_name: 'Mahjong',
     description: 'Hong Kong mahjong scorekeeping for the table',
     start_url: '/',
