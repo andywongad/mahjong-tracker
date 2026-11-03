@@ -2,6 +2,7 @@
 
 import { DEALER_CHAR, type Seat } from '@/lib/scoring';
 import { SEAT_WINDS, seatColor } from '@/lib/game/seats';
+import { termForHandType } from '@/lib/terms';
 import { Wind, windLabel } from '@/components/ui/Wind';
 import { formatSigned } from '@/components/ui/Score';
 
@@ -22,6 +23,18 @@ function spokenScore(score: number): string {
   if (score < 0) return `minus ${Math.abs(score)}`;
   return 'level';
 }
+/** The quiet word over or beside a number, saying which number it is. */
+function NumberLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      className="text-xs leading-tight font-semibold"
+      style={{ color: 'var(--muted)' }}
+    >
+      {children}
+    </span>
+  );
+}
+
 /**
  * A name that fits, or steps down once, or wraps.
  *
@@ -48,6 +61,8 @@ export function SeatCard({
   compact = false,
   onSelect,
   selectLabel,
+  onFalseWin,
+  falseWinLabel,
   pulse = false,
 }: {
   seat: Seat;
@@ -60,6 +75,14 @@ export function SeatCard({
   onSelect?: () => void;
   /** What tapping the card does, for screen readers. */
   selectLabel?: string;
+  /**
+   * Records a false win called by this player, with no winner involved.
+   *
+   * Back on the card rather than under the table: it belongs to a person,
+   * and the person is what you are looking at when you need it.
+   */
+  onFalseWin?: () => void;
+  falseWinLabel?: string;
   /** Draws the eye to the seats before the first hand is ever recorded. */
   pulse?: boolean;
 }) {
@@ -98,33 +121,35 @@ export function SeatCard({
         {name}
       </span>
 
-      {/* The hero. Signed always, so a score is never read as the wrong
-        direction, and tabular so it does not jump as it changes. */}
-      <div className="flex flex-col gap-1">
+      {/* Both numbers say what they are. They look alike and mean different
+        things, and a card with room for the words is worth more than a card
+        that saves two lines: a tile is tall anyway. */}
+      <div className="flex flex-col">
+        <NumberLabel>Total</NumberLabel>
         <span
-          className={`tnum display leading-none font-bold ${
-            compact ? 'text-hero' : 'text-hero'
-          } tablet:text-hero-lg`}
+          className="tnum display leading-none font-bold text-hero tablet:text-hero-lg"
         >
           {formatSigned(score)}
         </span>
+      </div>
 
-        {/* Only when the last hand actually moved this player. Before the
-          first hand, and on a hand that cost them nothing, there is nothing
-          to say and the card stays quiet. */}
-        {lastDelta !== 0 && (
+      {/* Only when the last hand actually moved this player. Before the
+        first hand, and on a hand that cost them nothing, there is nothing
+        to say and the card stays quiet. */}
+      {lastDelta !== 0 && (
+        <div className="flex items-center gap-1.5">
+          <NumberLabel>Last hand</NumberLabel>
           <span
-            className="self-start rounded-pill px-1.5 py-0.5 text-xs leading-none font-semibold"
+            className="rounded-pill px-1.5 py-0.5 text-xs leading-none font-semibold"
             style={{
               background: lastDelta > 0 ? 'var(--gain)' : 'var(--loss)',
               color: '#fff',
             }}
           >
-            <span className="sr-only">Last hand </span>
             {formatSigned(lastDelta)}
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 
@@ -141,20 +166,45 @@ export function SeatCard({
     );
   }
 
+  const zaaWu = termForHandType('zaa_wu');
+
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      // Said the way it would be read out: who, where they sit, where they
-      // stand, and then what tapping does.
-      aria-label={
-        selectLabel ??
-        `${name}, ${windLabel(wind)}, ${spokenScore(score)}. Record a win for ${name}.`
-      }
-      className={`tile seat-press relative w-full${pulse ? ' seat-pulse' : ''}`}
+    <div
+      className={`tile relative w-full${pulse ? ' seat-pulse' : ''}`}
       style={style}
     >
-      <span className={infoClass}>{inner}</span>
-    </button>
+      {/* The card above the strip is the win. Two controls, never nested:
+        a button inside a button is invalid and swallows the inner one. */}
+      <button
+        type="button"
+        onClick={onSelect}
+        // Said the way it would be read out: who, where they sit, where they
+        // stand, and then what tapping does.
+        aria-label={
+          selectLabel ??
+          `${name}, ${windLabel(wind)}, ${spokenScore(score)}. Record a win for ${name}.`
+        }
+        className="seat-press w-full"
+      >
+        <span className={infoClass}>{inner}</span>
+      </button>
+
+      {onFalseWin && (
+        <button
+          type="button"
+          onClick={onFalseWin}
+          aria-label={falseWinLabel ?? `Record a false win called by ${name}`}
+          className={`w-full ${compact ? 'px-2' : 'px-2.5'} pb-2`}
+        >
+          <span className="seat-action flex w-full items-center justify-center gap-1 overflow-hidden px-1 py-1.5 text-xs leading-none font-semibold whitespace-nowrap">
+            {/* Words only. A seat card has about 110px, which holds the
+              label or the characters beside it but not both, and half a
+              label is worse than no characters. 詐糊 is still on every false
+              win in the log below, where there is room for it. */}
+            {zaaWu.english}
+          </span>
+        </button>
+      )}
+    </div>
   );
 }

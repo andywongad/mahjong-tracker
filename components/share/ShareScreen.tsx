@@ -94,9 +94,6 @@ export function ShareScreen({ slug }: { slug: string }) {
       >
         {/* No onSelectSeat: a viewer cannot record anything. */}
         <TableSurface
-          // Whoever opened this link may never have used the app, and has
-          // recorded nothing here to learn from.
-          explainNumbers
           game={asRecord}
           replay={result}
           endedEarly={Boolean(asRecord.endedAt)}

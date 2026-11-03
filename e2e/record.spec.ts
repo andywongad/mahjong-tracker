@@ -32,10 +32,16 @@ function seat(page: Page, name = 'Player A') {
   return page.getByRole('button', { name: new RegExp(`^${name}, `) });
 }
 
-/** The draw and the false win, which live under the table now. */
-async function otherOutcome(page: Page, choice: RegExp) {
-  await page.getByRole('button', { name: 'Other outcome' }).click();
-  await page.getByRole('dialog').getByRole('button', { name: choice }).click();
+/** A draw belongs to nobody, so it is recorded from under the table. */
+async function draw(page: Page) {
+  await page.getByRole('button', { name: /Draw/ }).click();
+}
+
+/** A false win belongs to whoever called it, so it is on their card. */
+async function falseWin(page: Page, name: string) {
+  await page
+    .getByRole('button', { name: `Record a false win called by ${name}` })
+    .click();
 }
 
 /** Every player's running total, read off the table rather than out of the store. */
@@ -103,7 +109,7 @@ test.describe('recording each kind of hand', () => {
   test('a draw is one tap and changes nothing', async ({ page }) => {
     await startGame(page);
 
-    await otherOutcome(page, /Draw/);
+    await draw(page);
 
     await expect(seat(page)).toBeVisible();
     await expect
@@ -123,12 +129,7 @@ test.describe('recording each kind of hand', () => {
 
     // One tap, from the seat of whoever called it. No winner is involved.
     await page
-      .getByRole('button', { name: 'Other outcome' })
-      .click();
-    await page.getByRole('dialog').getByRole('button', { name: /False win/ }).click();
-    await page
-      .getByRole('dialog')
-      .getByRole('button', { name: /Player D/ })
+      .getByRole('button', { name: 'Record a false win called by Player D' })
       .click();
 
     // The penalty is a house rule, so the shape is asserted, not the amount.
@@ -148,7 +149,7 @@ test.describe('recording each kind of hand', () => {
   test('a hand just recorded can be taken straight back', async ({ page }) => {
     await startGame(page);
 
-    await otherOutcome(page, /Draw/);
+    await draw(page);
     await expect(seat(page)).toBeVisible();
 
     await page.getByRole('button', { name: 'Undo' }).click();
@@ -169,15 +170,7 @@ test.describe('recording each kind of hand', () => {
   test('a false win asks who called it, and nothing else', async ({ page }) => {
     await startGame(page);
 
-    await page.getByRole('button', { name: 'Other outcome' }).click();
-    await page
-      .getByRole('dialog')
-      .getByRole('button', { name: /False win/ })
-      .click();
-    await page
-      .getByRole('dialog')
-      .getByRole('button', { name: /Player B/ })
-      .click();
+    await falseWin(page, 'Player B');
 
     // Never who won, because nobody did: straight into the log once the
     // offender is named, and undoable from the toast like any other hand.
@@ -245,24 +238,36 @@ test.describe('reading the running score', () => {
   });
 });
 
-test.describe('the table carries no buttons of its own', () => {
-  test('a seat card is one control, and the rare outcomes are elsewhere', async ({
-    page,
-  }) => {
+test.describe('what a seat card carries', () => {
+  test('two controls, never nested, and no Won bar', async ({ page }) => {
     await startGame(page);
 
-    // Four seats, four controls, nothing nested inside them.
+    // The card is the win; the strip under it is the false win. A button
+    // inside a button is invalid and swallows the inner one's taps.
     const seats = page.getByRole('button', { name: /^Player [A-D], / });
     await expect(seats).toHaveCount(4);
     for (const card of await seats.all()) {
       expect(await card.locator('button').count()).toBe(0);
     }
+    await expect(page.getByRole('button', { name: /false win called by/ })).toHaveCount(4);
 
-    // No Won or False win anywhere on the table.
+    // Winning is the card itself, so nothing says "Won" on it.
     await expect(page.getByRole('button', { name: /^Won$/ })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: /False win/ })).toHaveCount(
-      0,
-    );
+  });
+
+  test('says what each of its two numbers is', async ({ page }) => {
+    await startGame(page);
+
+    await expect(page.getByText('Total')).toHaveCount(4);
+    await expect(page.getByText('Last hand')).toHaveCount(0);
+
+    await seat(page, 'Player A').click();
+    await page.getByRole('button', { name: /Zi Mo/ }).click();
+    await pick(page, 'How many faan?', '4').click();
+    await page.getByRole('button', { name: 'Save hand 1' }).click();
+
+    // The second label arrives with the thing it names.
+    await expect(page.getByText('Last hand')).toHaveCount(4);
   });
 
   test('a win, a draw and a false win all go in through the new doors', async ({
@@ -276,12 +281,8 @@ test.describe('the table carries no buttons of its own', () => {
     await pick(page, 'How many faan?', '4').click();
     await page.getByRole('button', { name: 'Save hand 1' }).click();
 
-    await otherOutcome(page, /Draw/);
-    await otherOutcome(page, /False win/);
-    await page
-      .getByRole('dialog')
-      .getByRole('button', { name: /Player C/ })
-      .click();
+    await draw(page);
+    await falseWin(page, 'Player C');
 
     await expect(page.getByText('3 played')).toBeVisible();
   });
@@ -379,28 +380,9 @@ test.describe('taking a hand back', () => {
     );
 
     // And a draw turned on nobody, so there is nobody to name.
-    await otherOutcome(page, /Draw/);
+    await draw(page);
     await expect(page.getByRole('status')).toHaveText(
       /Hand 2 saved · Nobody won/,
     );
-  });
-});
-
-test.describe('naming the two numbers on a card', () => {
-  const caption = /The big number is each player/;
-
-  test('is said while the numbers are new, and retires once a hand lands', async ({
-    page,
-  }) => {
-    await startGame(page);
-    await expect(page.getByText(caption)).toBeVisible();
-
-    await seat(page, 'Player A').click();
-    await page.getByRole('button', { name: /Zi Mo/ }).click();
-    await pick(page, 'How many faan?', '4').click();
-    await page.getByRole('button', { name: 'Save hand 1' }).click();
-
-    // By now you have watched the numbers move and know which is which.
-    await expect(page.getByText(caption)).toHaveCount(0);
   });
 });

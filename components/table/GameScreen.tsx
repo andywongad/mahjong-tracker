@@ -19,13 +19,13 @@ import {
   useSeatHint,
 } from '@/lib/hooks/useFirstRecord';
 import { logEvent } from '@/lib/telemetry/events';
+import { termForHandType } from '@/lib/terms';
 import { OfflineBadge } from '@/components/ui/OfflineBadge';
 import { UndoToast } from '@/components/ui/UndoToast';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { TableSurface } from './TableSurface';
 import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
-import { OtherOutcomeSheet } from '@/components/sheets/OtherOutcomeSheet';
 import { TallySummary } from './TallySummary';
 import { ScoreChart } from '@/components/stats/ScoreChart';
 
@@ -58,7 +58,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const neverRecorded = useFirstRecord();
   const showSeatHint = useSeatHint();
-  const [outcomeOpen, setOutcomeOpen] = useState(false);
 
   // Keep the screen awake while a game is on the table.
   useWakeLock(Boolean(game));
@@ -193,10 +192,8 @@ export function GameScreen({ gameId }: { gameId: string }) {
               endedEarly={endedEarly}
               // Only on a game that has barely started: a nudge over a sample game
               // already nineteen hands deep is noise, not help.
+              onFalseWin={live ? recordFalseWin : undefined}
               pulseSeats={live && neverRecorded && result.handCount < 3}
-              // Retires with the nudge: once a hand has been recorded on
-              // this device you have watched the numbers move.
-              explainNumbers={neverRecorded}
             />
 
             {endedEarly ? (
@@ -222,12 +219,16 @@ export function GameScreen({ gameId }: { gameId: string }) {
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {/* The hands nobody won. Behind one button, because between
-                  them they happen perhaps once a night, and on the seats
-                  they cost the table eight controls. */}
+                {/* A draw belongs to nobody, so it is recorded from under
+                  the table rather than from a seat. A false win belongs to
+                  whoever called it, and is on their card. */}
                 <SecondaryAction
-                  label="Other outcome"
-                  onClick={() => setOutcomeOpen(true)}
+                  hanzi={termForHandType('draw').zh}
+                  label={termForHandType('draw').english}
+                  onClick={() => {
+                    setUndoable(null);
+                    void record({ type: 'draw' });
+                  }}
                 />
               </div>
             )}
@@ -366,17 +367,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
 
         </div>
       </div>
-
-      <OtherOutcomeSheet
-        open={outcomeOpen}
-        players={game.players}
-        onClose={() => setOutcomeOpen(false)}
-        onDraw={() => {
-          setUndoable(null);
-          return record({ type: 'draw' });
-        }}
-        onFalseWin={recordFalseWin}
-      />
 
       {/* Keyed so each open starts from a clean draft, or from the hand being
           edited, without the sheet resetting itself after the fact. */}

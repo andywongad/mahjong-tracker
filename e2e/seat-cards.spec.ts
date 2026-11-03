@@ -85,8 +85,10 @@ test('the change pill is there only when the last hand moved you', async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await startWithLongNames(page);
 
-  // Before any hand, nobody has moved, so no card carries a change.
-  await expect(page.getByText(/^Last hand /)).toHaveCount(0);
+  // Before any hand, nobody has moved, so no card carries a change — and
+  // the label that names it is not there either, since it would be naming
+  // nothing.
+  await expect(page.getByText('Last hand')).toHaveCount(0);
 
   // The whole card is the control now, and its name leads with the player.
   await page.getByRole('button', { name: new RegExp(`^${NAMES[0]}, `) }).click();
@@ -99,8 +101,9 @@ test('the change pill is there only when the last hand moved you', async ({
     .click();
   await page.getByRole('button', { name: 'Save hand 1' }).click();
 
-  // Now all four moved: one up, three down.
-  await expect(page.getByText(/^Last hand /)).toHaveCount(4);
-  await expect(page.getByText(/^Last hand \+/)).toHaveCount(1);
-  await expect(page.getByText(/^Last hand -/)).toHaveCount(3);
+  // Now all four moved, so all four say what by. What the numbers are is
+  // record.spec's job; this is about the label arriving with the thing it
+  // names.
+  await expect(page.getByText('Last hand')).toHaveCount(4);
+  await expect(page.getByText('Total')).toHaveCount(4);
 });
