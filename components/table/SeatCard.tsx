@@ -23,11 +23,26 @@ function spokenScore(score: number): string {
   if (score < 0) return `minus ${Math.abs(score)}`;
   return 'level';
 }
-/** The quiet word over or beside a number, saying which number it is. */
-function NumberLabel({ children }: { children: React.ReactNode }) {
+/**
+ * The quiet word over a number, saying which number it is.
+ *
+ * The total's label is set as an eyebrow — capitals, tracked, a point larger
+ * — and the last hand's is a point under it, so the two blocks are ranked by
+ * their labels before either number is read. Twelve is the floor, so the
+ * ranking is made by lifting the first rather than dropping the second.
+ */
+function NumberLabel({
+  children,
+  eyebrow = false,
+}: {
+  children: React.ReactNode;
+  eyebrow?: boolean;
+}) {
   return (
     <span
-      className="text-xs leading-tight font-semibold"
+      className={`leading-tight font-semibold ${
+        eyebrow ? 'text-[0.8125rem] tracking-wide uppercase' : 'text-xs'
+      }`}
       style={{ color: 'var(--muted)' }}
     >
       {children}
@@ -134,7 +149,7 @@ export function SeatCard({
         things, and a card with room for the words is worth more than a card
         that saves two lines: a tile is tall anyway. */}
       <div className="flex flex-col">
-        <NumberLabel>Total</NumberLabel>
+        <NumberLabel eyebrow>Total</NumberLabel>
         <span
           className="tnum display leading-none font-bold text-hero tablet:text-hero-lg"
         >
@@ -146,7 +161,7 @@ export function SeatCard({
         first hand, and on a hand that cost them nothing, there is nothing
         to say and the card stays quiet. */}
       {lastDelta !== 0 && (
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-col items-start gap-0.5">
           <NumberLabel>Last hand</NumberLabel>
           <span
             className="rounded-pill px-1.5 py-0.5 text-xs leading-none font-semibold"
