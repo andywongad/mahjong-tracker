@@ -507,6 +507,25 @@ body {
     border-color: var(--ink);
     color: var(--tile-face);
   }
+
+  .seat-strip:hover {
+    background: var(--ink);
+    color: var(--tile-face);
+  }
+}
+
+/* The base of a seat card.
+   Flush to its edges and ruled off from the numbers above, the way the band
+   at the foot of a drawn tile is part of the tile rather than something
+   resting on it. It used to be an outlined chip floating inside the card
+   with margin all round, which read as a button somebody had put there. */
+.seat-strip {
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
 /* The two things a player can do to a hand, drawn as peers. */

@@ -96,11 +96,20 @@ export function SeatCard({
         stacked wind took a column, and the dealer badge was floating over the
         corner the name ends in. */}
       <div className="flex items-center justify-between gap-1">
-        <span className="flex items-baseline gap-1">
+        <span className="flex min-w-0 items-baseline gap-1">
           <Wind wind={wind} className="text-sm leading-none" />
-          <span className="text-xs leading-none" style={{ color: 'var(--muted)' }}>
-            {windLabel(wind)}
-          </span>
+          {/* The wind's English gives way to the dealer badge. Both will not
+            fit on a 110px card, the character already says which seat this
+            is, and whose deal it is matters more for the hand being played.
+            Wind renders the English for a screen reader either way. */}
+          {!isDealer && (
+            <span
+              className="truncate text-xs leading-none"
+              style={{ color: 'var(--muted)' }}
+            >
+              {windLabel(wind)}
+            </span>
+          )}
         </span>
         {isDealer && (
           <span
@@ -170,7 +179,8 @@ export function SeatCard({
 
   return (
     <div
-      className={`tile relative w-full${pulse ? ' seat-pulse' : ''}`}
+      // Clipped, so the strip at the foot ends in the card's own corners.
+      className={`tile relative w-full overflow-hidden${pulse ? ' seat-pulse' : ''}`}
       style={style}
     >
       {/* The card above the strip is the win. Two controls, never nested:
@@ -194,15 +204,13 @@ export function SeatCard({
           type="button"
           onClick={onFalseWin}
           aria-label={falseWinLabel ?? `Record a false win called by ${name}`}
-          className={`w-full ${compact ? 'px-2' : 'px-2.5'} pb-2`}
+          className="seat-strip flex w-full items-center justify-center px-1 py-2 text-xs leading-none font-semibold whitespace-nowrap"
         >
-          <span className="seat-action flex w-full items-center justify-center gap-1 overflow-hidden px-1 py-1.5 text-xs leading-none font-semibold whitespace-nowrap">
-            {/* Words only. A seat card has about 110px, which holds the
-              label or the characters beside it but not both, and half a
-              label is worse than no characters. 詐糊 is still on every false
-              win in the log below, where there is room for it. */}
-            {zaaWu.english}
-          </span>
+          {/* Words only. A seat card has about 110px, which holds the label
+            or the characters beside it but not both, and half a label is
+            worse than no characters. 詐糊 is still on every false win in the
+            log below, where there is room for it. */}
+          {zaaWu.english}
         </button>
       )}
     </div>
