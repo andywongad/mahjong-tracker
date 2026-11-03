@@ -12,7 +12,7 @@ async function openScorer(page: Page): Promise<void> {
   await page.goto('/?game=seed-aug-19-2026');
   await page.waitForLoadState('networkidle');
   await page
-    .getByRole('button', { name: /Record hand \d+ won by Player A/ })
+    .getByRole('button', { name: /^Player A, / })
     .click();
   await page.getByRole('dialog').getByRole('button', { name: /Zi Mo/ }).click();
   await page.getByRole('button', { name: 'Build a hand' }).click();
