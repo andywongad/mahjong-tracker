@@ -142,9 +142,13 @@ describe('which rules a new game starts with', () => {
 });
 
 describe('the date', () => {
-  it('is today, and folded away until it is wrong', async () => {
+  it('shows the date itself, folded away until it is wrong', async () => {
     const { user } = setup();
-    expect(screen.getByText('Date: Today')).toBeTruthy();
+    // The date, not the word "Today": a date is what the game is filed
+    // under, and a table writing up last night wants to read one. The label
+    // and the date are separate nodes so the date can carry the weight.
+    expect(screen.getByText('Date:')).toBeTruthy();
+    expect(screen.getByText(/^\w+ \d+, \d{4}$/)).toBeTruthy();
     expect(screen.queryByLabelText('Date')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Change the date' }));

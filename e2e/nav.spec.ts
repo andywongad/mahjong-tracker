@@ -35,8 +35,14 @@ test('home carries settings and nothing that belongs to a game', async ({
   await open(page, '/');
 
   await expect(header(page).getByRole('button', { name: 'Settings' })).toBeVisible();
-  // No Home on home: a control that goes where you already are does nothing.
-  await expect(header(page).getByRole('button', { name: 'Home' })).toHaveCount(0);
+  // The name block is the way home, and on home it is the page's heading
+  // rather than a link to where you already are.
+  await expect(
+    header(page).getByRole('button', { name: /back to the start/ }),
+  ).toHaveCount(0);
+  await expect(
+    header(page).getByRole('heading', { name: /Mahjong\s*Tracker/ }),
+  ).toBeVisible();
   await expect(header(page).getByRole('button', { name: 'Rules' })).toHaveCount(0);
   await expect(tabs(page)).toHaveCount(0);
 });
@@ -76,7 +82,10 @@ for (const [url, name] of NO_GAME) {
   test(`${name} carries the way out and nothing about a game`, async ({ page }) => {
     await open(page, url);
 
-    await expect(header(page).getByRole('button', { name: 'Home' })).toBeVisible();
+    // Getting home is the name block, not a button beside Settings.
+    await expect(
+      header(page).getByRole('button', { name: /back to the start/ }),
+    ).toBeVisible();
     await expect(header(page).getByRole('button', { name: 'Settings' })).toBeVisible();
     await expect(header(page).getByRole('button', { name: 'Rules' })).toHaveCount(0);
     await expect(tabs(page)).toHaveCount(0);
@@ -153,4 +162,18 @@ test('how this works is a place, not a dialog', async ({ page }) => {
 
   await page.getByRole('button', { name: /glossary/i }).click();
   await expect(page).toHaveURL(/view=glossary/);
+});
+
+test('the name block is the way home, from anywhere', async ({ page }) => {
+  await open(page, GAME);
+
+  const brand = header(page).getByRole('button', {
+    name: /back to the start/,
+  });
+  await expect(brand).toBeVisible();
+  await brand.click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Start a game' }),
+  ).toBeVisible();
 });

@@ -29,6 +29,9 @@ export function HomeScreen() {
   const { games, loading, createGame, deleteGame } = useGames();
   const { go } = useNavigation();
   const [newGameOpen, setNewGameOpen] = useState(false);
+  // Which door this open of the sheet came through. Asked here rather than
+  // inside the sheet so nobody taps twice to start a game.
+  const [walkthroughFirst, setWalkthroughFirst] = useState(false);
 
   const summaries = useMemo(() => summarise(games), [games]);
 
@@ -44,8 +47,9 @@ export function HomeScreen() {
   return (
     <>
       <ScreenHeader
-        title="Mahjong Tracker"
-        subtitle="Hong Kong scoring, kept at the table"
+        // The name block on the left is this page's heading, so the middle
+        // is left empty rather than saying the name a second time.
+        title=""
       />
 
       <main
@@ -156,20 +160,38 @@ export function HomeScreen() {
           </p>
         )}
 
-        {/* One door, not two.
-          It used to ask whether you were still learning or knew what you were
-          doing, and the learner's path opened on "On a discard win, who
-          pays?" — a question a beginner cannot answer and should not have to
-          before naming four players. The guide is still there, inside the
-          rules, for anyone who wants it. */}
-        <button
-          type="button"
-          onClick={() => setNewGameOpen(true)}
-          className="touch w-full rounded-pill py-4 text-lg font-semibold"
-          style={{ background: 'var(--tile-back)', color: '#fff' }}
-        >
-          New game
-        </button>
+        {/* The heading earns its place here: it names one thing a person can
+          do and the two buttons under it are both ways of doing it. Asked on
+          the way in rather than on a screen of its own, so starting a game is
+          still one tap.
+
+          Neither is the default. A fork with a primary button is a
+          recommendation, and which of these to recommend depends on who is
+          holding the phone — which is the thing the question is asking. */}
+        <section className="flex flex-col gap-3">
+          {/* Bigger and centred than the quiet section labels elsewhere on
+            this screen, because it is not a label: it is the question the two
+            buttons under it answer, and the main thing the app is for. */}
+          <h2 className="text-center text-xl font-bold phone:text-2xl">
+            Start a game
+          </h2>
+          <DoorButton
+            onClick={() => {
+              setWalkthroughFirst(true);
+              setNewGameOpen(true);
+            }}
+            label="I'm still learning"
+            detail="We'll walk you through the scoring — four quick questions, each one in real numbers"
+          />
+          <DoorButton
+            onClick={() => {
+              setWalkthroughFirst(false);
+              setNewGameOpen(true);
+            }}
+            label="I know what I'm doing"
+            detail="Straight to the players and the house rules"
+          />
+        </section>
 
         {/* The other thing the app does, for a table playing for fun: what
           is this hand worth, with no game and no score kept. */}
@@ -226,11 +248,12 @@ export function HomeScreen() {
         to put it back has to be here too. */}
       <DeletedGameToast />
 
-      {/* Keyed so each open starts fresh rather than from whatever was half
-        typed into it before. */}
+      {/* Keyed so each open starts fresh, and on the walkthrough or not
+        depending on which door was taken. */}
       <GameSheet
-        key={newGameOpen ? 'new' : 'closed'}
+        key={newGameOpen ? (walkthroughFirst ? 'new-walk' : 'new') : 'closed'}
         open={newGameOpen}
+        startInWalkthrough={walkthroughFirst}
         editing={null}
         // The last game's table is nearly always this game's table, so the
         // names and the house rules come forward rather than being retyped.
@@ -279,6 +302,33 @@ function ActionButton({
       </button>
       {bubble}
     </HintAnchor>
+  );
+}
+
+/** One of the two ways into a new game, drawn as the other one's equal. */
+function DoorButton({
+  onClick,
+  label,
+  detail,
+}: {
+  onClick: () => void;
+  label: string;
+  detail: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="tile-sm tile-pressable touch flex w-full flex-col gap-1 rounded-2xl px-4 py-4 text-left"
+    >
+      <span className="text-lg font-semibold">{label}</span>
+      <span
+        className="text-sm leading-snug"
+        style={{ color: 'var(--muted)' }}
+      >
+        {detail}
+      </span>
+    </button>
   );
 }
 

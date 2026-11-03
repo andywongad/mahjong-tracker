@@ -3,11 +3,14 @@
 /**
  * The top of every screen inside the app.
  *
- * Home and Settings on the right on every screen, because they are about the
- * app. A game adds two things of its own: Rules, which is to a game what
- * Settings is to the app and so sits next to it, and a row of tabs for the
- * two ways of looking at that game. Home leads, furthest from the thumb,
- * because leaving is not one of the things the screen does.
+ * Settings on the right on every screen, because it is about the app. A game
+ * adds two things of its own: Rules, which is to a game what Settings is to
+ * the app and so sits next to it, and a row of tabs for the two ways of
+ * looking at that game.
+ *
+ * Getting home is the name block on the left, not a button on the right. One
+ * fewer control in a bar that never had room, and the two at the right are
+ * now both about this screen rather than one of each.
  *
  * Screens with no game in them — the glossary, how it works, the standalone
  * scorer, history — carry neither. They are a header and their content, and
@@ -29,7 +32,7 @@ import { useNavigation } from '@/lib/game/navigation';
 import { openSheet } from '@/lib/ui/sheets';
 import { AppHeader, HeaderButton } from './AppHeader';
 import { GameTabs } from './GameTabs';
-import { AccountIcon, HomeIcon, RulesIcon, SettingsIcon } from './HeaderIcons';
+import { AccountIcon, RulesIcon, SettingsIcon } from './HeaderIcons';
 
 /**
  * Signing in, next to settings on home.
@@ -90,21 +93,11 @@ export function ScreenHeader({
       tone={view === 'table' ? 'felt' : 'page'}
       title={title}
       subtitle={subtitle}
+      // The name block is the way home now, so there is no Home button. On
+      // home it is the page's heading instead of a link to itself.
+      onHome={atHome ? undefined : () => go('home', null)}
       right={
         <>
-          {/* Leftmost, and so the furthest from the thumb: the way out, not
-            one of the things this screen does. Not on home itself — a
-            control that goes where you already are is a button that does
-            nothing, and it crowds the ones that do. */}
-          {!atHome && (
-            <HeaderButton
-              onClick={() => go('home', null)}
-              label="Home"
-              hint="Back to the start"
-            >
-              <HomeIcon />
-            </HeaderButton>
-          )}
           {shownGame && (
             <HeaderButton
               onClick={() => openSheet('rules')}

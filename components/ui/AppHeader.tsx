@@ -2,17 +2,16 @@
 import { HintAnchor, useHint } from './Hint';
 
 /**
- * The jade header that sits across the top of every screen.
+ * The header that sits across the top of every screen.
  *
- * Three slots: where you came from on the left, where you are in the middle,
- * what you can do here on the right. The title is centred, which is what an
- * app bar does on a phone and what makes the two sides read as navigation
- * rather than as part of the heading.
+ * Three slots: the app's name on the left, where you are in the middle, what
+ * you can do here on the right.
  *
- * The sides are equal-width flex columns growing from nothing, so the middle
- * sits in the true centre whether a side holds two buttons or none. The title
- * is the only part that shrinks, because it is the only part that can be
- * truncated without losing a control.
+ * The name is also the way home, which is why there is no longer a Home
+ * button beside Settings. A wordmark that goes to the start is the oldest
+ * convention on the web, it costs no width in a bar that had none to spare,
+ * and it stops the two controls at the right reading as a matched pair when
+ * only one of them is about this screen.
  *
  * Buttons here are icons on a phone and icons with words from 600px up. That
  * is not a preference: four labelled pills plus a centred date measured at
@@ -23,6 +22,7 @@ import { HintAnchor, useHint } from './Hint';
 export function AppHeader({
   title,
   subtitle,
+  onHome,
   right,
   nav,
   actions,
@@ -31,8 +31,15 @@ export function AppHeader({
   wide = false,
   tone = 'felt',
 }: {
+  /** Where you are: the screen's name, or a game's date. */
   title: string;
   subtitle?: string;
+  /**
+   * Takes the name block home. Left out on home itself, where the name is
+   * the page's own heading and a control that goes where you already are
+   * would be a button that does nothing.
+   */
+  onHome?: () => void;
   /** What can be done on this screen. */
   right?: React.ReactNode;
   /**
@@ -84,23 +91,22 @@ export function AppHeader({
         style={barTokens as React.CSSProperties}
       >
         <div className={wide ? 'page-wide' : 'page-column'}>
-          {/* Title on the left at full size, controls together on the
-            right. Nothing is centred, so nothing has to be squeezed between
-            two buttons: the title gets the whole width that the controls do
-            not take, which is what lets it be read at a glance. */}
-          <div className="flex items-center gap-3">
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate text-xl leading-tight font-bold phone:text-2xl tablet:text-3xl">
-                {title}
-              </h1>
-              {subtitle && (
-                <p
-                  className="truncate text-xs"
-                  style={{ color: 'var(--bar-muted)' }}
-                >
-                  {subtitle}
-                </p>
-              )}
+          {/* One row: the name, where you are, what you can do.
+            Which of the first two is larger depends on the screen. On home
+            the app is the subject and its name is the heading. Everywhere
+            else the subject is this game or this screen, so the name shrinks
+            to a quiet two line mark and the date takes the weight. It is
+            also what makes one row possible: the name at full size left the
+            four players no room and truncated them after the second. */}
+          <div className="flex items-center gap-1.5">
+            <Brand onHome={onHome} isHeading={!onHome} />
+
+            <div className="min-w-0 flex-1 text-center">
+              <Where
+                title={title}
+                subtitle={subtitle}
+                isHeading={Boolean(onHome)}
+              />
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
@@ -130,6 +136,92 @@ export function AppHeader({
         </div>
       )}
     </header>
+  );
+}
+
+/**
+ * Where you are: a screen's name, or a game's date.
+ *
+ * A heading only when the name block beside it is not one, so a page always
+ * has exactly one h1 whichever way round it is.
+ */
+function Where({
+  title,
+  subtitle,
+  isHeading,
+}: {
+  title: string;
+  subtitle?: string;
+  isHeading: boolean;
+}) {
+  if (!title) return null;
+  // The weight sits here rather than on the name beside it: this is what the
+  // screen is about.
+  const type = 'truncate text-lg leading-tight font-bold phone:text-xl';
+  return (
+    <>
+      {isHeading ? (
+        <h1 className={type}>{title}</h1>
+      ) : (
+        <p className={type}>{title}</p>
+      )}
+      {subtitle && (
+        <p
+          className="truncate text-xs leading-tight"
+          style={{ color: 'var(--bar-muted)' }}
+        >
+          {subtitle}
+        </p>
+      )}
+    </>
+  );
+}
+
+/**
+ * The app's name, on three lines, and the way back to the start.
+ *
+ * Three lines rather than one because it is a wordmark now and not a page
+ * title: stacked it holds its weight at a size that leaves room for a date
+ * beside it, where one long line would have taken the whole bar.
+ */
+function Brand({
+  onHome,
+  isHeading,
+}: {
+  onHome?: () => void;
+  /** On home the name is the page's heading rather than a link to it. */
+  isHeading: boolean;
+}) {
+  // On home the app is the subject, so the name is the heading and carries
+  // the line that says what it is. Everywhere else it is a mark in the
+  // corner: two lines, small, quiet, and the way back.
+  if (isHeading || !onHome) {
+    return (
+      <h1 className="shrink-0 text-left text-lg leading-tight font-bold phone:text-xl">
+        {/* One line here. Home has the width for it, and the app's name is
+          this page's subject rather than a mark in a corner. */}
+        <span className="block">Mahjong Tracker</span>
+        <span
+          className="block text-xs font-normal"
+          style={{ color: 'var(--bar-muted)' }}
+        >
+          Hong Kong Scoring
+        </span>
+      </h1>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onHome}
+      aria-label="Mahjong Tracker, back to the start"
+      className="shrink-0 py-2 text-left text-xs leading-tight font-semibold"
+      style={{ color: 'var(--bar-muted)' }}
+    >
+      <span className="block">Mahjong</span>
+      <span className="block">Tracker</span>
+    </button>
   );
 }
 

@@ -16,13 +16,14 @@ const SEATS = ['East, deals first', 'South', 'West', 'North'];
 /**
  * Open the new game sheet from home and name the four seats.
  *
- * One front door, and the names start empty, so a spec that is here to play
- * types its own four.
+ * Home asks which kind of table this is; a spec that is here to play takes
+ * the door that goes straight to the players. The names start empty either
+ * way, so it types its own four.
  */
 export async function openNewGame(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await page.getByRole('button', { name: 'New game' }).click();
+  await page.getByRole('button', { name: /I know what I'm doing/ }).click();
   for (const [seat, placeholder] of SEATS.entries()) {
     await page.getByPlaceholder(placeholder, { exact: true }).fill(TABLE[seat]);
   }
@@ -30,7 +31,7 @@ export async function openNewGame(page: Page): Promise<void> {
 
 /** Pick one of the built in rule sets, through the rules sheet. */
 export async function chooseRuleSet(page: Page, name: string): Promise<void> {
-  await page.getByRole('button', { name: /^House rules:/ }).click();
+  await page.getByRole('button', { name: /^Change the house rules/ }).click();
   await page
     .getByRole('button', { name: new RegExp(`^${name}`) })
     .first()

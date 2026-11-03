@@ -35,7 +35,12 @@ test('what it settles lands on the rules it was opened from', async ({
     .getByRole('button', { name: /Shooter pays double, others pay/ })
     .click();
   await page.getByRole('button', { name: 'Next', exact: true }).click();
-  await page.getByRole('button', { name: /Straight/ }).click();
+  // Scoped: the knowing door on home behind this sheet says "Straight to
+  // the players and the house rules".
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /Straight/ })
+    .click();
   await page
     .getByRole('button', { name: 'Skip the rest and keep the usual' })
     .click();
@@ -88,7 +93,7 @@ test('a first game inherits nothing from the seeded sample', async ({
 }) => {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await page.getByRole('button', { name: 'New game' }).click();
+  await page.getByRole('button', { name: /I know what I'm doing/ }).click();
 
   // Empty seats, and the app's own default rather than the sample's rules.
   await expect(

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { SEATS, WIND_CHARS, type PlayerNames, type Seat } from '@/lib/scoring';
 import { HK_STANDARD, presetFor, type Rules } from '@/lib/rules/types';
 import { RulesSheet } from './RulesSheet';
+import { RulesWalkthroughSheet } from './RulesWalkthroughSheet';
 import { formatStake } from '@/lib/game/settle';
 import { SEAT_WINDS, seatSolid } from '@/lib/game/seats';
 import { todayIso } from '@/lib/game/ids';
@@ -22,6 +23,7 @@ export function GameSheet({
   lastPlayers,
   lastRules,
   lastRuleSetName,
+  startInWalkthrough = false,
   onClose,
   onSave,
   onDelete,
@@ -33,6 +35,11 @@ export function GameSheet({
   /** Rules from the most recent game: a table rarely changes them between games. */
   lastRules?: Rules;
   lastRuleSetName?: string;
+  /**
+   * Open straight into the guide, for whoever took that door on home. Read
+   * once, on mount, so the parent keys the sheet per open.
+   */
+  startInWalkthrough?: boolean;
   onClose: () => void;
   onSave: (input: NewGameInput) => void | Promise<void>;
   onDelete?: () => void | Promise<void>;
@@ -62,6 +69,11 @@ export function GameSheet({
       (lastRules ? lastRuleSetName : 'Hong Kong standard'),
   );
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [walkthroughOpen, setWalkthroughOpen] = useState(startInWalkthrough);
+  // Whether the guide is closing because it finished, as against being
+  // dismissed. Finishing hands its answers over and the form takes it from
+  // there; dismissing is somebody asking to be let out.
+  const walkthroughApplied = useRef(false);
   // The date picker stays folded away until somebody says the date is wrong.
   const [datingOpen, setDatingOpen] = useState(false);
 
@@ -95,7 +107,7 @@ export function GameSheet({
   return (
     <>
       <Sheet
-        open={open && !rulesOpen}
+        open={open && !rulesOpen && !walkthroughOpen}
         title={editing ? 'Game settings' : 'Start a game'}
         onClose={onClose}
         footer={
@@ -233,8 +245,11 @@ export function GameSheet({
               type="button"
               onClick={() => setRulesOpen(true)}
               aria-label={`Change the house rules, currently ${ruleSetLabel(rules, ruleSetName)}`}
-              className="touch shrink-0 px-2 text-sm font-semibold"
-              style={{ color: 'var(--accent)' }}
+              // Quieter than the line it sits beside. In accent and semibold
+              // it was the brightest thing in the row, which made a settled
+              // answer look like an unanswered question.
+              className="touch shrink-0 px-2 text-xs underline underline-offset-2"
+              style={{ color: 'var(--muted)' }}
             >
               Change
             </button>
@@ -243,8 +258,11 @@ export function GameSheet({
           {/* Last, and quiet: it is right almost every time, and the times
             it is not are somebody writing up last night's game. */}
           <div className="flex items-center justify-between gap-3">
-            <span className="text-sm" style={{ color: 'var(--muted)' }}>
-              Date: {date === todayIso() ? 'Today' : formatGameDate(date)}
+            <span className="text-sm font-semibold">
+              <span className="font-normal" style={{ color: 'var(--muted)' }}>
+                Date:{' '}
+              </span>
+              {formatGameDate(date)}
             </span>
             {datingOpen ? (
               <input
@@ -265,8 +283,8 @@ export function GameSheet({
                 type="button"
                 onClick={() => setDatingOpen(true)}
                 aria-label="Change the date"
-                className="touch shrink-0 px-2 text-sm font-semibold"
-                style={{ color: 'var(--accent)' }}
+                className="touch shrink-0 px-2 text-xs underline underline-offset-2"
+                style={{ color: 'var(--muted)' }}
               >
                 Change
               </button>
@@ -274,6 +292,30 @@ export function GameSheet({
           </div>
         </div>
       </Sheet>
+
+      {/* Gated on this sheet's own open as well as its own state: a closed
+        sheet must not leave a child of it on screen. */}
+      {open && walkthroughOpen && (
+        <RulesWalkthroughSheet
+          open
+          rules={rules}
+          onClose={() => {
+            setWalkthroughOpen(false);
+            const applied = walkthroughApplied.current;
+            walkthroughApplied.current = false;
+            // Close goes back where you came from. From the door on home
+            // that is out altogether, since the questions were the whole
+            // reason this sheet opened and nobody asked for the form behind
+            // them.
+            if (startInWalkthrough && !applied) onClose();
+          }}
+          onApply={(next, set) => {
+            walkthroughApplied.current = true;
+            setRules(next);
+            setRuleSetName(set?.name);
+          }}
+        />
+      )}
 
       <RulesSheet
         open={open && rulesOpen}
