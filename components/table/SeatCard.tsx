@@ -2,7 +2,6 @@
 
 import { DEALER_CHAR, type Seat } from '@/lib/scoring';
 import { SEAT_WINDS, seatColor } from '@/lib/game/seats';
-import { TERM_BY_ID, termForHandType } from '@/lib/terms';
 import { Wind, windLabel } from '@/components/ui/Wind';
 import { formatSigned } from '@/components/ui/Score';
 
@@ -10,10 +9,19 @@ import { formatSigned } from '@/components/ui/Score';
  * One player's tile at the table: their wind, name, running score, what the
  * last hand did to them, and the dealer marker when it is their deal.
  *
- * The tile carries both things a player can do to a hand. Tapping the body
- * says they won it. The strip underneath says they called a win they did not
- * have, which is not a kind of winning and so is not reached through one.
+ * The whole card is one control, and it means one thing: this player won the
+ * hand. It used to carry two buttons of its own, which put eight buttons on
+ * the table and gave a false win — a thing that happens once a night, if that
+ * — the same weight as the thing that happens every hand. The rare outcomes
+ * moved under the table, where they are reached on purpose.
  */
+
+/** A score as it should be read aloud, rather than as it is written. */
+function spokenScore(score: number): string {
+  if (score > 0) return `plus ${score}`;
+  if (score < 0) return `minus ${Math.abs(score)}`;
+  return 'level';
+}
 /**
  * A name that fits, or steps down once, or wraps.
  *
@@ -40,8 +48,6 @@ export function SeatCard({
   compact = false,
   onSelect,
   selectLabel,
-  onFalseWin,
-  falseWinLabel,
   pulse = false,
 }: {
   seat: Seat;
@@ -54,16 +60,11 @@ export function SeatCard({
   onSelect?: () => void;
   /** What tapping the card does, for screen readers. */
   selectLabel?: string;
-  /** Records a false win against this player, with no winner involved. */
-  onFalseWin?: () => void;
-  falseWinLabel?: string;
   /** Draws the eye to the seats before the first hand is ever recorded. */
   pulse?: boolean;
 }) {
   const wind = SEAT_WINDS[seat];
   const color = seatColor(seat);
-  const zaaWu = termForHandType('zaa_wu');
-  const sikWu = TERM_BY_ID.sik_wu;
 
   const inner = (
     <>
@@ -127,15 +128,9 @@ export function SeatCard({
     </>
   );
 
-  const pad = compact ? 'px-2' : 'px-2.5';
   const infoClass = `flex w-full flex-col justify-between text-left ${
-    compact ? 'gap-1 px-2.5 pt-2 pb-1.5' : 'gap-1.5 px-3 pt-2.5 pb-2'
+    compact ? 'gap-1 px-2.5 py-2.5' : 'gap-1.5 px-3 py-3'
   }`;
-  // The two things a player can do to a hand are peers, so they are drawn as
-  // peers: the same outlined chip, the same size, one above the other.
-  const barClass =
-    'seat-action flex w-full items-center justify-center gap-1 overflow-hidden px-1 text-xs leading-none font-semibold whitespace-nowrap';
-  const barStyle = { minHeight: 30 };
   const style = { borderTopColor: color, borderTopWidth: 3 };
 
   if (!onSelect) {
@@ -147,54 +142,19 @@ export function SeatCard({
   }
 
   return (
-    <div
-      className={`tile tile-pressable relative w-full${pulse ? ' seat-pulse' : ''}`}
+    <button
+      type="button"
+      onClick={onSelect}
+      // Said the way it would be read out: who, where they sit, where they
+      // stand, and then what tapping does.
+      aria-label={
+        selectLabel ??
+        `${name}, ${windLabel(wind)}, ${spokenScore(score)}. Record a win for ${name}.`
+      }
+      className={`tile seat-press relative w-full${pulse ? ' seat-pulse' : ''}`}
       style={style}
     >
-      {/* The whole upper half is the button, so the win stays the easiest thing
-        to hit, but it now says so rather than leaving the scorekeeper to guess
-        that a card full of numbers is also a control. */}
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-label={selectLabel ?? `Record a hand won by ${name}`}
-        className="flex w-full flex-col"
-      >
-        <span className={infoClass}>{inner}</span>
-        <span className={`w-full ${pad} pb-1.5`}>
-          <span className={barClass} style={barStyle}>
-            <span
-              lang="zh-Hant"
-              className="hanzi hidden shrink-0 min-[390px]:inline"
-              aria-hidden="true"
-            >
-              {sikWu.zh}
-            </span>
-            Won
-          </span>
-        </span>
-      </button>
-
-      {onFalseWin && (
-        <button
-          type="button"
-          onClick={onFalseWin}
-          aria-label={falseWinLabel ?? `Record a false win called by ${name}`}
-          // Its own button, below the one that covers the rest of the tile.
-          className={`w-full ${pad} pb-2`}
-        >
-          <span className={barClass} style={barStyle}>
-            <span
-              lang="zh-Hant"
-              className="hanzi hidden shrink-0 min-[390px]:inline"
-              aria-hidden="true"
-            >
-              {zaaWu.zh}
-            </span>
-            <span className="truncate">{zaaWu.english}</span>
-          </span>
-        </button>
-      )}
-    </div>
+      <span className={infoClass}>{inner}</span>
+    </button>
   );
 }

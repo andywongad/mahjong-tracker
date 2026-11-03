@@ -72,7 +72,7 @@ export const ROUTES: Route[] = [
       await settle(page);
       // Tapping a seat is how a hand starts.
       await page
-        .getByRole('button', { name: /Record hand \d+ won by/ })
+        .getByRole('button', { name: /^Player [A-D], / })
         .first()
         .click();
       await page.waitForTimeout(500);
@@ -84,7 +84,7 @@ export const ROUTES: Route[] = [
       await page.goto(`/?game=${GAME}`);
       await settle(page);
       await page
-        .getByRole('button', { name: /Record hand \d+ won by/ })
+        .getByRole('button', { name: /^Player [A-D], / })
         .first()
         .click();
       await page.waitForTimeout(400);
@@ -101,7 +101,7 @@ export const ROUTES: Route[] = [
       await page.goto(`/?game=${GAME}`);
       await settle(page);
       await page
-        .getByRole('button', { name: /Record hand \d+ won by/ })
+        .getByRole('button', { name: /^Player [A-D], / })
         .first()
         .click();
       await page.waitForTimeout(400);
@@ -118,7 +118,7 @@ export const ROUTES: Route[] = [
       await page.goto(`/?game=${GAME}`);
       await settle(page);
       await page
-        .getByRole('button', { name: /Record hand \d+ won by/ })
+        .getByRole('button', { name: /^Player [A-D], / })
         .first()
         .click();
       await page.waitForTimeout(400);

@@ -6,7 +6,6 @@ import { SeatCard } from '../SeatCard';
 
 function setup(props: Partial<React.ComponentProps<typeof SeatCard>> = {}) {
   const onSelect = vi.fn();
-  const onFalseWin = vi.fn();
   render(
     <SeatCard
       seat={0}
@@ -15,69 +14,47 @@ function setup(props: Partial<React.ComponentProps<typeof SeatCard>> = {}) {
       lastDelta={16}
       isDealer={false}
       onSelect={onSelect}
-      selectLabel="Record hand 20 won by Player A"
-      onFalseWin={onFalseWin}
-      falseWinLabel="Record hand 20 as a false win called by Player A"
       {...props}
     />,
   );
-  return { onSelect, onFalseWin, user: userEvent.setup() };
+  return { onSelect, user: userEvent.setup() };
 }
 
 describe('a seat at the table', () => {
-  it('offers winning and calling a false win as separate actions', () => {
+  it('is one control, meaning one thing', () => {
+    setup();
+    // It used to carry two: a win and a false win, which put eight buttons on
+    // the table and gave a once-a-night event the weight of an every-hand one.
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('says who, where they sit, where they stand, and what tapping does', () => {
     setup();
     expect(
-      screen.getByRole('button', { name: 'Record hand 20 won by Player A' }),
-    ).toBeVisible();
-    expect(
       screen.getByRole('button', {
-        name: 'Record hand 20 as a false win called by Player A',
+        name: 'Player A, East, minus 23. Record a win for Player A.',
       }),
     ).toBeVisible();
   });
 
-  it('says on the tile what each half of it does', () => {
-    setup();
-    // A card of numbers does not read as a control, so both halves are labelled.
-    expect(screen.getByText('Won')).toBeVisible();
-    expect(screen.getByText('False win')).toBeVisible();
+  it('reads a gain the way it would be said', () => {
+    setup({ name: 'Player C', seat: 2, score: 64 });
+    expect(
+      screen.getByRole('button', { name: /Player C, West, plus 64\./ }),
+    ).toBeVisible();
   });
 
-  it('never nests one action inside the other', () => {
-    const { container } = render(
-      <SeatCard
-        seat={1}
-        name="Player B"
-        score={0}
-        lastDelta={0}
-        isDealer
-        onSelect={vi.fn()}
-        onFalseWin={vi.fn()}
-      />,
-    );
-    // A button inside a button is invalid, and swallows the inner one's taps.
-    expect(container.querySelectorAll('button button')).toHaveLength(0);
+  it('reads a level score as level rather than as nothing', () => {
+    setup({ name: 'Player D', seat: 3, score: 0 });
+    expect(
+      screen.getByRole('button', { name: /Player D, North, level\./ }),
+    ).toBeVisible();
   });
 
-  it('records a win from the body', async () => {
-    const { onSelect, onFalseWin, user } = setup();
-    await user.click(
-      screen.getByRole('button', { name: 'Record hand 20 won by Player A' }),
-    );
+  it('records a win when the card is tapped', async () => {
+    const { onSelect, user } = setup();
+    await user.click(screen.getByRole('button'));
     expect(onSelect).toHaveBeenCalledOnce();
-    expect(onFalseWin).not.toHaveBeenCalled();
-  });
-
-  it('records a false win without going through a winner', async () => {
-    const { onSelect, onFalseWin, user } = setup();
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Record hand 20 as a false win called by Player A',
-      }),
-    );
-    expect(onFalseWin).toHaveBeenCalledOnce();
-    expect(onSelect).not.toHaveBeenCalled();
   });
 
   it('is inert once the game is over', () => {

@@ -13,7 +13,7 @@ const GAME = '/?game=seed-aug-19-2026';
 
 /** A seat's running total, which is always signed. */
 function seatScore(page: import('@playwright/test').Page, name: string) {
-  return page.locator(`[aria-label*="won by ${name}"] .tnum`).first();
+  return page.locator(`[aria-label^="${name}, "] .tnum`).first();
 }
 
 test('the rules can be changed from the table, and say what that costs first', async ({

@@ -42,7 +42,7 @@ test('the game that comes back is the same game, hands and all', async ({
 
   // Record a hand so there is something to lose.
   await page
-    .getByRole('button', { name: new RegExp(`won by ${TABLE[0]}`) })
+    .getByRole('button', { name: new RegExp(`^${TABLE[0]}, `) })
     .click();
   await page
     .getByRole('dialog')
@@ -70,7 +70,7 @@ test('the game that comes back is the same game, hands and all', async ({
   await expect(page.getByText('1 hand').first()).toBeVisible();
   await page.goto(url);
   await expect(
-    page.getByRole('button', { name: new RegExp(`won by ${TABLE[0]}`) }),
+    page.getByRole('button', { name: new RegExp(`^${TABLE[0]}, `) }),
   ).toBeVisible();
 });
 

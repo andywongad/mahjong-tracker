@@ -12,7 +12,12 @@ import { useNavigation } from '@/lib/game/navigation';
 import { formatGameDate } from '@/lib/game/format';
 import { describeHand } from '@/lib/game/describe';
 import { useWakeLock } from '@/lib/hooks/useWakeLock';
-import { markRecorded, useFirstRecord } from '@/lib/hooks/useFirstRecord';
+import {
+  dismissSeatHint,
+  markRecorded,
+  useFirstRecord,
+  useSeatHint,
+} from '@/lib/hooks/useFirstRecord';
 import { logEvent } from '@/lib/telemetry/events';
 import { OfflineBadge } from '@/components/ui/OfflineBadge';
 import { UndoToast } from '@/components/ui/UndoToast';
@@ -20,9 +25,9 @@ import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { TableSurface } from './TableSurface';
 import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
+import { OtherOutcomeSheet } from '@/components/sheets/OtherOutcomeSheet';
 import { TallySummary } from './TallySummary';
 import { ScoreChart } from '@/components/stats/ScoreChart';
-import { termForHandType } from '@/lib/terms';
 
 /** What the undo toast is currently offering to take back. */
 interface Undoable {
@@ -48,6 +53,8 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const [confirmingEnd, setConfirmingEnd] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const neverRecorded = useFirstRecord();
+  const showSeatHint = useSeatHint();
+  const [outcomeOpen, setOutcomeOpen] = useState(false);
 
   // Keep the screen awake while a game is on the table.
   useWakeLock(Boolean(game));
@@ -155,11 +162,30 @@ export function GameScreen({ gameId }: { gameId: string }) {
           beside them instead of below. */}
         <div className="flex flex-col gap-5 desktop:grid desktop:grid-cols-[minmax(0,40rem)_minmax(22.5rem,26.25rem)] desktop:items-start desktop:gap-6">
           <div className="flex min-w-0 flex-col gap-5">
+            {live && showSeatHint && (
+              <div
+                className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"
+                style={{ background: 'var(--tile-face)' }}
+                role="note"
+              >
+                <span className="text-sm">
+                  Tap the winner&rsquo;s seat to record a hand.
+                </span>
+                <button
+                  type="button"
+                  onClick={dismissSeatHint}
+                  className="touch shrink-0 px-2 text-sm font-semibold"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  Got it
+                </button>
+              </div>
+            )}
+
             <TableSurface
               game={game}
               replay={result}
               onSelectSeat={live ? openForSeat : undefined}
-              onFalseWin={live ? recordFalseWin : undefined}
               endedEarly={endedEarly}
               // Only on a game that has barely started: a nudge over a sample game
               // already nineteen hands deep is noise, not help.
@@ -189,15 +215,12 @@ export function GameScreen({ gameId }: { gameId: string }) {
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {/* A draw belongs to nobody, so it is the one hand still
-              recorded from under the table rather than from a seat. */}
+                {/* The hands nobody won. Behind one button, because between
+                  them they happen perhaps once a night, and on the seats
+                  they cost the table eight controls. */}
                 <SecondaryAction
-                  hanzi={termForHandType('draw').zh}
-                  label={termForHandType('draw').english}
-                  onClick={() => {
-                    setUndoable(null);
-                    void record({ type: 'draw' });
-                  }}
+                  label="Other outcome"
+                  onClick={() => setOutcomeOpen(true)}
                 />
               </div>
             )}
@@ -334,6 +357,17 @@ export function GameScreen({ gameId }: { gameId: string }) {
         </div>
       </div>
 
+      <OtherOutcomeSheet
+        open={outcomeOpen}
+        players={game.players}
+        onClose={() => setOutcomeOpen(false)}
+        onDraw={() => {
+          setUndoable(null);
+          return record({ type: 'draw' });
+        }}
+        onFalseWin={recordFalseWin}
+      />
+
       {/* Keyed so each open starts from a clean draft, or from the hand being
           edited, without the sheet resetting itself after the fact. */}
       <RecordHandSheet
@@ -361,13 +395,14 @@ export function GameScreen({ gameId }: { gameId: string }) {
   );
 }
 
-/** A draw or a false win: equal weight, plainly secondary to recording a win. */
+/** The way to the outcomes nobody won: plainly secondary to recording a win. */
 function SecondaryAction({
   hanzi,
   label,
   onClick,
 }: {
-  hanzi: string;
+  /** A term's character, where the button is one term rather than a door. */
+  hanzi?: string;
   label: string;
   onClick: () => void;
 }) {
@@ -378,13 +413,15 @@ function SecondaryAction({
       className="touch flex w-full items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-semibold"
       style={{ border: '1px solid var(--line-strong)', color: 'var(--ink)' }}
     >
-      <span
-        lang="zh-Hant"
-        className="hanzi text-base leading-none"
-        aria-hidden="true"
-      >
-        {hanzi}
-      </span>
+      {hanzi && (
+        <span
+          lang="zh-Hant"
+          className="hanzi text-base leading-none"
+          aria-hidden="true"
+        >
+          {hanzi}
+        </span>
+      )}
       {label}
     </button>
   );

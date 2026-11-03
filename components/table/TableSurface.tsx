@@ -16,7 +16,6 @@ export function TableSurface({
   game,
   replay,
   onSelectSeat,
-  onFalseWin,
   endedEarly = false,
   pulseSeats = false,
 }: {
@@ -24,8 +23,6 @@ export function TableSurface({
   replay: ReplayResult;
   /** Tapping a seat records a hand won by that player. */
   onSelectSeat?: (seat: Seat) => void;
-  /** Records a false win called by that player, with no winner involved. */
-  onFalseWin?: (seat: Seat) => void;
   /** The scorekeeper called the game before the rounds ran out. */
   endedEarly?: boolean;
   /** Nudges the seats until the first hand has ever been recorded. */
@@ -56,9 +53,6 @@ export function TableSurface({
               isDealer={replay.currentDealerSeat === seat}
               compact
               onSelect={onSelectSeat ? () => onSelectSeat(seat) : undefined}
-              selectLabel={`Record hand ${replay.handCount + 1} won by ${game.players[seat]}`}
-              onFalseWin={onFalseWin ? () => onFalseWin(seat) : undefined}
-              falseWinLabel={`Record hand ${replay.handCount + 1} as a false win called by ${game.players[seat]}`}
               pulse={pulseSeats}
             />
           </div>

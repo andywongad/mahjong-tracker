@@ -33,7 +33,7 @@ test('the game at the table can be deleted, and comes back', async ({
   // The same game, at the same address.
   await page.goto(table);
   await expect(
-    page.getByRole('button', { name: /won by Player A/ }),
+    page.getByRole('button', { name: /^Player A, / }),
   ).toBeVisible();
 });
 
@@ -80,7 +80,7 @@ test('the current game can be deleted from home, and comes back', async ({
   // The same game, at the same address.
   await page.goto(table);
   await expect(
-    page.getByRole('button', { name: /won by Player A/ }),
+    page.getByRole('button', { name: /^Player A, / }),
   ).toBeVisible();
 });
 

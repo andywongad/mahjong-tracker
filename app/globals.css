@@ -366,6 +366,19 @@ body {
   box-shadow: 0 1px 1px #17211e0f;
 }
 
+/* A seat is a button the size of a card, so the press has to be felt at that
+   size: two pixels, not the one a small control gets. */
+.seat-press {
+  transition:
+    transform 120ms ease,
+    filter 120ms ease;
+}
+
+.seat-press:active {
+  transform: translateY(2px);
+  filter: brightness(0.97);
+}
+
 .tile-selected {
   background: var(--tile-back);
   border-color: transparent;

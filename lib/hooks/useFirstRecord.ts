@@ -41,3 +41,38 @@ export function markRecorded(): void {
 export function useFirstRecord(): boolean {
   return useSyncExternalStore(subscribe, neverRecorded, () => false);
 }
+
+/**
+ * The one-line hint over the table, telling a newcomer that the seats are
+ * the way in.
+ *
+ * Its own key, because it can be dismissed without recording anything, and
+ * recording something should retire it whether it was dismissed or not.
+ */
+const HINT_KEY = 'mahjong-seat-hint-dismissed';
+
+function hintDismissed(): boolean {
+  try {
+    return localStorage.getItem(HINT_KEY) !== null;
+  } catch {
+    // A blocked store means no hint, which is the quieter failure.
+    return true;
+  }
+}
+
+export function dismissSeatHint(): void {
+  if (hintDismissed()) return;
+  try {
+    localStorage.setItem(HINT_KEY, '1');
+  } catch {
+    return;
+  }
+  for (const listener of listeners) listener();
+}
+
+/** Whether the hint still has something to say on this device. */
+export function useSeatHint(): boolean {
+  const never = useSyncExternalStore(subscribe, neverRecorded, () => false);
+  const dismissed = useSyncExternalStore(subscribe, hintDismissed, () => true);
+  return never && !dismissed;
+}
