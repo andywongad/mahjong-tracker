@@ -166,3 +166,69 @@ test('a named set goes on the game and into the list for the next one', async ({
     page.getByRole('button', { name: /^Friday night/ }),
   ).toBeVisible();
 });
+
+test('Close gets out, from the questions and from the form', async ({
+  page,
+}) => {
+  const home = page.getByRole('heading', { name: 'Start a game' });
+  // The dialog's own Close; the backdrop behind it answers to the name too.
+  const close = () =>
+    page.getByRole('dialog').getByRole('button', { name: 'Close' });
+
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+
+  // Out of the questions, when the questions are why the sheet opened.
+  await page.getByRole('button', { name: /I'm still learning/ }).click();
+  await expect(
+    page.getByRole('heading', { name: 'On a discard win, who pays?' }),
+  ).toBeVisible();
+  await close().click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(home).toBeVisible();
+
+  // Out of the form, without the questions reappearing behind it.
+  await page.getByRole('button', { name: /I know what I'm doing/ }).click();
+  await expect(
+    page.getByPlaceholder('East, deals first', { exact: true }),
+  ).toBeVisible();
+  await close().click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(home).toBeVisible();
+});
+
+test('Close from the in-form link goes back to the form, not out', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  await page.getByRole('button', { name: /I know what I'm doing/ }).click();
+  await offer(page).click();
+  await expect(
+    page.getByRole('heading', { name: 'On a discard win, who pays?' }),
+  ).toBeVisible();
+
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Close' })
+    .click();
+
+  // Back where it was opened from, players still named.
+  await expect(
+    page.getByPlaceholder('East, deals first', { exact: true }),
+  ).toBeVisible();
+});
+
+test('finishing the questions still lands on the form', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  await page.getByRole('button', { name: /I'm still learning/ }).click();
+  await page
+    .getByRole('button', { name: 'Skip the rest and keep the usual' })
+    .click();
+  await page.getByRole('button', { name: 'Use these rules' }).click();
+
+  await expect(
+    page.getByPlaceholder('East, deals first', { exact: true }),
+  ).toBeVisible();
+});

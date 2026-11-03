@@ -24,30 +24,83 @@ const skip = () =>
   screen.getByRole('button', { name: 'Skip the rest and keep the usual' });
 
 describe('the discard question', () => {
-  it('opens on it, with the current split already chosen', () => {
+  it('opens on it, with nothing chosen for the table', () => {
     setup();
 
     expect(
       screen.getByRole('heading', { name: 'On a discard win, who pays?' }),
     ).toBeTruthy();
     expect(screen.getByText('Question 1 of 4')).toBeTruthy();
-    // Hong Kong standard is the shooter alone, at double.
-    expect(
-      screen.getByRole('button', { name: /Only the shooter pays, at double/ }),
-    ).toHaveAttribute('aria-pressed', 'true');
+    // Not even the rules the sheet was opened on. This question has no right
+    // answer, so arriving with one ticked would answer it for them.
+    for (const button of screen.getAllByRole('button', {
+      name: /pays the winner/,
+    })) {
+      expect(button).toHaveAttribute('aria-pressed', 'false');
+    }
   });
 
-  it('offers all four ways a table can split it', () => {
+  it('waits for an answer before it will go on', async () => {
+    const { user } = setup();
+    expect(next()).toBeDisabled();
+
+    await user.click(
+      screen.getByRole('button', { name: /Only the shooter pays, at face/ }),
+    );
+
+    expect(next()).toBeEnabled();
+    await user.click(next());
+    expect(
+      screen.getByRole('heading', {
+        name: 'How much more is a better hand worth?',
+      }),
+    ).toBeTruthy();
+  });
+
+  it('offers all four ways a table can split it, gentlest first', () => {
     setup();
 
-    for (const label of [
-      /Shooter pays double, others pay one each/,
+    const labels = [
       /Only the shooter pays, at face value/,
+      /Shooter pays double, others pay one each/,
       /Only the shooter pays, at double/,
       /Only the shooter pays, the full amount/,
-    ]) {
+    ];
+    for (const label of labels) {
       expect(screen.getByRole('button', { name: label })).toBeTruthy();
     }
+
+    // In that order, so the one a new table should take comes first.
+    const order = screen
+      .getAllByRole('button', { name: /pays the winner/ })
+      .map((button) => button.textContent ?? '');
+    expect(order).toHaveLength(labels.length);
+    labels.forEach((label, index) => expect(order[index]).toMatch(label));
+  });
+
+  it('marks the gentlest one as the suggestion without choosing it', () => {
+    setup();
+
+    const suggested = screen.getByRole('button', {
+      name: /Only the shooter pays, at face value/,
+    });
+    // Said in words, not just drawn as a colour.
+    expect(suggested.textContent).toMatch(/Recommended for beginners/);
+    // A suggestion is not a selection: the table still has to agree to it.
+    expect(suggested).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('keeps the suggestion marked once it has been taken', async () => {
+    const { user } = setup();
+    const suggested = () =>
+      screen.getByRole('button', {
+        name: /Only the shooter pays, at face value/,
+      });
+
+    await user.click(suggested());
+
+    expect(suggested()).toHaveAttribute('aria-pressed', 'true');
+    expect(suggested().textContent).toMatch(/Recommended for beginners/);
   });
 
   it('quotes what each one costs rather than what it is called', () => {
@@ -70,6 +123,32 @@ describe('the discard question', () => {
   });
 });
 
+describe('the curve question', () => {
+  it('leads with the one a new table can follow, marked and unchosen', async () => {
+    const { user } = setup();
+    await user.click(
+      screen.getByRole('button', { name: /Only the shooter pays, at double/ }),
+    );
+    await user.click(next());
+
+    const order = screen
+      .getAllByRole('button', { name: /pays the winner/ })
+      .map((button) => button.textContent ?? '');
+    expect(order[0]).toMatch(/Straight/);
+    expect(order[1]).toMatch(/Doubling/);
+
+    const straight = screen.getByRole('button', { name: /Straight/ });
+    expect(straight.textContent).toMatch(/Recommended for beginners/);
+    // Suggested, and neither one chosen until the table says so.
+    expect(straight).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: /Doubling/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(next()).toBeDisabled();
+  });
+});
+
 describe('what the answers add up to', () => {
   it('walks all four questions and applies them', async () => {
     const { onApply, user } = setup();
@@ -84,6 +163,7 @@ describe('what the answers add up to', () => {
         name: 'How much more is a better hand worth?',
       }),
     ).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /Doubling/ }));
     await user.click(next());
 
     expect(
@@ -130,6 +210,9 @@ describe('what the answers add up to', () => {
     // The shooter-alone split with a straight curve is nobody's preset, so
     // the answers stand on their own — but the penalty still has to mean "a
     // limit hand", which on a straight curve to 13 is 13.
+    await user.click(
+      screen.getByRole('button', { name: /Only the shooter pays, at double/ }),
+    );
     await user.click(next());
     await user.click(screen.getByRole('button', { name: /Straight/ }));
     await user.click(skip());
@@ -215,7 +298,11 @@ describe('the ways past it', () => {
   it('turns money on with a stake and off again without one', async () => {
     const { onApply, user } = setup();
 
+    await user.click(
+      screen.getByRole('button', { name: /Only the shooter pays, at double/ }),
+    );
     await user.click(next());
+    await user.click(screen.getByRole('button', { name: /Doubling/ }));
     await user.click(next());
     await user.click(next());
     await user.click(screen.getByRole('button', { name: /Money too/ }));

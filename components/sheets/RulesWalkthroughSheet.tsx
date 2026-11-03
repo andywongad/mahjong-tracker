@@ -43,16 +43,28 @@ const DEFAULT_STAKE = 0.1;
 const STEPS = ['split', 'curve', 'range', 'money', 'done'] as const;
 type Step = (typeof STEPS)[number];
 
-const CURVES: { kind: CurveKind; name: string; detail: string }[] = [
-  {
-    kind: 'doubling',
-    name: 'Doubling',
-    detail: 'Each faan is worth about double the one before it',
-  },
+/**
+ * Gentlest first, like the splits, and for the same reason: a table still
+ * learning should meet the one it can follow in its head before the one the
+ * standard game uses. Straight is the suggestion because a 5 faan hand pays 5,
+ * not 24 — not because it is more correct.
+ */
+const CURVES: {
+  kind: CurveKind;
+  name: string;
+  detail: string;
+  recommended?: boolean;
+}[] = [
   {
     kind: 'linear',
     name: 'Straight',
     detail: 'Every faan is worth the same, so a hand pays its own faan',
+    recommended: true,
+  },
+  {
+    kind: 'doubling',
+    name: 'Doubling',
+    detail: 'Each faan is worth about double the one before it',
   },
 ];
 
@@ -110,8 +122,27 @@ export function RulesWalkthroughSheet({
   // What the table calls its own way of playing, when the answers have added
   // up to something no preset covers.
   const [name, setName] = useState('');
+  /**
+   * Which of the two open questions the table has actually answered.
+   *
+   * Separate from the rules, which always hold a complete set — a game cannot
+   * start without one. The split and the curve have no right answer, only a
+   * fact about a particular table, so arriving with one already ticked would
+   * decide for them and let them tap past it without noticing. Nothing is
+   * ticked until they tick it, and Next waits.
+   *
+   * The usual rules are still one tap away, as the skip, which says out loud
+   * that it is taking them.
+   */
+  const [answered, setAnswered] = useState<Partial<Record<Step, boolean>>>({});
+  const answer = (step: Step) =>
+    setAnswered((current) => ({ ...current, [step]: true }));
 
   const index = STEPS.indexOf(step);
+  // The two questions with no right answer are the two that have to be
+  // answered. The rest arrive on a convention, which is visible and one tap
+  // to disagree with.
+  const waiting = (step === 'split' || step === 'curve') && !answered[step];
 
   function edit(change: Partial<Rules>) {
     setRules((current) => withRuleChange(current, change));
@@ -164,11 +195,20 @@ export function RulesWalkthroughSheet({
             )}
             <button
               type="button"
+              disabled={waiting}
               onClick={() =>
                 step === 'done' ? void finish() : setStep(STEPS[index + 1])
               }
               className="touch flex-1 rounded-xl px-4 text-base font-semibold"
-              style={{ background: 'var(--tile-back)', color: '#fff' }}
+              style={
+                waiting
+                  ? {
+                      background: 'var(--line)',
+                      color: 'var(--muted)',
+                      cursor: 'not-allowed',
+                    }
+                  : { background: 'var(--tile-back)', color: '#fff' }
+              }
             >
               {step === 'done' ? 'Use these rules' : 'Next'}
             </button>
@@ -205,17 +245,21 @@ export function RulesWalkthroughSheet({
               {DISCARD_SPLITS.map((split) => (
                 <Card
                   key={split.id}
-                  chosen={splitIdFor(rules) === split.id}
-                  onClick={() =>
+                  chosen={
+                    Boolean(answered.split) && splitIdFor(rules) === split.id
+                  }
+                  onClick={() => {
+                    answer('split');
                     setRules((current) =>
                       withPayout(current, {
                         discardShooterMult: split.shooter,
                         discardOthersMult: split.others,
                       }),
-                    )
-                  }
+                    );
+                  }}
                   label={split.label}
                   detail={split.detail}
+                  recommended={split.recommended}
                   consequence={payoutLine(
                     withPayout(rules, {
                       discardShooterMult: split.shooter,
@@ -237,14 +281,18 @@ export function RulesWalkthroughSheet({
               {CURVES.map((curve) => (
                 <Card
                   key={curve.kind}
-                  chosen={rules.curve === curve.kind}
-                  onClick={() =>
+                  chosen={
+                    Boolean(answered.curve) && rules.curve === curve.kind
+                  }
+                  onClick={() => {
+                    answer('curve');
                     setRules((current) =>
                       withPayout(current, { curve: curve.kind }),
-                    )
-                  }
+                    );
+                  }}
                   label={curve.name}
                   detail={curve.detail}
+                  recommended={curve.recommended}
                   consequence={payoutLine(
                     withPayout(rules, { curve: curve.kind }),
                   )}
@@ -406,19 +454,30 @@ function Question({
   );
 }
 
-/** One answer: what it is called, what it means, and what it costs. */
+/**
+ * One answer: what it is called, what it means, and what it costs.
+ *
+ * A recommendation and a selection are two different things, so they are
+ * drawn in two different ways and never collapse into one. Chosen is a filled
+ * card and aria-pressed; recommended is an outline and a badge that says so in
+ * words, because a border on its own is a colour, and a colour on its own is
+ * not an answer to anybody who cannot see it. A recommendation is also never
+ * pre-selected: the table has to agree to it.
+ */
 function Card({
   chosen,
   onClick,
   label,
   detail,
   consequence,
+  recommended = false,
 }: {
   chosen: boolean;
   onClick: () => void;
   label: string;
   detail: string;
   consequence?: string;
+  recommended?: boolean;
 }) {
   return (
     <button
@@ -433,9 +492,22 @@ function Card({
               color: '#fff',
               borderColor: 'transparent',
             }
-          : undefined
+          : recommended
+            ? { borderColor: 'var(--accent)' }
+            : undefined
       }
     >
+      {recommended && (
+        <span
+          className="self-start rounded-full px-2 py-0.5 text-[0.65rem] font-semibold"
+          style={{
+            border: `1px solid ${chosen ? '#fff' : 'var(--accent)'}`,
+            color: chosen ? '#fff' : 'var(--accent)',
+          }}
+        >
+          Recommended for beginners
+        </span>
+      )}
       <span className="text-sm font-semibold">{label}</span>
       <span
         className="text-xs"

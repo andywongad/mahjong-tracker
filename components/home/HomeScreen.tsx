@@ -162,8 +162,13 @@ export function HomeScreen() {
           Neither is the default. A fork with a primary button is a
           recommendation, and which of these to recommend depends on who is
           holding the phone — which is the thing the question is asking. */}
-        <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">Start a game</h2>
+        <section className="flex flex-col gap-3">
+          {/* Bigger and centred than the quiet section labels elsewhere on
+            this screen, because it is not a label: it is the question the two
+            buttons under it answer, and the main thing the app is for. */}
+          <h2 className="text-center text-xl font-bold phone:text-2xl">
+            Start a game
+          </h2>
           <DoorButton
             onClick={() => {
               setWalkthroughFirst(true);

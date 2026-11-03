@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { SEATS, WIND_CHARS, type PlayerNames, type Seat } from '@/lib/scoring';
 import { HK_STANDARD, presetFor, type Rules } from '@/lib/rules/types';
 import { RulesSheet } from './RulesSheet';
@@ -67,6 +67,10 @@ export function GameSheet({
   );
   const [rulesOpen, setRulesOpen] = useState(false);
   const [walkthroughOpen, setWalkthroughOpen] = useState(startInWalkthrough);
+  // Whether the walkthrough is closing because it finished, as against being
+  // dismissed. Finishing hands its answers over and the form takes it from
+  // there; dismissing is somebody asking to be let out.
+  const walkthroughApplied = useRef(false);
 
   const namesOk = names.every((name) => name.trim() !== '');
   const complete = namesOk && date !== '';
@@ -261,15 +265,30 @@ export function GameSheet({
         </div>
       </Sheet>
 
-      {/* Mounted only while it is open, so it always starts on the first
-        question and from whatever the rules are now, rather than resuming
-        wherever it was left. */}
-      {walkthroughOpen && (
+      {/* Gated on this sheet's own open, not just its own state: a closed
+        sheet must not leave a child of it on screen. It used to, which made
+        closing the form put the walkthrough back and the two of them trap
+        whoever was in there.
+
+        Mounted only while open, so it always starts on the first question and
+        from whatever the rules are now, rather than resuming where it was
+        left. */}
+      {open && walkthroughOpen && (
         <RulesWalkthroughSheet
           open
           rules={rules}
-          onClose={() => setWalkthroughOpen(false)}
+          onClose={() => {
+            setWalkthroughOpen(false);
+            const applied = walkthroughApplied.current;
+            walkthroughApplied.current = false;
+            // Close goes back where you came from. From the link inside the
+            // form that is the form; from home it is out altogether, since
+            // the questions were the whole reason this sheet opened and
+            // nobody asked for the form behind them.
+            if (startInWalkthrough && !applied) onClose();
+          }}
           onApply={(next, set) => {
+            walkthroughApplied.current = true;
             setRules(next);
             setRuleSetName(set?.name);
           }}
@@ -277,7 +296,7 @@ export function GameSheet({
       )}
 
       <RulesSheet
-        open={rulesOpen}
+        open={open && rulesOpen}
         rules={rules}
         ruleSetName={ruleSetName}
         handCount={editing?.hands.length ?? 0}
