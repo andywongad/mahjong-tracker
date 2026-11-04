@@ -14,6 +14,8 @@ import {
 } from '@/lib/tiles';
 import { targetSize } from '@/lib/tiles/solver';
 import type { ScoredHand } from '@/lib/patterns/detect';
+import { TERM_BY_ID } from '@/lib/terms';
+import { PATTERNS_BY_ID } from '@/lib/patterns/catalog';
 import { Tile } from '@/components/ui/Tile';
 import { ScanHand } from '@/components/scan/ScanHand';
 
@@ -296,37 +298,39 @@ export function TapTheTiles({
         ))}
 
         <div
-          className="flex flex-col gap-2 pt-1"
+          className="flex flex-col gap-3 pt-1"
           style={{ borderTop: '1px solid var(--line)' }}
         >
           <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            Flowers and seasons sit beside the hand, not in it. Only number{' '}
-            {ownFlowerNumber}, the two marked <OwnMark />, scores for this
-            player; the other six are somebody else&rsquo;s.
+            Flowers and seasons sit beside the hand, not in it.
           </p>
-          <TileGrid>
-            {BONUS_KEYS.map((key) => {
-              const held = flowers.includes(key) ? 1 : 0;
-              return (
-                <TrayTile
-                  key={key}
-                  tileKey={key}
-                  held={held}
-                  bonus
-                  // Reading a number off eight corners is work; seeing which
-                  // two are yours is not.
-                  own={Number(key.slice(1)) === ownFlowerNumber}
-                  onPick={() =>
-                    onFlowers(
-                      held
-                        ? flowers.filter((item) => item !== key)
-                        : [...flowers, key],
-                    )
-                  }
-                />
-              );
-            })}
-          </TileGrid>
+
+          {/* Split rather than badged. Which two are yours is a fact about
+            your seat, and sorting them under a heading answers it once; a
+            mark on a tile corner asks the question again at every tile, in
+            the smallest type on the screen. */}
+          <FlowerGroup
+            title="Yours"
+            detail={`Number ${ownFlowerNumber}, matching your seat. A faan each.`}
+            keys={BONUS_KEYS.filter(
+              (key) => Number(key.slice(1)) === ownFlowerNumber,
+            )}
+            isOwn
+            flowers={flowers}
+            onFlowers={onFlowers}
+          />
+          <FlowerGroup
+            title={`Somebody else’s`}
+            detail="Worth nothing to this hand, and they cost you No flowers."
+            keys={BONUS_KEYS.filter(
+              (key) => Number(key.slice(1)) !== ownFlowerNumber,
+            )}
+            isOwn={false}
+            flowers={flowers}
+            onFlowers={onFlowers}
+          />
+
+          <FlowerOutcome flowers={flowers} ownFlowerNumber={ownFlowerNumber} />
         </div>
       </section>
     </div>
@@ -355,15 +359,117 @@ function TileGrid({ children }: { children: React.ReactNode }) {
 
 /** One tile in the tray, with how many of it are already in the hand. */
 /** The mark on a tile that belongs to this player, named so it can be said. */
-function OwnMark() {
+/** One half of the tray: the two that are yours, or the six that are not. */
+function FlowerGroup({
+  title,
+  detail,
+  keys,
+  isOwn,
+  flowers,
+  onFlowers,
+}: {
+  title: string;
+  detail: string;
+  /** Whether this half is the player's own two. */
+  isOwn: boolean;
+  keys: BonusKey[];
+  flowers: BonusKey[];
+  onFlowers: (flowers: BonusKey[]) => void;
+}) {
   return (
-    <span
-      className="inline-flex h-3 w-3 shrink-0 items-center justify-center rounded-full align-[-1px] text-[0.55rem] font-bold"
-      style={{ background: 'var(--badge-bg)', color: 'var(--on-badge)' }}
-      aria-hidden="true"
+    <div className="flex flex-col gap-1.5">
+      <p className="text-xs font-semibold">
+        {title}{' '}
+        <span className="font-normal" style={{ color: 'var(--muted)' }}>
+          {detail}
+        </span>
+      </p>
+      <TileGrid>
+        {keys.map((key) => {
+          const held = flowers.includes(key) ? 1 : 0;
+          return (
+            <TrayTile
+              key={key}
+              tileKey={key}
+              held={held}
+              bonus
+              own={isOwn}
+              onPick={() =>
+                onFlowers(
+                  held
+                    ? flowers.filter((item) => item !== key)
+                    : [...flowers, key],
+                )
+              }
+            />
+          );
+        })}
+      </TileGrid>
+    </div>
+  );
+}
+
+/**
+ * What the flowers picked so far are actually worth.
+ *
+ * The tray says which could score; this says what did. The case with no
+ * feedback before was the middle one: a flower that is not yours highlights
+ * exactly like one that is, and then nothing happens.
+ */
+function FlowerOutcome({
+  flowers,
+  ownFlowerNumber,
+}: {
+  flowers: BonusKey[];
+  ownFlowerNumber: number;
+}) {
+  const own = flowers.filter(
+    (key) => Number(key.slice(1)) === ownFlowerNumber,
+  ).length;
+  const zingFaa = TERM_BY_ID.zing_faa;
+  const laanFaa = TERM_BY_ID.laan_faa;
+  const mouFaa = PATTERNS_BY_ID.no_flowers;
+
+  const { zh, label, worth, scores } =
+    own > 0
+      ? {
+          zh: zingFaa.zh,
+          label: zingFaa.english,
+          worth: `+${own} faan`,
+          scores: true,
+        }
+      : flowers.length > 0
+        ? {
+            zh: laanFaa.zh,
+            label: laanFaa.english,
+            worth: 'no faan',
+            scores: false,
+          }
+        : {
+            zh: mouFaa.zh,
+            label: mouFaa.nameEn,
+            worth: `+${mouFaa.faan} faan`,
+            scores: true,
+          };
+
+  return (
+    <p
+      className="flex items-baseline justify-between gap-2 rounded-xl px-3 py-2 text-sm"
+      style={{ background: 'var(--tile-face)' }}
     >
-      &#9733;
-    </span>
+      <span>
+        <span lang="zh-Hant" className="hanzi" aria-hidden="true">
+          {zh}
+        </span>{' '}
+        <span className="font-semibold">{label}</span>
+      </span>
+      <span
+        className="shrink-0 font-semibold"
+        style={{ color: scores ? 'var(--gain)' : 'var(--muted)' }}
+      >
+        {worth}
+      </span>
+    </p>
   );
 }
 
@@ -379,7 +485,13 @@ function TrayTile({
   held: number;
   disabled?: boolean;
   bonus?: boolean;
-  /** A flower or season of this player's own number, which is the one that scores. */
+  /**
+   * A flower or season of this player's own number, which is the one that
+   * scores. Said in the tile's name rather than drawn on it: the tray is
+   * split under headings now, which answers it for the eye, but somebody
+   * moving button to button should not have to remember which half they are
+   * in.
+   */
   own?: boolean;
   onPick: () => void;
 }) {
@@ -401,11 +513,6 @@ function TrayTile({
         it stays with it at any width. The number in the corner is part of the
         drawing, so nothing is added for it. */}
       <span className="relative inline-flex">
-        {own && held === 0 && (
-          <span className="absolute -top-1 -right-1.5 z-10">
-            <OwnMark />
-          </span>
-        )}
         {held > 0 && (
           <span
             aria-hidden="true"

@@ -39,6 +39,15 @@ const verdict = (page: Page) =>
     .filter({ hasText: /worth|Finish/ })
     .first();
 
+/**
+ * The list of reasons under the verdict.
+ *
+ * Scoped, because the flower tray now names what it is worth as you pick —
+ * so "No flowers" and "Own flower" are on the screen twice on purpose: once
+ * where the decision is made, once in the accounting.
+ */
+const reasons = (page: Page) => page.getByRole('list').first();
+
 test('reaches the scorer from Games without a game', async ({ page }) => {
   await open(page);
   await expect(page.getByText('Hong Kong standard')).toBeVisible();
@@ -80,9 +89,9 @@ test('says why, because that is the whole point of asking', async ({
   await buildSouthPungHand(page);
   await page.getByRole('button', { name: 'My seat: South' }).click();
 
-  await expect(page.getByText('Mixed one suit')).toBeVisible();
-  await expect(page.getByText('Seat wind')).toBeVisible();
-  await expect(page.getByText('No flowers')).toBeVisible();
+  await expect(reasons(page).getByText('Mixed one suit')).toBeVisible();
+  await expect(reasons(page).getByText('Seat wind')).toBeVisible();
+  await expect(reasons(page).getByText('No flowers')).toBeVisible();
 });
 
 test('clears the whole hand from beside it', async ({ page }) => {
@@ -125,7 +134,7 @@ test('counts both number ones when a player holds the flower and the season', as
   await expect(verdict(page)).toContainText('worth 4 faan');
   await page.getByRole('button', { name: /^Add Season 1/ }).click();
   await expect(verdict(page)).toContainText('worth 5 faan');
-  await expect(page.getByText('Own flower')).toBeVisible();
+  await expect(reasons(page).getByText('Own flower')).toBeVisible();
 });
 
 test('marks the two bonus tiles that belong to this player', async ({
@@ -168,5 +177,56 @@ test.describe('on a phone', () => {
 
     // Nine across, so counting along a suit never crosses a row break.
     expect(columns).toBe(9);
+  });
+});
+
+test.describe('whose flower is it', () => {
+  const outcome = (page: Page) =>
+    page.locator('main p').filter({ hasText: /無花|正花|爛花/ }).first();
+
+  test('names what the flowers picked are worth, as they are picked', async ({
+    page,
+  }) => {
+    await open(page);
+
+    // Holding none is worth a faan, which a beginner would not guess.
+    await expect(outcome(page)).toContainText('No flowers');
+    await expect(outcome(page)).toContainText('+1 faan');
+
+    // Somebody else's scores nothing — the case that used to highlight the
+    // tile and then say nothing at all.
+    await page.getByRole('button', { name: 'Add Flower 2, orchid' }).click();
+    await expect(outcome(page)).toContainText('Broken flower');
+    await expect(outcome(page)).toContainText('no faan');
+
+    // Yours pays, and holding both the flower and the season pays twice.
+    await page
+      .getByRole('button', { name: 'Add Flower 1, plum, your own' })
+      .click();
+    await expect(outcome(page)).toContainText('Own flower');
+    await expect(outcome(page)).toContainText('+1 faan');
+
+    await page
+      .getByRole('button', { name: 'Add Season 1, spring, your own' })
+      .click();
+    await expect(outcome(page)).toContainText('+2 faan');
+  });
+
+  test('sorts the tray by whose it is, rather than marking a corner', async ({
+    page,
+  }) => {
+    await open(page);
+
+    await expect(page.getByText('Yours')).toBeVisible();
+    await expect(page.getByText(/Somebody else/)).toBeVisible();
+
+    // Ownership is still said out loud, for anyone moving button to button
+    // rather than seeing which half they are in.
+    await expect(
+      page.getByRole('button', { name: 'Add Flower 1, plum, your own' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Add Flower 2, orchid' }),
+    ).toBeVisible();
   });
 });

@@ -30,6 +30,26 @@ export interface Term {
 
 const CORE: Term[] = [
   {
+    id: 'laan_faa',
+    roman: 'Laan Faa',
+    zh: '爛花',
+    english: 'Broken flower',
+    definition:
+      'A flower or season you are holding that is not yours. Yours is the one whose number matches your seat — East is 1, South 2, West 3, North 4 — and only that one pays. A broken flower is worth nothing, and it also costs you the faan you would have had for holding no flowers at all.',
+    related: ['zing_faa', 'faan'],
+    group: 'scoring',
+  },
+  {
+    id: 'zing_faa',
+    roman: 'Zing Faa',
+    zh: '正花',
+    english: 'Own flower',
+    definition:
+      'A flower or season whose number matches your seat, which is worth a faan. You can hold both the flower and the season of your own number, so this is worth up to two.',
+    related: ['laan_faa', 'faan'],
+    group: 'scoring',
+  },
+  {
     id: 'faan',
     roman: 'Faan',
     zh: '番',
@@ -277,6 +297,12 @@ export const GROUP_LABELS: Record<Term['group'], string> = {
  * catalog; these are the terms that only appear here.
  */
 export const TODO_ROMANISATION: { id: string; note: string }[] = [
+  {
+    id: 'laan_faa',
+    note:
+      '“Broken flower” is the group’s own name for it. 爛花 as Laan Faa is the ' +
+      'reading that matches; some tables say 偏花, Pin Faa, for the same thing.',
+  },
   {
     id: 'cheut_chung',
     note: 'Spelled the group’s way. Jyutping would be Ceot Cung.',
