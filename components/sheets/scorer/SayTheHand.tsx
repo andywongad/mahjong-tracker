@@ -38,7 +38,10 @@ export function SayTheHand({
         setMiss(parsed.reason);
         // Kept locally so the grammar's phrase lists can grow from what a real
         // table says, rather than from guesses about it.
-        logEvent('voice_missed', { said: top });
+        logEvent('voice_missed', {
+          said: top,
+          also: alternatives.slice(1).join(' | ') || null,
+        });
         return;
       }
       setMiss(null);

@@ -77,27 +77,99 @@ describe('a whole hand in one sentence', () => {
   });
 });
 
+/*
+ * Transcripts a real microphone actually produced, at a real table, from
+ * somebody saying the sentence this was built for. Kept verbatim and kept
+ * together: guessing at how a recogniser fails is how the first phrase lists
+ * got written, and this block is the correction.
+ *
+ * Every one of them says "won", and that one word is the whole story. The
+ * recogniser hears it as a one, runs it into the number after it, and four
+ * times out of six drags the winner's name down with it. What can be
+ * rescued is rescued; the rest is refused, and the control now teaches the
+ * phrasing that avoids it.
+ */
 describe('transcripts a real microphone actually produced', () => {
-  /*
-   * Said into a phone at a table, by somebody saying the sentence this was
-   * built for. Kept verbatim: guessing at how a recogniser fails is how the
-   * early phrase lists got written, and this is the correction.
-   */
-  it('reads "Cal won 6 points from Di" as the phone heard it', () => {
-    expect(heardFrom('Cal 1 610 six points from Di')).toEqual({
+  const REAL = ['Ann', 'Bo', 'Cal', 'Di'] as unknown as PlayerNames;
+  const ANN = 0;
+  const BO = 1;
+  const CAL = 2;
+  const DI = 3;
+  const realHeard = (said: string) => {
+    const parsed = parseTableSpeech(said, REAL, HK_STANDARD);
+    if (!parsed.ok) throw new Error(`refused: ${parsed.reason}`);
+    return parsed.heard;
+  };
+  const realRefusal = (said: string) => {
+    const parsed = parseTableSpeech(said, REAL, HK_STANDARD);
+    if (parsed.ok) throw new Error(`parsed: ${JSON.stringify(parsed.heard)}`);
+    return parsed.reason;
+  };
+
+  it('reads one where only the number was damaged', () => {
+    // "Cal won 6 points from Di"
+    expect(realHeard('Cal 1 610 six points from Di')).toEqual({
       type: 'ceot_cung',
-      winnerSeat: 0,
-      discarderSeat: 1,
+      winnerSeat: CAL,
+      discarderSeat: DI,
       faan: 6,
     });
   });
 
+  it('unpicks a verb that collapsed into the number', () => {
+    // "Di won 6 points from Cal". 16 is over the cap, so six is the
+    // only thing it can have been.
+    expect(realHeard('Di 16 points from Cal')).toEqual({
+      type: 'ceot_cung',
+      winnerSeat: DI,
+      discarderSeat: CAL,
+      faan: 6,
+    });
+  });
+
+  it('leaves a scorable number alone, however it was said', () => {
+    // 13 is the limit at this table, not a collapsed "won 3".
+    expect(realHeard('Di 13 from Cal').faan).toBe(13);
+  });
+
+  it('reads the phrasing the control now asks for', () => {
+    // The same hand, said without the verb that breaks it.
+    expect(realHeard('Di 6 from Cal')).toEqual({
+      type: 'ceot_cung',
+      winnerSeat: DI,
+      discarderSeat: CAL,
+      faan: 6,
+    });
+    expect(realHeard('Ann 5 from Bo')).toMatchObject({
+      winnerSeat: ANN,
+      discarderSeat: BO,
+      faan: 5,
+    });
+  });
+
+  it('refuses the attempts where the winner went down with the verb', () => {
+    for (const said of [
+      '3 points from Cal',
+      '1 3 points from Bo',
+      '6 points from Cal',
+      '1/6 points from Cal',
+    ]) {
+      expect(realRefusal(said)).toMatch(/not who won/);
+    }
+  });
+
+  it('has nothing to offer when the whole phrase collapsed', () => {
+    expect(realRefusal('01300')).toMatch(/nobody at this table/);
+  });
+
   it('still refuses when nobody scorable was named', () => {
-    expect(refusal('flights from Di')).toMatch(/not who won/);
+    expect(realRefusal('flights from Di')).toMatch(/not who won/);
   });
 
   it('keeps refusing two numbers this table could both score', () => {
-    expect(refusal('Cal won 5 or 6 off Di')).toMatch(/just the one number/);
+    expect(realRefusal('Cal 5 or 6 off Di')).toMatch(
+      /just the one number/,
+    );
   });
 });
 
@@ -130,8 +202,8 @@ describe('refusing rather than guessing', () => {
   it('will not slide the shooter into the winner*s place', () => {
     // The name it could not place was the winner*s. Dropping it and
     // promoting the only name left would pay the hand to whoever fed it.
-    expect(refusal('Ed won 6 from Di')).toBe(
-      'I heard who fed it, but not who won.',
+    expect(refusal('Ed won 6 from Di')).toMatch(
+      /but not who won/,
     );
   });
 

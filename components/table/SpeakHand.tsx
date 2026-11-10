@@ -38,7 +38,13 @@ export function SpeakHand({
       if (!parsed.ok) {
         setWrong(true);
         setNote(parsed.reason);
-        logEvent('voice_missed', { said: top });
+        // Every guess, not just the best one. The lists grow from what the
+        // recogniser actually offered, and the runners-up are where a name
+        // it dropped from the top guess usually turns up.
+        logEvent('voice_missed', {
+          said: top,
+          also: alternatives.slice(1).join(' | ') || null,
+        });
         return;
       }
       setWrong(false);
@@ -97,10 +103,16 @@ export function SpeakHand({
 /**
  * One example, in this table's own names and its own numbers, because the
  * sentence to copy is the whole instruction.
+ *
+ * No "won" in it, deliberately. Every failure in the misses log was that one
+ * word: the recogniser hears it as a one, runs it into the number after it
+ * ("won 6" came back as "16"), and often takes the name in front of it down
+ * too. Dropping the verb costs nothing - the first name said is the winner
+ * either way - and it is the single biggest thing that makes this work.
  */
 function hint(players: PlayerNames, rules: Rules): string {
   const faan = Math.min(rules.minFaan + 2, rules.faanCap);
-  return `Try “${players[0]} won ${faan} from ${players[1]}”.`;
+  return `Try “${players[0]} ${faan} from ${players[1]}”, without “won”.`;
 }
 
 /** A microphone, at the 16px weight the header icons are drawn to. */

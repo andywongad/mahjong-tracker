@@ -132,14 +132,22 @@ function mentions(padded: string, phrases: string[]): boolean {
 /**
  * Every number named in the phrase, split by how surely it was a number.
  * `heard` are digits and real spellings; `maybe` are the homophones, which
- * only count when nothing in `heard` does.
+ * only count when nothing in `heard` does. `digits` records which of them
+ * arrived as figures rather than words, because only a figure can have a
+ * collapsed verb hiding in it - see unmerged.
  */
-function numbersIn(tokens: string[]): { heard: number[]; maybe: number[] } {
+function numbersIn(tokens: string[]): {
+  heard: number[];
+  maybe: number[];
+  digits: Set<number>;
+} {
   const heard: number[] = [];
   const maybe: number[] = [];
+  const digits = new Set<number>();
   for (const token of tokens) {
     if (/^\d{1,2}$/.test(token)) {
       heard.push(Number(token));
+      digits.add(Number(token));
       continue;
     }
     const word = NUMBER_WORDS[token];
@@ -150,7 +158,7 @@ function numbersIn(tokens: string[]): { heard: number[]; maybe: number[] } {
     const loose = NUMBER_HOMOPHONES[token];
     if (loose !== undefined) maybe.push(loose);
   }
-  return { heard, maybe };
+  return { heard, maybe, digits };
 }
 
 /**
@@ -325,7 +333,9 @@ export function parseTableSpeech(
   if (won.length === 0) {
     return {
       ok: false,
-      reason: 'I heard who fed it, but not who won.',
+      // Naming the fix, because this failure has one cause almost every
+      // time: "won" collapsed into a number and took the name with it.
+      reason: 'I heard who fed it, but not who won. Try it without “won”.',
     };
   }
 
@@ -369,6 +379,24 @@ export function parseTableSpeech(
 }
 
 /**
+ * What a number was before "won" collapsed into it.
+ *
+ * From the misses log, every one of them: "Di won 6 points from Cal"
+ * comes back as "Di 16 points from Cal", "won 3" as "13", "won six" as
+ * "1 610 six". The recogniser hears the verb as a one and runs it into the
+ * number beside it, and sometimes swallows the name in front as well.
+ *
+ * Only ever applied to a number this table cannot score, so a real 13 at a
+ * table that caps at 13 is never quietly turned into a 3.
+ */
+function unmerged(faan: number, rules: Rules): number | null {
+  if (faan <= rules.faanCap) return null;
+  if (faan < 10 || faan > 19) return null;
+  const rest = faan - 10;
+  return rest >= rules.minFaan && rest <= rules.faanCap ? rest : null;
+}
+
+/**
  * The faan in a sentence, or the complaint about it. Shared with the shorter
  * phrases the record sheet listens for, including the rule that a homophone
  * only counts when no real number was heard.
@@ -402,7 +430,21 @@ function faanIn(
     return `I heard ${legal.join(' and ')}. Say just the one number.`;
   }
 
-  // Nothing said was scorable here, so say what was wrong with it.
+  // Nothing said was scorable, which is usually the verb having collapsed
+  // into the number. Unpick that before complaining about it.
+  const freed = [
+    ...new Set(
+      all
+        .filter((faan) => spoken.digits.has(faan))
+        .map((faan) => unmerged(faan, rules))
+        .filter((faan): faan is number => faan !== null),
+    ),
+  ];
+  if (freed.length === 1) return freed[0];
+  if (freed.length > 1) {
+    return `I heard ${freed.join(' and ')}. Say just the one number.`;
+  }
+
   const faan = all[0];
   if (faan < rules.minFaan) {
     return `${faan} is under this table's minimum of ${rules.minFaan} faan.`;
