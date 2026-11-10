@@ -235,7 +235,7 @@ export function RulesSheet({
                     type="button"
                     onClick={() => edit({ curve })}
                     aria-pressed={rules.curve === curve}
-                    className="tile-sm touch px-2 text-xs font-semibold capitalize"
+                    className="tile-sm touch px-2 text-sm font-semibold capitalize"
                     style={
                       rules.curve === curve
                         ? {
@@ -277,7 +277,7 @@ export function RulesSheet({
                       : undefined
                   }
                 >
-                  <span className="block text-xs font-semibold">
+                  <span className="block text-sm font-semibold">
                     {split.label}
                   </span>
                   <span
@@ -320,7 +320,7 @@ export function RulesSheet({
                         : undefined
                     }
                   >
-                    <span className="block text-xs font-semibold">
+                    <span className="block text-sm font-semibold">
                       {split.label}
                     </span>
                     <span
@@ -536,7 +536,7 @@ function describeSet(rules: Rules): string {
  * The four levels here were all within two points of each other and all
  * semibold, so a section heading, the question under it and the options
  * under that were telling a reader nothing about which contained which.
- * They are now 18 / 14 / 12, and a rule across the top says where one band
+ * They are now 20 / 16 / 14 / 12, and a rule across the top says where one band
  * ends and the next begins - worth more than any amount of extra space in a
  * sheet this long, where the heading is usually the only thing on screen
  * that says where you are.
@@ -556,12 +556,22 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-3 border-t pt-6 [border-top-color:var(--line)] first:border-t-0 first:pt-0">
-      <h3 className="text-lg font-bold">{title}</h3>
+      <h3 className="text-xl font-bold">{title}</h3>
       {children}
     </section>
   );
 }
 
+/**
+ * A question with its answers laid out underneath.
+ *
+ * Heavier than the rows around it, because it is a different kind of thing.
+ * A stepper or a switch settles one number; these settle how money moves
+ * across the table all night, and they were reading as peers of the dealer
+ * bonus. The legend now outranks a plain setting label, and the answers are
+ * the same cards as the saved rule sets at the top of the sheet, which is
+ * what they are.
+ */
 function Field({
   label,
   children,
@@ -570,8 +580,8 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 text-sm font-semibold">{label}</legend>
+    <fieldset className="mt-1 flex flex-col gap-2">
+      <legend className="mb-1.5 text-base font-bold">{label}</legend>
       {children}
     </fieldset>
   );
