@@ -23,7 +23,7 @@ import { Sheet } from './Sheet';
 import { HandScorerSheet } from './HandScorerSheet';
 import { TileChoice } from '@/components/ui/TileChoice';
 import { SayTheHand } from './scorer/SayTheHand';
-import type { Heard } from '@/lib/voice/grammar';
+import type { Heard, HeardHand } from '@/lib/voice/grammar';
 import { DeltaCell, markFor } from '@/components/ui/HandDeltas';
 import { termForHandType } from '@/lib/terms';
 
@@ -129,6 +129,7 @@ export function RecordHandSheet({
   dealerSeat,
   roundWind,
   presetSeat,
+  prefill,
   editing,
   onClose,
   onSave,
@@ -145,6 +146,11 @@ export function RecordHandSheet({
   roundWind: WindName;
   /** The player tapped on the table, who won the hand. */
   presetSeat?: Seat | null;
+  /**
+   * What a sentence said from the table already answered. Read once, on
+   * mount, like presetSeat: the parent remounts this sheet per open.
+   */
+  prefill?: HeardHand | null;
   /** The hand being edited, or null when recording a new one. */
   editing: HandRow | null;
   onClose: () => void;
@@ -158,10 +164,18 @@ export function RecordHandSheet({
   const [draft, setDraft] = useState<Draft>(() => {
     if (editing) return draftFromHand(editing.hand);
     // Tapping a seat on the table says who the hand is about before the sheet
-    // even opens, so that step starts answered.
-    return presetSeat == null
-      ? EMPTY_DRAFT
-      : { ...EMPTY_DRAFT, winnerSeat: presetSeat };
+    // even opens, so that step starts answered. Saying it out loud can answer
+    // several steps at once, and whatever it did not answer is what this
+    // sheet is now for.
+    const spoken: Draft = {
+      ...EMPTY_DRAFT,
+      type: prefill?.type ?? null,
+      winnerSeat: prefill?.winnerSeat ?? presetSeat ?? null,
+      discarderSeat: prefill?.discarderSeat ?? null,
+      offenderSeat: prefill?.offenderSeat ?? null,
+      faan: prefill?.faan ?? null,
+    };
+    return spoken;
   });
   const [builderOpen, setBuilderOpen] = useState(false);
   // The chosen player is settled unless the scorekeeper says otherwise.
