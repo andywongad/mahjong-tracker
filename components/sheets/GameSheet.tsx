@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { SEATS, WIND_CHARS, type PlayerNames, type Seat } from '@/lib/scoring';
-import { HK_STANDARD, presetFor, type Rules } from '@/lib/rules/types';
+import { BASIC_POINTS, presetFor, type Rules } from '@/lib/rules/types';
 import { RulesSheet } from './RulesSheet';
 import { RulesWalkthroughSheet } from './RulesWalkthroughSheet';
 import { formatStake } from '@/lib/game/settle';
@@ -58,15 +58,16 @@ export function GameSheet({
   const [names, setNames] = useState<string[]>(() =>
     editing ? [...editing.players] : ['', '', '', ''],
   );
-  // A table that has played before keeps playing the same way. A table that has
-  // not gets Hong Kong standard rather than somebody else's house rules, which
-  // would quietly give them the wrong scores.
+  // A table that has played before keeps playing the same way. A table that
+  // has not gets Basic points: a hand is worth its faan and the shooter pays
+  // it once, which is the version somebody can be talked through in a
+  // sentence. The doubling curve is the part people reach for a chart over,
+  // and it is one tap away for a table that wants it.
   const [rules, setRules] = useState<Rules>(
-    () => editing?.rules ?? lastRules ?? HK_STANDARD,
+    () => editing?.rules ?? lastRules ?? BASIC_POINTS,
   );
   const [ruleSetName, setRuleSetName] = useState(
-    editing?.ruleSetName ??
-      (lastRules ? lastRuleSetName : 'Hong Kong standard'),
+    editing?.ruleSetName ?? (lastRules ? lastRuleSetName : 'Basic points'),
   );
   const [rulesOpen, setRulesOpen] = useState(false);
   const [walkthroughOpen, setWalkthroughOpen] = useState(startInWalkthrough);
@@ -227,7 +228,7 @@ export function GameSheet({
             <span className="min-w-0">
               <span className="block text-sm font-semibold">
                 {ruleSetLabel(rules, ruleSetName)}
-                {presetFor(rules) === 'hk_standard' && (
+                {presetFor(rules) === 'basic_points' && (
                   <span
                     className="font-normal"
                     style={{ color: 'var(--muted)' }}

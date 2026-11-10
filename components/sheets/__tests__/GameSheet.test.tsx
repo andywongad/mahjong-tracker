@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GameSheet } from '../GameSheet';
-import { HK_STANDARD, OUR_TABLE } from '@/lib/rules/types';
+import { BASIC_POINTS, HK_STANDARD, OUR_TABLE } from '@/lib/rules/types';
 import type { PlayerNames } from '@/lib/scoring';
 
 const NAMES = [
@@ -86,19 +86,21 @@ describe('naming the table', () => {
 });
 
 describe('which rules a new game starts with', () => {
-  it('uses Hong Kong standard for a table that has never played here', async () => {
+  it('uses Basic points for a table that has never played here', async () => {
     const { onSave, user } = setup();
     await nameTheTable(user);
     await user.click(screen.getByRole('button', { name: 'Start game' }));
 
     expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ rules: HK_STANDARD }),
+      expect.objectContaining({ rules: BASIC_POINTS }),
     );
   });
 
   it('says so, so nobody has to go and look', () => {
     setup();
-    expect(screen.getByText('Hong Kong standard')).toBeTruthy();
+    expect(screen.getByText('Basic points')).toBeTruthy();
+    // The tag only renders on the rules a new game actually starts with, so
+    // it moving means the default moved with it.
     expect(screen.getByText('(recommended)')).toBeTruthy();
   });
 

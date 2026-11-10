@@ -62,11 +62,18 @@ test('a rules change holds after a reload, and only touches this game', async ({
   await page.waitForLoadState('networkidle');
   await expect(seatScore(page, 'Player C')).toHaveText('+104');
 
-  // A new game starts from the rules of the last one played, not from the
-  // rules a saved set happens to hold.
+  // And none of that reaches the next game. The sample is not a game this
+  // table played, so it is not what a new one carries forward: a new game
+  // falls back to the app's own default instead of the Hong Kong standard
+  // just applied here.
+  //
+  // This used to assert "Hong Kong standard" and read as though it were
+  // checking the carry forward. It was not - the sample is filtered out of
+  // that - and it only looked right because the default was the same rules.
   await page.goto('/');
   await page.getByRole('button', { name: /I know what I'm doing/ }).click();
-  await expect(page.getByText(/Hong Kong standard/)).toBeVisible();
+  await expect(page.getByText('Basic points')).toBeVisible();
+  await expect(page.getByText(/Hong Kong standard/)).toHaveCount(0);
 });
 
 test('a table can settle a discard between two people only', async ({

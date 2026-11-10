@@ -74,9 +74,11 @@ test('a named set goes on the game and into the list for the next one', async ({
   await openNewGame(page);
   await openGuide(page);
 
-  // An answer no preset covers, so it is the table's own and asks to be named.
+  // An answer no preset covers, so it is the table's own and asks to be
+  // named. Face value is Basic points, and a set the app can already name
+  // does not need naming again.
   await page
-    .getByRole('button', { name: /Only the shooter pays, at face value/ })
+    .getByRole('button', { name: /Only the shooter pays, the full amount/ })
     .click();
   await page
     .getByRole('button', { name: 'Skip the rest and keep the usual' })
@@ -100,7 +102,7 @@ test('a first game inherits nothing from the seeded sample', async ({
     page.getByPlaceholder('East, deals first', { exact: true }),
   ).toHaveValue('');
   await expect(page.getByRole('button', { name: 'Start game' })).toBeDisabled();
-  await expect(page.getByText('Hong Kong standard')).toBeVisible();
+  await expect(page.getByText('Basic points')).toBeVisible();
 });
 
 test('starting another game from history goes straight to the players', async ({

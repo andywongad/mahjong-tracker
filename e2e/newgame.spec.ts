@@ -31,7 +31,7 @@ test('the knowing door goes straight to the players', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: 'On a discard win, who pays?' }),
   ).toHaveCount(0);
-  await expect(page.getByText('Hong Kong standard')).toBeVisible();
+  await expect(page.getByText('Basic points')).toBeVisible();
   await expect(page.getByText('(recommended)')).toBeVisible();
 
   for (const [index, placeholder] of SEATS.entries()) {
