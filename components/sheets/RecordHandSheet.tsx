@@ -22,6 +22,8 @@ import { Wind } from '@/components/ui/Wind';
 import { Sheet } from './Sheet';
 import { HandScorerSheet } from './HandScorerSheet';
 import { TileChoice } from '@/components/ui/TileChoice';
+import { SayTheHand } from './scorer/SayTheHand';
+import type { Heard } from '@/lib/voice/grammar';
 import { DeltaCell, markFor } from '@/components/ui/HandDeltas';
 import { termForHandType } from '@/lib/terms';
 
@@ -206,6 +208,40 @@ export function RecordHandSheet({
       // A draw or a false win is not about a winner at all. Only reachable
       // while editing, where nothing was tapped on the table to carry over.
       return { ...EMPTY_DRAFT, type };
+    });
+  }
+
+  /**
+   * Put what was spoken into the draft exactly where tapping would have put
+   * it, so voice is a second way to answer the same questions and never a
+   * second way to score a hand.
+   */
+  function applyHeard(heard: Heard) {
+    setDraft((current) => {
+      let next = current;
+      if (heard.type !== undefined && heard.type !== current.type) {
+        // The same reset as tapping the type: a built hand's patterns were
+        // chosen for one route and may not hold for the other.
+        const built = (current.patterns?.length ?? 0) > 0;
+        next = {
+          ...EMPTY_DRAFT,
+          type: heard.type,
+          winnerSeat: current.winnerSeat ?? presetSeat ?? null,
+          faan: built ? null : current.faan,
+        };
+      }
+      if (heard.faan !== undefined) {
+        // And the same reset as tapping a number: a spoken faan replaces
+        // anything that was built.
+        next = {
+          ...next,
+          faan: heard.faan,
+          patterns: undefined,
+          isLimit: false,
+          tiles: undefined,
+        };
+      }
+      return next;
     });
   }
 
@@ -455,6 +491,15 @@ export function RecordHandSheet({
                 </button>
               </div>
             )}
+
+          {/* Offered once the hand has somebody to be about, since what is
+            left to say is how they won and for how many. Recording is the one
+            screen where the scorekeeper's hands are busy holding tiles. Not on
+            an edit, where all four endings are in play and the spoken language
+            only covers the two wins. */}
+          {!editing && draft.winnerSeat != null && (
+            <SayTheHand rules={game.rules} onHeard={applyHeard} />
+          )}
 
           {editing ? typePicker : winnerPicker}
           {editing ? winnerPicker : typePicker}
