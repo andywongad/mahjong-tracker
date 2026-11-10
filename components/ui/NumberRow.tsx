@@ -4,9 +4,11 @@
  * A label, a hint, and a number with a minus and a plus.
  *
  * Shared by the rules sheet and the rules walkthrough so a table setting looks
- * and behaves the same wherever it is being set. The walkthrough asks one
- * question at a time and uses `size="md"`; the rules sheet lists a dozen rows
- * and stays small.
+ * and behaves the same wherever it is being set. Both ask for `size="md"`: a
+ * row here is a setting, the same rank as a toggle or a question with options
+ * beside it, and the small size left the rules sheet with four levels of text
+ * inside two points of each other. `sm` is kept for a denser list than either
+ * of them has yet.
  */
 export function NumberRow({
   label,

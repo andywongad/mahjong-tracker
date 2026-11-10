@@ -208,6 +208,7 @@ export function RulesSheet({
 
         <Section title="Adjust">
           <NumberRow
+            size="md"
             label="Minimum faan to win"
             hint="Hands below this cannot be saved as a win"
             value={rules.minFaan}
@@ -216,6 +217,7 @@ export function RulesSheet({
             onChange={(minFaan) => edit({ minFaan })}
           />
           <NumberRow
+            size="md"
             label="Faan cap"
             hint="Faan above this is paid at this level"
             value={rules.faanCap}
@@ -341,6 +343,7 @@ export function RulesSheet({
           />
 
           <NumberRow
+            size="md"
             label="Dealer bonus"
             hint="Any payment to or from the dealer is multiplied by this. 1 turns it off"
             value={rules.dealerMult}
@@ -351,6 +354,7 @@ export function RulesSheet({
           />
 
           <NumberRow
+            size="md"
             label={`${romanOf('zaa_wu')} penalty`}
             hint={`Paid to each other player, so ${rules.zaaWuPenalty * 3} in total`}
             value={rules.zaaWuPenalty}
@@ -360,6 +364,7 @@ export function RulesSheet({
           />
 
           <NumberRow
+            size="md"
             label="Money per point"
             hint={
               rules.baseUnit
@@ -525,6 +530,23 @@ function describeSet(rules: Rules): string {
   return `${curve}, ${rules.minFaan} to ${rules.faanCap} faan · On a discard, ${split}`;
 }
 
+/**
+ * One band of the sheet, under a heading that actually reads as one.
+ *
+ * The four levels here were all within two points of each other and all
+ * semibold, so a section heading, the question under it and the options
+ * under that were telling a reader nothing about which contained which.
+ * They are now 18 / 14 / 12, and a rule across the top says where one band
+ * ends and the next begins - worth more than any amount of extra space in a
+ * sheet this long, where the heading is usually the only thing on screen
+ * that says where you are.
+ *
+ * Larger than the sheet's own title, deliberately. That title sits in a
+ * fixed bar above the scroll with the close button, so it is a label for the
+ * window rather than the first line of the document; matching its size left
+ * a section heading reading as its equal instead of as the thing that owns
+ * the band underneath it.
+ */
 function Section({
   title,
   children,
@@ -533,8 +555,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold">{title}</h3>
+    <section className="flex flex-col gap-3 border-t pt-6 [border-top-color:var(--line)] first:border-t-0 first:pt-0">
+      <h3 className="text-lg font-bold">{title}</h3>
       {children}
     </section>
   );
@@ -549,7 +571,7 @@ function Field({
 }) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 text-xs font-semibold">{label}</legend>
+      <legend className="mb-1 text-sm font-semibold">{label}</legend>
       {children}
     </fieldset>
   );
@@ -575,7 +597,7 @@ function ToggleRow({
       className="touch flex items-center justify-between gap-3 text-left"
     >
       <span className="min-w-0 flex-1">
-        <span className="block text-xs font-semibold">{label}</span>
+        <span className="block text-sm font-semibold">{label}</span>
         {hint && (
           <span className="block text-xs" style={{ color: 'var(--muted)' }}>
             {hint}
