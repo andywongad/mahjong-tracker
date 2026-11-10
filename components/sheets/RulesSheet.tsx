@@ -20,6 +20,10 @@ import {
   DISCARD_SPLITS,
   splitIdFor,
 } from '@/lib/rules/discardSplits';
+import {
+  SELF_DRAW_SPLITS,
+  selfDrawIdFor,
+} from '@/lib/rules/selfDrawSplits';
 import { RulesWalkthroughSheet } from './RulesWalkthroughSheet';
 import { Sheet } from './Sheet';
 import { romanOf } from '@/lib/terms';
@@ -287,6 +291,45 @@ export function RulesSheet({
                   </span>
                 </button>
               ))}
+            </div>
+          </Field>
+
+          {/* The other half of the same question. A table that has just
+            said who pays on a discard is still thinking about who pays,
+            and a self draw is the case with nobody to blame. */}
+          <Field label="On a self drawn win, what does each pay?">
+            <div className="flex flex-col gap-2">
+              {SELF_DRAW_SPLITS.map((split) => {
+                const chosen = selfDrawIdFor(rules) === split.id;
+                return (
+                  <button
+                    key={split.id}
+                    type="button"
+                    onClick={() => edit({ selfDrawEachMult: split.each })}
+                    aria-pressed={chosen}
+                    className="tile-sm touch px-3 py-2 text-left"
+                    style={
+                      chosen
+                        ? {
+                            background: 'var(--tile-back)',
+                            color: '#fff',
+                            borderColor: 'transparent',
+                          }
+                        : undefined
+                    }
+                  >
+                    <span className="block text-xs font-semibold">
+                      {split.label}
+                    </span>
+                    <span
+                      className="block text-xs"
+                      style={{ color: chosen ? '#fff' : 'var(--muted)' }}
+                    >
+                      {split.detail}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </Field>
 

@@ -91,3 +91,32 @@ test('a table can settle a discard between two people only', async ({
   await expect(seatScore(page, 'Player D')).toHaveText('-15');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
+
+test('a table can take the doubling off a self drawn win', async ({
+  page,
+}) => {
+  await page.goto(GAME);
+  await page.waitForLoadState('networkidle');
+  await expect(seatScore(page, 'Player C')).toHaveText('+64');
+
+  await openRules(page);
+  const sheet = page.getByRole('dialog');
+
+  // The other half of the question beside it: a self draw has nobody to
+  // blame, so the only thing to settle is what each of the three pays.
+  await expect(
+    sheet.getByRole('button', { name: /^Double, two each/ }),
+  ).toHaveAttribute('aria-pressed', 'true');
+  await sheet.getByRole('button', { name: /^Face value, one each/ }).click();
+
+  await sheet.getByRole('button', { name: 'Apply rules' }).click();
+  await page.getByRole('button', { name: 'Recalculate 19 hands' }).click();
+
+  // Eight of the nineteen hands were self drawn. Each now pays the hand
+  // once instead of twice, and nothing else about the game moves.
+  await expect(seatScore(page, 'Player C')).toHaveText('+33');
+  await expect(seatScore(page, 'Player A')).toHaveText('-18');
+  await expect(seatScore(page, 'Player B')).toHaveText('-26');
+  await expect(seatScore(page, 'Player D')).toHaveText('+11');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
