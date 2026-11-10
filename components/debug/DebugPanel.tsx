@@ -7,7 +7,6 @@ import {
   summarise,
   type Summary,
 } from '@/lib/telemetry/events';
-import { MISHEARD_NOTE } from '@/lib/voice/grammar';
 
 /** The query string never changes under us, so there is nothing to subscribe to. */
 const noSubscribe = () => () => {};
@@ -72,12 +71,6 @@ export function DebugPanel() {
         .map(([step, count]) => `${step}: ${count}`)
         .join(', ') || '—',
     ],
-    [
-      'Voice read',
-      summary.voiceHeard + summary.voiceMissed === 0
-        ? '—'
-        : `${summary.voiceHeard} / ${summary.voiceHeard + summary.voiceMissed}`,
-    ],
   ];
 
   return (
@@ -109,21 +102,6 @@ export function DebugPanel() {
           </div>
         ))}
       </dl>
-
-      {summary.voiceMisses.length > 0 && (
-        <div className="mt-2">
-          <p style={{ color: 'var(--muted)' }}>
-            Misheard, newest last. {MISHEARD_NOTE}
-          </p>
-          <ul className="mt-1 flex flex-col gap-0.5">
-            {summary.voiceMisses.map((said, index) => (
-              <li key={`${index}-${said}`} className="truncate">
-                “{said}”
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <div className="mt-3 flex gap-2">
         <button

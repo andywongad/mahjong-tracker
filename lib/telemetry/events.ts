@@ -15,9 +15,7 @@ export type EventName =
   | 'record_abandoned'
   | 'hand_edited'
   | 'hand_deleted'
-  | 'undo_used'
-  | 'voice_heard'
-  | 'voice_missed';
+  | 'undo_used';
 
 export interface LoggedEvent {
   name: EventName;
@@ -29,8 +27,6 @@ export interface LoggedEvent {
 const KEY = 'mahjong-events';
 /** Enough for several nights; old events fall off the front. */
 const LIMIT = 2000;
-/** Enough misheard phrases to find a pattern in, without filling the panel. */
-const MISSES_KEPT = 20;
 
 function read(): LoggedEvent[] {
   try {
@@ -80,15 +76,6 @@ export interface Summary {
   abandoned: number;
   /** Where abandoned attempts stopped, so a step that loses people is visible. */
   abandonedAtStep: Record<string, number>;
-  /** Spoken phrases the grammar read, and ones it could not. */
-  voiceHeard: number;
-  voiceMissed: number;
-  /**
-   * The phrases that did not parse, newest last. The point of keeping the words
-   * is that the grammar's lists should grow from what a table actually says
-   * across a noisy room, rather than from guesses about it.
-   */
-  voiceMisses: string[];
 }
 
 function median(values: number[]): number | null {
@@ -107,8 +94,6 @@ export function summarise(events: LoggedEvent[] = allEvents()): Summary {
   let openedAt: number | null = null;
   let undos = 0;
   let abandoned = 0;
-  let voiceHeard = 0;
-  const voiceMisses: string[] = [];
   const abandonedAtStep: Record<string, number> = {};
 
   for (const event of events) {
@@ -131,14 +116,6 @@ export function summarise(events: LoggedEvent[] = allEvents()): Summary {
       case 'undo_used':
         undos += 1;
         break;
-      case 'voice_heard':
-        voiceHeard += 1;
-        break;
-      case 'voice_missed': {
-        const said = event.detail?.said;
-        if (typeof said === 'string' && said !== '') voiceMisses.push(said);
-        break;
-      }
       default:
         break;
     }
@@ -164,8 +141,5 @@ export function summarise(events: LoggedEvent[] = allEvents()): Summary {
     undos,
     abandoned,
     abandonedAtStep,
-    voiceHeard,
-    voiceMissed: voiceMisses.length,
-    voiceMisses: voiceMisses.slice(-MISSES_KEPT),
   };
 }

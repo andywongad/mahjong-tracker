@@ -27,8 +27,6 @@ import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { TableSurface } from './TableSurface';
 import { HandLog } from './HandLog';
 import { RecordHandSheet } from '@/components/sheets/RecordHandSheet';
-import { SpeakHand } from './SpeakHand';
-import { handFrom, type HeardHand } from '@/lib/voice/grammar';
 import { TallySummary } from './TallySummary';
 import { ScoreChart } from '@/components/stats/ScoreChart';
 
@@ -55,10 +53,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<HandRow | null>(null);
   const [presetSeat, setPresetSeat] = useState<Seat | null>(null);
-  // What a spoken sentence answered, and a count so that saying a second one
-  // remounts the sheet rather than leaving the first draft in it.
-  const [prefill, setPrefill] = useState<HeardHand | null>(null);
-  const [spoken, setSpoken] = useState(0);
   const [undoable, setUndoable] = useState<Undoable | null>(null);
   const neverRecorded = useFirstRecord();
   const showSeatHint = useSeatHint();
@@ -102,7 +96,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
   function openForSeat(seat: Seat) {
     setEditing(null);
     setPresetSeat(seat);
-    setPrefill(null);
     setUndoable(null);
     setSheetOpen(true);
   }
@@ -110,36 +103,8 @@ export function GameScreen({ gameId }: { gameId: string }) {
   function openEdit(row: HandRow) {
     setEditing(row);
     setPresetSeat(null);
-    setPrefill(null);
     setUndoable(null);
     setSheetOpen(true);
-  }
-
-  /**
-   * What to do with a sentence, which depends on how much of one it was.
-   *
-   * A whole hand goes straight down. That is the same bargain a draw and a
-   * false win already make on this screen: one gesture, no confirming, and a
-   * few seconds to take it back - and the hand log is editable long after
-   * that. Anything short of a whole hand opens the sheet with the answers it
-   * did give already filled in, because the alternative is guessing at the
-   * rest, and the rest is who pays whom.
-   */
-  function heardFromTable(heard: HeardHand): string | null {
-    const hand = handFrom(heard, game!.rules);
-    if (hand) {
-      setUndoable(null);
-      void record(hand);
-      // The undo toast says what was saved, so saying it twice is noise.
-      return null;
-    }
-    setEditing(null);
-    setPresetSeat(null);
-    setPrefill(heard);
-    setSpoken((count) => count + 1);
-    setUndoable(null);
-    setSheetOpen(true);
-    return null;
   }
 
   /** Every new hand lands the same way: saved, then undoable for a few seconds. */
@@ -261,16 +226,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
                   in the game's own menu now: neither is why anybody came to
                   this screen, and one of them cannot be undone by tapping
                   again. */}
-                {/* Above the draw, because it records a win and the draw
-                  does not, and below the seats, because tapping whoever won
-                  is still the fastest thing on this screen and needs no
-                  microphone, no quiet and no signal. */}
-                <SpeakHand
-                  players={game.players}
-                  rules={game.rules}
-                  onHeard={heardFromTable}
-                />
-
                 <SecondaryAction
                   hanzi={termForHandType('draw').zh}
                   label={termForHandType('draw').english}
@@ -412,14 +367,13 @@ export function GameScreen({ gameId }: { gameId: string }) {
       <RecordHandSheet
         key={
           sheetOpen
-            ? `${editing ? editing.index : `new-${presetSeat ?? 'any'}-${spoken}`}-${result.handCount}`
+            ? `${editing ? editing.index : `new-${presetSeat ?? 'any'}`}-${result.handCount}`
             : 'closed'
         }
         open={sheetOpen}
         game={game}
         handNumber={nextHand}
         presetSeat={presetSeat}
-        prefill={prefill}
         dealerSeat={result.currentDealerSeat}
         roundWind={result.currentRound}
         editing={editing}
