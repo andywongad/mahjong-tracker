@@ -9,7 +9,7 @@
 export type PresetId =
   | 'our_table'
   | 'hk_standard'
-  | 'simple_points'
+  | 'basic_points'
   | 'custom';
 export type CurveKind = 'linear' | 'doubling' | 'custom';
 
@@ -126,8 +126,8 @@ export const HK_STANDARD: Rules = {
  * faan the difference between 8 and 64 points is the whole reason a night
  * needs an app. This keeps the counting and drops the chart.
  */
-export const SIMPLE_POINTS: Rules = {
-  preset: 'simple_points',
+export const BASIC_POINTS: Rules = {
+  preset: 'basic_points',
   minFaan: 3,
   faanCap: 13,
   limitPaysCap: true,
@@ -149,7 +149,7 @@ export const SIMPLE_POINTS: Rules = {
 export const PRESETS: Record<Exclude<PresetId, 'custom'>, Rules> = {
   our_table: OUR_TABLE,
   hk_standard: HK_STANDARD,
-  simple_points: SIMPLE_POINTS,
+  basic_points: BASIC_POINTS,
 };
 
 /** Fields that describe scoring, so a change to any of them means "Custom". */

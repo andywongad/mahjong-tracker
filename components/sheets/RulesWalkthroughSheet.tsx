@@ -577,6 +577,6 @@ function builtInName(rules: Rules): string | undefined {
   const preset = presetFor(rules);
   if (preset === 'hk_standard') return 'Hong Kong standard';
   if (preset === 'our_table') return 'Everyone pays';
-  if (preset === 'simple_points') return 'Simple points';
+  if (preset === 'basic_points') return 'Basic points';
   return undefined;
 }

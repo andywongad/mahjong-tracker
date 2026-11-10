@@ -5,7 +5,7 @@ import { newId } from '@/lib/game/ids';
 import {
   HK_STANDARD,
   OUR_TABLE,
-  SIMPLE_POINTS,
+  BASIC_POINTS,
   type Rules,
 } from './types';
 
@@ -27,6 +27,12 @@ export interface RuleSet {
 
 export const BUILT_IN_RULE_SETS: RuleSet[] = [
   {
+    id: 'builtin:basic_points',
+    name: 'Basic points',
+    rules: BASIC_POINTS,
+    builtIn: true,
+  },
+  {
     id: 'builtin:our_table',
     // The id is a stored value and never moves; only the label does.
     name: 'Everyone pays',
@@ -37,12 +43,6 @@ export const BUILT_IN_RULE_SETS: RuleSet[] = [
     id: 'builtin:hk_standard',
     name: 'Hong Kong standard',
     rules: HK_STANDARD,
-    builtIn: true,
-  },
-  {
-    id: 'builtin:simple_points',
-    name: 'Simple points',
-    rules: SIMPLE_POINTS,
     builtIn: true,
   },
 ];
