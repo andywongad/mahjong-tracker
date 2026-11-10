@@ -6,7 +6,11 @@
  * stored, never the resulting points.
  */
 
-export type PresetId = 'our_table' | 'hk_standard' | 'custom';
+export type PresetId =
+  | 'our_table'
+  | 'hk_standard'
+  | 'simple_points'
+  | 'custom';
 export type CurveKind = 'linear' | 'doubling' | 'custom';
 
 export interface Rules {
@@ -109,9 +113,43 @@ export const HK_STANDARD: Rules = {
   currency: '$',
 };
 
+/**
+ * Hong Kong standard with the arithmetic taken out of it.
+ *
+ * Every rule about what counts is kept - the same minimum and cap, the self
+ * draw bonus faan, the New 6 patterns - and only the money is flattened. A
+ * hand is worth its faan, the shooter pays it once, and a self drawn hand is
+ * that number from each of the three.
+ *
+ * It is what a table that does not want to look anything up plays: the
+ * doubling curve is the part people reach for a chart over, and at 3 to 13
+ * faan the difference between 8 and 64 points is the whole reason a night
+ * needs an app. This keeps the counting and drops the chart.
+ */
+export const SIMPLE_POINTS: Rules = {
+  preset: 'simple_points',
+  minFaan: 3,
+  faanCap: 13,
+  limitPaysCap: true,
+  curve: 'linear',
+  selfDrawEachMult: 1,
+  discardShooterMult: 1,
+  discardOthersMult: 0,
+  dealerMult: 1,
+  selfDrawBonusFaan: 1,
+  // A limit hand under this curve, so the rule still reads "a false win
+  // costs you the biggest hand at the table".
+  zaaWuPenalty: 13,
+  newSix: true,
+  sevenPairs: false,
+  baseUnit: 0,
+  currency: '$',
+};
+
 export const PRESETS: Record<Exclude<PresetId, 'custom'>, Rules> = {
   our_table: OUR_TABLE,
   hk_standard: HK_STANDARD,
+  simple_points: SIMPLE_POINTS,
 };
 
 /** Fields that describe scoring, so a change to any of them means "Custom". */

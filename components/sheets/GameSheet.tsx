@@ -346,5 +346,6 @@ function ruleSetLabel(rules: Rules, savedName?: string): string {
   const preset = presetFor(rules);
   if (preset === 'our_table') return 'Everyone pays';
   if (preset === 'hk_standard') return 'Hong Kong standard';
+  if (preset === 'simple_points') return 'Simple points';
   return 'Custom rules';
 }

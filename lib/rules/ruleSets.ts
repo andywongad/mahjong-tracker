@@ -2,7 +2,12 @@
 
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { newId } from '@/lib/game/ids';
-import { HK_STANDARD, OUR_TABLE, type Rules } from './types';
+import {
+  HK_STANDARD,
+  OUR_TABLE,
+  SIMPLE_POINTS,
+  type Rules,
+} from './types';
 
 /**
  * A named set of house rules the group can reuse.
@@ -32,6 +37,12 @@ export const BUILT_IN_RULE_SETS: RuleSet[] = [
     id: 'builtin:hk_standard',
     name: 'Hong Kong standard',
     rules: HK_STANDARD,
+    builtIn: true,
+  },
+  {
+    id: 'builtin:simple_points',
+    name: 'Simple points',
+    rules: SIMPLE_POINTS,
     builtIn: true,
   },
 ];
