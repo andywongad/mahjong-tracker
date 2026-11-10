@@ -363,6 +363,10 @@ export function RulesSheet({
             size="md"
             label={`${romanOf('zaa_wu')} penalty`}
             hint={zaaWuHint(rules)}
+            // Under a linear curve this is a two digit number and stepping it
+            // is fine. Under the doubling curve a limit hand is 384, and a
+            // custom curve can put it anywhere, so the box takes a number.
+            typeable={rules.curve !== 'linear' || rules.zaaWuPenalty > 13}
             value={rules.zaaWuPenalty}
             min={0}
             max={9999}
