@@ -24,6 +24,8 @@ import {
   SELF_DRAW_SPLITS,
   selfDrawIdFor,
 } from '@/lib/rules/selfDrawSplits';
+import { withTrackedPenalty } from '@/lib/rules/penalty';
+import { zaaWuCost } from '@/lib/scoring';
 import { RulesWalkthroughSheet } from './RulesWalkthroughSheet';
 import { Sheet } from './Sheet';
 import { romanOf } from '@/lib/terms';
@@ -69,7 +71,11 @@ export function RulesSheet({
   );
 
   function edit(change: Partial<Rules>) {
-    setRules((current) => withRuleChange(current, change));
+    // A false win is meant to cost a limit hand, so when the curve or the cap
+    // moves the penalty follows rather than being left in the old currency.
+    setRules((current) =>
+      withTrackedPenalty(current, withRuleChange(current, change)),
+    );
     setAppliedName(undefined);
     setConfirming(false);
   }
@@ -356,7 +362,7 @@ export function RulesSheet({
           <NumberRow
             size="md"
             label={`${romanOf('zaa_wu')} penalty`}
-            hint={`Paid to each other player, so ${rules.zaaWuPenalty * 3} in total`}
+            hint={zaaWuHint(rules)}
             value={rules.zaaWuPenalty}
             min={0}
             max={9999}
@@ -505,6 +511,23 @@ export function RulesSheet({
     )}
     </>
   );
+}
+
+/**
+ * What a false win really costs the player who called it.
+ *
+ * Three times the penalty is only right with no dealer bonus running. Every
+ * payment goes through that bonus, so one of the three being paid is the
+ * dealer, and the offender pays more again when the dealer is the one who
+ * called it. The numbers come from the engine rather than from a sum written
+ * out again here, which is how the old hint came to disagree with it.
+ */
+function zaaWuHint(rules: Rules): string {
+  const { asPlayer, asDealer } = zaaWuCost(rules);
+  if (asPlayer === asDealer) {
+    return `Paid to each other player, so ${asPlayer} in total`;
+  }
+  return `Paid to each other player, so ${asPlayer} in total, or ${asDealer} when the dealer calls it`;
 }
 
 function limitHint(rules: Rules): string {

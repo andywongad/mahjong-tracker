@@ -186,3 +186,27 @@ export function isCompleteHand(
       return false;
   }
 }
+
+/**
+ * What a false win costs the player who called it, in total.
+ *
+ * Not simply the penalty times three. Every payment goes through the dealer
+ * bonus, so a table running one has two answers: the offender pays more when
+ * they are the dealer, and a little more than three times when somebody else
+ * is, because one of the three people being paid is.
+ *
+ * Derived by asking deltas rather than by repeating its arithmetic, so the
+ * number quoted to a table is the number it will actually be charged.
+ */
+export function zaaWuCost(rules: Rules): {
+  /** Called by somebody who is not dealing. */
+  asPlayer: number;
+  /** Called by the dealer. */
+  asDealer: number;
+} {
+  const hand: Hand = { type: 'zaa_wu', offenderSeat: 0 };
+  return {
+    asPlayer: -deltas(hand, rules, 1)[0],
+    asDealer: -deltas(hand, rules, 0)[0],
+  };
+}
