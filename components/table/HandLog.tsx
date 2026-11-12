@@ -7,6 +7,7 @@ import { Term } from '@/components/ui/Term';
 import { DeltaLegend, HandDeltas } from '@/components/ui/HandDeltas';
 import { PlayerColumns } from './PlayerColumns';
 import { describeHand } from '@/lib/game/describe';
+import { formatHandTime } from '@/lib/game/format';
 import { termForHandType } from '@/lib/terms';
 
 /** Which glossary entry explains each way a hand can end. */
@@ -145,6 +146,17 @@ export function HandLog({
                   <span className="min-w-0 flex-1 truncate text-sm">
                     {describeHand(row.hand, game.players)}
                   </span>
+                  {/* Last on the line and the only thing that will not give
+                    way: what happened is what the row is for, so the hand
+                    truncates before the clock does. */}
+                  {formatHandTime(row.recordedAt) && (
+                    <span
+                      className="tnum shrink-0 text-xs"
+                      style={{ color: 'var(--muted)' }}
+                    >
+                      {formatHandTime(row.recordedAt)}
+                    </span>
+                  )}
                 </span>
 
                 <HandDeltas

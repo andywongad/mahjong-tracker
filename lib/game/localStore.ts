@@ -37,7 +37,7 @@ export interface OutboxEntry {
 
 const DB_NAME = 'mahjong-tracker';
 /** v2 moved games onto a rules object and renamed a hand's points to faan. */
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbPromise: Promise<IDBPDatabase<MahjongDB>> | null = null;
 
@@ -81,6 +81,31 @@ function db() {
             });
             void cursor.update(game as unknown as GameRecord);
             return cursor.continue().then(migrate);
+          });
+        }
+
+        if (oldVersion < 3) {
+          // A short lived version read the hands table's created_at as the
+          // time a hand was written down. It is not: it is when the row
+          // reached the server, so every hand of every synced game came back
+          // stamped with one clock time days after the night it belonged to.
+          // Those values are indistinguishable from real ones by eye, so they
+          // go rather than stay and be believed. Nothing genuine is lost -
+          // the only hands with a real time are ones recorded after this.
+          const store = transaction.objectStore('games');
+          void store.openCursor().then(function strip(cursor): unknown {
+            if (!cursor) return undefined;
+            const game = cursor.value as GameRecord;
+            let touched = false;
+            const hands = game.hands.map((hand) => {
+              if (hand.recordedAt === undefined) return hand;
+              touched = true;
+              const stripped = { ...hand };
+              delete stripped.recordedAt;
+              return stripped;
+            });
+            if (touched) void cursor.update({ ...game, hands });
+            return cursor.continue().then(strip);
           });
         }
       },
@@ -180,7 +205,12 @@ export const localStore: GameStore = {
 
   async addHand(gameId, hand: Hand) {
     const game = await load(gameId);
-    const record = { ...hand, id: newId(), seq: game.hands.length };
+    const record = {
+      ...hand,
+      id: newId(),
+      seq: game.hands.length,
+      recordedAt: new Date().toISOString(),
+    };
     return put({ ...game, hands: [...game.hands, record] });
   },
 
@@ -188,7 +218,13 @@ export const localStore: GameStore = {
     const game = await load(gameId);
     const hands = game.hands.map((existing) =>
       existing.id === handId
-        ? { ...hand, id: existing.id, seq: existing.seq }
+        ? {
+            ...hand,
+            id: existing.id,
+            seq: existing.seq,
+            // When it was written down, not when it was last corrected.
+            recordedAt: existing.recordedAt,
+          }
         : existing,
     );
     return put({ ...game, hands });

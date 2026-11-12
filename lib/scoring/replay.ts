@@ -25,6 +25,12 @@ export interface HandRow {
   /** Who dealt this hand. */
   dealerSeat: Seat;
   hand: Hand;
+  /**
+   * When this hand was written down, if it is known. Carried through the
+   * replay rather than looked up beside it, so a row remains the one thing a
+   * screen needs in order to draw a hand.
+   */
+  recordedAt?: string;
   deltas: Deltas;
   /** Cumulative scores once this hand is applied. */
   scoresAfter: Deltas;
@@ -83,6 +89,7 @@ export function replay(game: GameRules): ReplayResult {
       roundIndex,
       dealerSeat,
       hand,
+      recordedAt: hand.recordedAt,
       deltas: handDeltas,
       scoresAfter: [scores[0], scores[1], scores[2], scores[3]],
       isExtra: roundIndex >= ROUNDS_PER_GAME,

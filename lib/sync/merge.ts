@@ -38,7 +38,20 @@ export function mergeGames(local: GameRecord, remote: GameRecord): GameRecord {
   // The older copy goes in first so the newer one overwrites it where both
   // hold the same hand: an edited faan on the later device is the live one.
   for (const hand of follow.hands) byId.set(hand.id, hand);
-  for (const hand of lead.hands) byId.set(hand.id, hand);
+  for (const hand of lead.hands) {
+    // Overwriting, except where the winning copy simply does not know
+    // something. When a hand was written down is not a field the server
+    // carries, so a pulled copy of a hand has no answer for it, and letting
+    // that silence overwrite a real answer would lose it on the next sync.
+    // Forgetting is not an edit.
+    const known = byId.get(hand.id);
+    byId.set(
+      hand.id,
+      hand.recordedAt === undefined && known?.recordedAt !== undefined
+        ? { ...hand, recordedAt: known.recordedAt }
+        : hand,
+    );
+  }
 
   const hands = [...byId.values()]
     // Their own order first, then by id so the result never depends on which

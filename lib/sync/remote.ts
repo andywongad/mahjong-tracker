@@ -133,6 +133,12 @@ export function supabaseGames(
       const byGame = new Map<string, HandRecord[]>();
       for (const row of (hands ?? []) as unknown as HandRow[]) {
         const list = byGame.get(row.game_id) ?? [];
+        // No recordedAt: the hands table has no column for it, and its
+        // created_at is when the row reached the server, which for a night
+        // played with no signal is the next morning. Reading that as the
+        // time the hand was played put one wrong clock time on every
+        // historical hand, all five of a game identical and days after it
+        // was over. The merge keeps whatever the local copy knows.
         list.push({ ...toHand(row), id: row.id, seq: row.seq } as HandRecord);
         byGame.set(row.game_id, list);
       }

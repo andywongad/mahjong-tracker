@@ -1,8 +1,22 @@
 import type { Rules } from '@/lib/rules/types';
 import type { Hand, PlayerNames } from '@/lib/scoring';
 
-/** A hand as stored: the rules data plus identity and ordering. */
-export type HandRecord = Hand & { id: string; seq: number };
+/**
+ * A hand as stored: the rules data plus identity, ordering and the moment it
+ * was written down.
+ *
+ * `recordedAt` is set on the device that recorded the hand, not by the server,
+ * because the two can be hours apart: a night played with no signal reaches
+ * Supabase when somebody next opens the app. Optional, because every hand
+ * recorded before this existed has no answer and inventing one would be worse
+ * than saying nothing.
+ */
+export type HandRecord = Hand & {
+  id: string;
+  seq: number;
+  /** ISO 8601, from the clock of whoever recorded it. */
+  recordedAt?: string;
+};
 
 export interface GameRecord {
   id: string;

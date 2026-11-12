@@ -121,6 +121,53 @@ describe('putting two copies of a game back together', () => {
   });
 });
 
+/**
+ * The server has no column for when a hand was written down, so a pulled
+ * copy of a hand always arrives without one. Overwriting wholesale would
+ * wipe the time off every hand the moment anything synced.
+ */
+describe('a field only one copy knows about', () => {
+  const played = '2026-11-12T13:42:07.000Z';
+
+  it('survives being overwritten by a copy that never had it', () => {
+    const local = game({
+      updatedAt: '2026-11-12T10:00:00.000Z',
+      hands: [{ ...hand('h1', 0), recordedAt: played }],
+    });
+    // The remote copy is newer, so its hand wins - but it does not know
+    // this, and not knowing is not the same as clearing it.
+    const remote = game({
+      updatedAt: '2026-11-12T11:00:00.000Z',
+      hands: [hand('h1', 0, 5)],
+    });
+
+    // The edited faan wins and the time it was played comes with it.
+    expect(mergeGames(local, remote).hands[0]).toMatchObject({
+      faan: 5,
+      recordedAt: played,
+    });
+  });
+
+  it('still lets a copy that knows a different one win', () => {
+    const later = '2026-11-12T14:00:00.000Z';
+    const local = game({
+      updatedAt: '2026-11-12T10:00:00.000Z',
+      hands: [{ ...hand('h1', 0), recordedAt: played }],
+    });
+    const remote = game({
+      updatedAt: '2026-11-12T11:00:00.000Z',
+      hands: [{ ...hand('h1', 0), recordedAt: later }],
+    });
+    expect(mergeGames(local, remote).hands[0].recordedAt).toBe(later);
+  });
+
+  it('leaves a hand nobody timed without one', () => {
+    const local = game({ hands: [hand('h1', 0)] });
+    const remote = game({ hands: [hand('h1', 0)] });
+    expect(mergeGames(local, remote).hands[0].recordedAt).toBeUndefined();
+  });
+});
+
 describe('telling whether a copy says anything new', () => {
   it('sees two identical copies as the same', () => {
     const a = game({ hands: [hand('h1', 0)] });

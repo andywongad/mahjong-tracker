@@ -84,7 +84,12 @@ export interface HandPattern {
 export interface GameRules {
   readonly players: PlayerNames;
   readonly rules: Rules;
-  readonly hands: readonly Hand[];
+  /**
+   * Scoring needs nothing but the hand. A stored hand carries a little more
+   * with it - when it was written down - and the replay passes that through
+   * to the rows it builds, so it is admitted here rather than cast back in.
+   */
+  readonly hands: readonly (Hand & { readonly recordedAt?: string })[];
 }
 
 /** The seat that won, or null for a draw or a false declaration. */

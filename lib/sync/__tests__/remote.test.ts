@@ -49,3 +49,33 @@ describe('the columns a hand is written to', () => {
     expect(toRow('g1', limit).is_limit).toBe(true);
   });
 });
+
+/**
+ * When a hand was written down stays off the wire.
+ *
+ * The obvious shortcut was the hands table's own created_at, which already
+ * exists and already sounds like the right thing. It is not: it is when the
+ * row reached Supabase, and this app is built to be used with no signal, so
+ * for a game played on Monday and synced on Thursday it is Thursday. Mapping
+ * it through put one wrong clock time on every hand of every past game - all
+ * five hands of one night identical, and ten days after that night ended.
+ *
+ * So nothing about it is sent, and the merge is what keeps it instead.
+ */
+describe('when a hand was recorded', () => {
+  const played = '2026-11-12T13:42:07.000Z';
+
+  it('is not sent to a table that has nowhere to put it', () => {
+    const row = toRow('g1', { ...hands['a discard win'], recordedAt: played });
+    expect('recorded_at' in row).toBe(false);
+    expect('created_at' in row).toBe(false);
+  });
+
+  it('changes nothing else about the row', () => {
+    const withTime = toRow('g1', {
+      ...hands['a discard win'],
+      recordedAt: played,
+    });
+    expect(withTime).toEqual(toRow('g1', hands['a discard win']));
+  });
+});
