@@ -105,6 +105,23 @@ export interface StatsTotals {
   reconciles: boolean;
 }
 
+/**
+ * How the night ran, when every hand of it was timed.
+ *
+ * Null unless all of them were. A game is only partly timed while it straddles
+ * the version that started keeping this, and a pace worked out from three of
+ * nineteen hands would be a confident number about nothing.
+ */
+export interface StatsTiming {
+  /** Minutes from the first hand recorded to the last. */
+  minutes: number;
+  /** Typical minutes between hands: the median gap, not the mean, so one
+   *  long break for food does not become everybody's pace. */
+  perHand: number;
+  /** The longest pause, and the hand number it followed. */
+  longestGap: { minutes: number; afterHand: number } | null;
+}
+
 export interface StatsResult {
   players: PlayerStats[];
   /** Every shooter and winner pairing that actually happened. */
@@ -112,6 +129,55 @@ export interface StatsResult {
   totals: StatsTotals;
   handCount: number;
   isComplete: boolean;
+  /** Null when any hand is untimed, which is every game played before times. */
+  timing: StatsTiming | null;
+}
+
+/**
+ * The shape of a night, from the times its hands were written down.
+ *
+ * Every hand or nothing: one missing time and the gaps either side of it are
+ * two hands wide, which is a quiet way to be wrong. Clocks can also disagree
+ * between devices, so a run that finishes before it starts is refused rather
+ * than reported as a negative evening.
+ */
+export function timingOf(
+  hands: readonly { readonly recordedAt?: string }[],
+): StatsTiming | null {
+  if (hands.length < 2) return null;
+  const times: number[] = [];
+  for (const hand of hands) {
+    if (!hand.recordedAt) return null;
+    const at = new Date(hand.recordedAt).getTime();
+    if (Number.isNaN(at)) return null;
+    times.push(at);
+  }
+
+  const ordered = [...times].sort((a, b) => a - b);
+  const span = ordered[ordered.length - 1] - ordered[0];
+  if (span <= 0) return null;
+
+  const gaps: number[] = [];
+  for (let index = 1; index < ordered.length; index += 1) {
+    gaps.push(ordered[index] - ordered[index - 1]);
+  }
+  const sorted = [...gaps].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  const median =
+    sorted.length % 2 === 0
+      ? (sorted[middle - 1] + sorted[middle]) / 2
+      : sorted[middle];
+
+  const widest = Math.max(...gaps);
+  const at = gaps.indexOf(widest);
+
+  const toMinutes = (ms: number) => Math.round(ms / 60000);
+  return {
+    minutes: toMinutes(span),
+    perHand: toMinutes(median),
+    longestGap:
+      widest > 0 ? { minutes: toMinutes(widest), afterHand: at + 1 } : null,
+  };
 }
 
 function emptyFaanTally(values: number[]): Record<number, number> {
@@ -355,5 +421,12 @@ export function stats(game: GameRules): StatsResult {
   };
   totals.reconciles = totals.accountedFor === handCount && totals.score === 0;
 
-  return { players, feed, totals, handCount, isComplete };
+  return {
+    players,
+    feed,
+    totals,
+    handCount,
+    isComplete,
+    timing: timingOf(game.hands),
+  };
 }

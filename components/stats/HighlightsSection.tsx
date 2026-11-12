@@ -11,7 +11,7 @@
 
 import { useMemo } from 'react';
 import type { StatsResult } from '@/lib/scoring';
-import { highlights } from '@/lib/game/highlights';
+import { highlights, pacing } from '@/lib/game/highlights';
 
 export function HighlightsSection({
   summary,
@@ -22,8 +22,9 @@ export function HighlightsSection({
   finished: boolean;
 }) {
   const found = useMemo(() => highlights(summary), [summary]);
+  const ran = useMemo(() => pacing(summary), [summary]);
 
-  if (!finished || found.length === 0) return null;
+  if (!finished || (found.length === 0 && !ran)) return null;
 
   return (
     <section className="flex flex-col gap-2">
@@ -47,6 +48,17 @@ export function HighlightsSection({
           </li>
         ))}
       </ul>
+
+      {/* The evening the night happened in, under the night itself. Quieter
+        than the facts above because it is not one of them: it is the only
+        line here that is not about who beat whom, and a table reads it
+        last. Absent for every game played before hands were timed, and for
+        a sitting too short to have a shape. */}
+      {ran && (
+        <p className="text-xs" style={{ color: 'var(--muted)' }}>
+          {ran}
+        </p>
+      )}
     </section>
   );
 }

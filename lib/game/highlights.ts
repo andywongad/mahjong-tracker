@@ -41,6 +41,13 @@ const ENOUGH_FOR_A_SHAPE = 10;
 /** Hands before never dealing in says something about a player. */
 const ENOUGH_FOR_A_CLEAN_SHEET = 12;
 
+/** Minutes below which a night is a sitting rather than an evening. */
+const ENOUGH_OF_AN_EVENING = 30;
+/** How much longer than the usual gap a pause has to be before it was a break. */
+const A_BREAK_IS = 3;
+/** And how long in its own right, so a brisk game cannot manufacture one. */
+const SHORTEST_BREAK = 15;
+
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
 
 /** What a built hand was made of, in words. */
@@ -51,6 +58,53 @@ function patternNames(patterns: { id: string; count: number }[]): string {
   if (names.length === 0) return '';
   if (names.length === 1) return names[0];
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
+/** Hours and minutes, as somebody would say them out loud. */
+function spoken(minutes: number): string {
+  if (minutes < 60) return `${minutes} minutes`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  const hoursSaid = hours === 1 ? 'an hour' : `${hours} hours`;
+  if (rest === 0) return hoursSaid;
+  return `${hoursSaid} and ${rest} ${rest === 1 ? 'minute' : 'minutes'}`;
+}
+
+/**
+ * How the night ran: how long it took, at what pace, and whether it stopped.
+ *
+ * Not one of the highlights, and that is the point. Those are the night's
+ * story and only four of them fit; this is the evening it happened in, and
+ * it would lose every time to a fact about who beat whom - which is the
+ * right ranking and the wrong outcome, since it would then never be seen.
+ * So it has its own line under them rather than a seat among them.
+ *
+ * One line, not two. The break is the more interesting half when there was
+ * one, but it is the same subject as the pace, and this screen keeps four
+ * facts: a second clock sentence would push out something about the mahjong.
+ * So the break is a clause, and only when it was a real one - several times
+ * the table's own rhythm, so this says "you stopped for food" rather than
+ * restating the pace in different words. A table that plays slowly all night
+ * has no break; it has a speed.
+ *
+ * The one thing on this screen that is not about who beat whom. A table that
+ * played nineteen hands in two hours and one that took five knows something
+ * different about its evening, and nothing else here can tell them apart.
+ */
+export function pacing(summary: StatsResult): string | null {
+  const { timing, handCount } = summary;
+  if (!timing || timing.minutes < ENOUGH_OF_AN_EVENING) return null;
+  const ran = `${handCount} hands over ${spoken(timing.minutes)}, a hand every ${timing.perHand} minutes`;
+
+  const gap = timing.longestGap;
+  const paused =
+    gap &&
+    gap.minutes >= SHORTEST_BREAK &&
+    gap.minutes >= timing.perHand * A_BREAK_IS;
+
+  return paused
+    ? `${ran}, apart from ${spoken(gap.minutes)} off after hand ${gap.afterHand}.`
+    : `${ran}.`;
 }
 
 /** Who finished on top, and by how much. */

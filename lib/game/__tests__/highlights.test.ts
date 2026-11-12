@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { stats, type GameRules, type Hand } from '@/lib/scoring';
 import { AUG_19_2026_GAME } from '@/lib/scoring/fixtures/aug-19-2026';
 import { OUR_TABLE } from '@/lib/rules/types';
-import { highlights } from '../highlights';
+import { highlights, pacing } from '../highlights';
 
 /**
  * What these test is the editing, not the arithmetic: the numbers are the
@@ -129,5 +129,66 @@ describe('how much it says', () => {
   it('orders by how much each is worth saying', () => {
     const weights = highlights(stats(AUG_19_2026_GAME)).map((h) => h.weight);
     expect([...weights].sort((a, b) => b - a)).toEqual(weights);
+  });
+});
+
+
+/**
+ * What the times are worth saying. The stats pass measures the night; this
+ * decides which of it earns a sentence, and most of the work is in the
+ * nights that earn none.
+ */
+describe('what the clock adds', () => {
+  const at = (minutes: number) =>
+    new Date(Date.UTC(2026, 10, 12, 19, 0) + minutes * 60000).toISOString();
+
+  /** A game of n hands, one every `every` minutes, with an optional break. */
+  const timed = (count: number, every: number, pause = 0, after = -1) => {
+    let clock = 0;
+    const hands: Hand[] = [];
+    for (let index = 0; index < count; index += 1) {
+      hands.push({
+        ...win(index % 4, (index + 1) % 4, 4),
+        recordedAt: at(clock),
+      } as unknown as Hand);
+      clock += index + 1 === after ? pause : every;
+    }
+    return gameOf(hands);
+  };
+
+  it('is kept out of the four, so a fact about the mahjong is not', () => {
+    // It would lose to every one of them, which is the right ranking and
+    // the wrong outcome: it would then never be seen at all.
+    expect(ids(timed(12, 10))).not.toContain('pace');
+  });
+
+  it('says how long the night ran and at what pace', () => {
+    // Twelve hands, ten minutes apart: an hour and fifty minutes.
+    expect(pacing(stats(timed(12, 10)))).toBe(
+      '12 hands over an hour and 50 minutes, a hand every 10 minutes.',
+    );
+  });
+
+  it('says nothing about a sitting too short to be an evening', () => {
+    expect(pacing(stats(timed(4, 5)))).toBeNull();
+  });
+
+  it('says nothing at all about a game played before times existed', () => {
+    expect(pacing(stats(gameOf([win(0, 1), win(1, 2), win(2, 3)])))).toBeNull();
+  });
+
+  it('notices the night stopping for food, in the same line', () => {
+    // Ten minutes a hand all evening, then fifty after hand six. One clock
+    // sentence, not two: the screen keeps four facts and a second would
+    // push out something about the mahjong.
+    expect(pacing(stats(timed(12, 10, 50, 6)))).toBe(
+      '12 hands over 2 hours and 30 minutes, a hand every 10 minutes, apart from 50 minutes off after hand 6.',
+    );
+  });
+
+  it('does not call a slow table a break', () => {
+    // Twenty five minutes between every hand is a pace, not a pause, and
+    // calling the longest of them a break would be the same fact twice.
+    expect(pacing(stats(timed(10, 25)))).not.toMatch(/apart from/);
   });
 });
