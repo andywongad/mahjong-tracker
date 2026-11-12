@@ -43,6 +43,7 @@ interface HandRow {
   faan: number | null;
   patterns: { id: string; count: number }[] | null;
   is_limit: boolean | null;
+  recorded_at?: string | null;
   tiles: string[] | null;
 }
 
@@ -98,6 +99,11 @@ export function toRow(gameId: string, hand: HandRecord) {
     is_limit: win ? (hand.isLimit ?? false) : false,
     patterns: win ? (hand.patterns ?? null) : null,
     tiles: win ? (hand.tiles ?? null) : null,
+    // Null rather than omitted: a push replaces a game's hands wholesale, so
+    // every row here is a fresh insert and there is no earlier value to fall
+    // back to. A hand recorded before the app kept this has no answer, and
+    // null is how the column says so.
+    recorded_at: hand.recordedAt ?? null,
   };
 }
 
@@ -121,7 +127,7 @@ export function supabaseGames(
       const { data: hands, error: handsError } = await client
         .from('hands')
         .select(
-          'id, game_id, seq, type, winner_seat, discarder_seat, offender_seat, faan, patterns, is_limit, tiles',
+          'id, game_id, seq, type, winner_seat, discarder_seat, offender_seat, faan, patterns, is_limit, tiles, recorded_at',
         )
         .in(
           'game_id',
@@ -133,13 +139,15 @@ export function supabaseGames(
       const byGame = new Map<string, HandRecord[]>();
       for (const row of (hands ?? []) as unknown as HandRow[]) {
         const list = byGame.get(row.game_id) ?? [];
-        // No recordedAt: the hands table has no column for it, and its
-        // created_at is when the row reached the server, which for a night
-        // played with no signal is the next morning. Reading that as the
-        // time the hand was played put one wrong clock time on every
-        // historical hand, all five of a game identical and days after it
-        // was over. The merge keeps whatever the local copy knows.
-        list.push({ ...toHand(row), id: row.id, seq: row.seq } as HandRecord);
+        // recorded_at, never created_at. The latter is when this row
+        // reached the database, which a push rewrites every time, so it says
+        // nothing about the night the hand was played.
+        list.push({
+          ...toHand(row),
+          id: row.id,
+          seq: row.seq,
+          recordedAt: row.recorded_at ?? undefined,
+        } as HandRecord);
         byGame.set(row.game_id, list);
       }
 

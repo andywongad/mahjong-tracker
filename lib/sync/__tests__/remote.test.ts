@@ -51,31 +51,41 @@ describe('the columns a hand is written to', () => {
 });
 
 /**
- * When a hand was written down stays off the wire.
+ * When a hand was written down, over the wire.
  *
- * The obvious shortcut was the hands table's own created_at, which already
- * exists and already sounds like the right thing. It is not: it is when the
- * row reached Supabase, and this app is built to be used with no signal, so
- * for a game played on Monday and synced on Thursday it is Thursday. Mapping
- * it through put one wrong clock time on every hand of every past game - all
- * five hands of one night identical, and ten days after that night ended.
- *
- * So nothing about it is sent, and the merge is what keeps it instead.
+ * It gets a column of its own. The obvious shortcut was the hands table's
+ * created_at, which already exists and already sounds right, and it is not:
+ * it is when the row reached the database, and a push replaces a game's
+ * hands wholesale, so every sync restamps every hand of that game. Reading
+ * it as the time a hand was played showed a game played on the 2nd with all
+ * five of its hands recorded three minutes ago.
  */
 describe('when a hand was recorded', () => {
   const played = '2026-11-12T13:42:07.000Z';
 
-  it('is not sent to a table that has nowhere to put it', () => {
+  it('sends the time the hand was written down', () => {
     const row = toRow('g1', { ...hands['a discard win'], recordedAt: played });
-    expect('recorded_at' in row).toBe(false);
-    expect('created_at' in row).toBe(false);
+    expect(row).toMatchObject({ recorded_at: played });
   });
 
-  it('changes nothing else about the row', () => {
-    const withTime = toRow('g1', {
-      ...hands['a discard win'],
-      recordedAt: played,
+  it('sends null for a hand recorded before the app kept this', () => {
+    // Not omitted. Every row in a push is a fresh insert, so there is no
+    // earlier value for a default to protect, and null is the column saying
+    // it does not know rather than guessing.
+    expect(toRow('g1', hands['a discard win'])).toMatchObject({
+      recorded_at: null,
     });
-    expect(withTime).toEqual(toRow('g1', hands['a discard win']));
+  });
+
+  it('carries it on every kind of hand, not only a win', () => {
+    for (const hand of Object.values(hands)) {
+      const row = toRow('g1', { ...hand, recordedAt: played });
+      expect(row).toMatchObject({ recorded_at: played });
+    }
+  });
+
+  it('never sends created_at, which means something else', () => {
+    const row = toRow('g1', { ...hands['a discard win'], recordedAt: played });
+    expect('created_at' in row).toBe(false);
   });
 });

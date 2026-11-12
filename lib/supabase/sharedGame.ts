@@ -39,6 +39,7 @@ interface HandRow {
   patterns: HandPattern[] | null;
   is_limit: boolean | null;
   tiles: string[] | null;
+  recorded_at?: string | null;
 }
 
 /** Rebuild the engine's discriminated union from a flat row. */
@@ -119,7 +120,13 @@ export async function fetchSharedGame(
       endedAt: row.ended_at,
       shareSlug: row.share_slug,
       updatedAt: row.updated_at,
-      hands: ((hands as HandRow[] | null) ?? []).map(toHand),
+      // The time a hand was written down rides alongside the hand rather
+      // than inside it: toHand builds the scoring shape, which has no
+      // opinion about clocks.
+      hands: ((hands as HandRow[] | null) ?? []).map((row) => ({
+        ...toHand(row),
+        recordedAt: row.recorded_at ?? undefined,
+      })),
     },
     unchanged: false,
   };
