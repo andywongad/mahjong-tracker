@@ -89,3 +89,59 @@ describe('when a hand was recorded', () => {
     expect('created_at' in row).toBe(false);
   });
 });
+
+/**
+ * 包 over the wire. The pair travels together or not at all, which is what
+ * the table's own check constraint says: a liability belonging to nobody is
+ * not a smaller mistake than a missing one.
+ */
+describe('a hand somebody paid the table for', () => {
+  const won: HandRecord = {
+    id: 'h9',
+    seq: 9,
+    type: 'zi_mo',
+    winnerSeat: 0,
+    faan: 6,
+    liability: { seat: 2, reason: 'twelve_pieces' },
+  };
+
+  it('sends who paid and why', () => {
+    expect(toRow('g1', won)).toMatchObject({
+      liable_seat: 2,
+      liability_reason: 'twelve_pieces',
+    });
+  });
+
+  it('sends nulls for a hand nobody was liable for', () => {
+    expect(toRow('g1', hands['a self drawn win'])).toMatchObject({
+      liable_seat: null,
+      liability_reason: null,
+      adjustment: null,
+    });
+  });
+
+  it('never sends one without the other', () => {
+    for (const hand of Object.values(hands)) {
+      const row = toRow('g1', hand) as Record<string, unknown>;
+      expect(row.liable_seat === null).toBe(row.liability_reason === null);
+    }
+  });
+
+  it('sends nulls on a draw and a false win, which cannot carry one', () => {
+    for (const key of ['a draw', 'a false win']) {
+      expect(toRow('g1', hands[key])).toMatchObject({ liable_seat: null });
+    }
+  });
+
+  it('carries amounts entered by hand', () => {
+    const settled: HandRecord = {
+      id: 'h10',
+      seq: 10,
+      type: 'draw',
+      adjustment: { amounts: [1, 2, -3, 0], note: 'settled at the table' },
+    };
+    expect(toRow('g1', settled)).toMatchObject({
+      adjustment: { note: 'settled at the table' },
+    });
+  });
+});

@@ -35,6 +35,22 @@ describe('the columns a hand is read through', () => {
     expect(sql).toMatch(/add column if not exists recorded_at timestamptz/);
   });
 
+  it('adds the liability columns to the table', () => {
+    expect(sql).toMatch(/add column if not exists liable_seat smallint/);
+    expect(sql).toMatch(/add column if not exists liability_reason text/);
+    expect(sql).toMatch(/add column if not exists adjustment jsonb/);
+  });
+
+  it('will not let a liability belong to the winner of the hand', () => {
+    // The engine refuses this too. Two locks, because a row written by
+    // anything other than this app would reach the engine already wrong.
+    expect(sql).toMatch(/liable_seat is distinct from winner_seat/);
+  });
+
+  it('keeps a liability off a draw and a false win', () => {
+    expect(sql).toMatch(/liable_seat is null or type in \('ceot_cung', 'zi_mo'\)/);
+  });
+
   it('is never given a default, which would invent a time', () => {
     // Every hand played before the column existed has no answer, and a
     // default is indistinguishable from a real one by eye.
@@ -52,6 +68,9 @@ describe('the columns a hand is read through', () => {
       'is_limit',
       'tiles',
       'recorded_at',
+      'liable_seat',
+      'liability_reason',
+      'adjustment',
     ]) {
       // Once in the returns table, once in the select, or a share link gets
       // a column short.

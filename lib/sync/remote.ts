@@ -14,6 +14,7 @@
  * what the hand list should be, and a diff here would be a second place for
  * that decision to live.
  */
+import { adjustmentFrom, liabilityFrom } from '@/lib/supabase/handRow';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Hand, PlayerNames, Seat } from '@/lib/scoring';
 import type { GameRecord, HandRecord } from '@/lib/game/types';
@@ -44,6 +45,9 @@ interface HandRow {
   patterns: { id: string; count: number }[] | null;
   is_limit: boolean | null;
   recorded_at?: string | null;
+  liable_seat?: number | null;
+  liability_reason?: string | null;
+  adjustment?: { amounts: number[]; note?: string } | null;
   tiles: string[] | null;
 }
 
@@ -59,6 +63,8 @@ function toHand(row: HandRow): Hand {
         isLimit: row.is_limit ?? false,
         patterns: row.patterns ?? undefined,
         tiles: row.tiles ?? undefined,
+        liability: liabilityFrom(row),
+        adjustment: adjustmentFrom(row),
       };
     case 'zi_mo':
       return {
@@ -68,6 +74,8 @@ function toHand(row: HandRow): Hand {
         isLimit: row.is_limit ?? false,
         patterns: row.patterns ?? undefined,
         tiles: row.tiles ?? undefined,
+        liability: liabilityFrom(row),
+        adjustment: adjustmentFrom(row),
       };
     case 'zaa_wu':
       return { type: 'zaa_wu', offenderSeat: row.offender_seat as Seat };
@@ -104,6 +112,11 @@ export function toRow(gameId: string, hand: HandRecord) {
     // back to. A hand recorded before the app kept this has no answer, and
     // null is how the column says so.
     recorded_at: hand.recordedAt ?? null,
+    // The pair travels together or not at all, which is what the table's
+    // own check constraint says too.
+    liable_seat: win && hand.liability ? hand.liability.seat : null,
+    liability_reason: win && hand.liability ? hand.liability.reason : null,
+    adjustment: hand.adjustment ?? null,
   };
 }
 
@@ -127,7 +140,7 @@ export function supabaseGames(
       const { data: hands, error: handsError } = await client
         .from('hands')
         .select(
-          'id, game_id, seq, type, winner_seat, discarder_seat, offender_seat, faan, patterns, is_limit, tiles, recorded_at',
+          'id, game_id, seq, type, winner_seat, discarder_seat, offender_seat, faan, patterns, is_limit, tiles, recorded_at, liable_seat, liability_reason, adjustment',
         )
         .in(
           'game_id',

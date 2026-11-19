@@ -1,5 +1,10 @@
 'use client';
 
+import {
+  adjustmentFrom,
+  liabilityFrom,
+  type LiabilityColumns,
+} from './handRow';
 import type { Rules } from '@/lib/rules/types';
 import type { Hand, HandPattern, PlayerNames } from '@/lib/scoring';
 import { supabase } from './client';
@@ -28,7 +33,7 @@ interface GameRow {
   updated_at: string;
 }
 
-interface HandRow {
+interface HandRow extends LiabilityColumns {
   id: string;
   seq: number;
   type: Hand['type'];
@@ -54,6 +59,8 @@ function toHand(row: HandRow): Hand {
         isLimit: row.is_limit ?? false,
         patterns: row.patterns ?? undefined,
         tiles: row.tiles ?? undefined,
+        liability: liabilityFrom(row),
+        adjustment: adjustmentFrom(row),
       };
     case 'zi_mo':
       return {
@@ -63,6 +70,8 @@ function toHand(row: HandRow): Hand {
         isLimit: row.is_limit ?? false,
         patterns: row.patterns ?? undefined,
         tiles: row.tiles ?? undefined,
+        liability: liabilityFrom(row),
+        adjustment: adjustmentFrom(row),
       };
     case 'zaa_wu':
       return {
