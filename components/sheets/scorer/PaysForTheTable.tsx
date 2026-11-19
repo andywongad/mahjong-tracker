@@ -5,7 +5,7 @@ import { SEATS, type Liability, type PlayerNames, type Seat } from '@/lib/scorin
 import { SEAT_WINDS, seatSolid } from '@/lib/game/seats';
 import { Wind } from '@/components/ui/Wind';
 import { TileChoice } from '@/components/ui/TileChoice';
-import { glossOf, romanOf } from '@/lib/terms';
+import { definitionOf, glossOf, romanOf } from '@/lib/terms';
 
 /**
  * 包: somebody paying what the whole table would have paid.
@@ -24,6 +24,13 @@ import { glossOf, romanOf } from '@/lib/terms';
  * turning over. Closing is not cancelling, so the header carries the answer
  * when it is shut, because a folded row hiding a decision about money would
  * be a place to lose one.
+ *
+ * The names are the examples. A table that has not said which of these it
+ * plays sees all of them, because one name on its own says nothing about
+ * what the question covers, and a name is no use to anybody who does not
+ * know the rule behind it. So tapping one both chooses it and explains it:
+ * the definition is the same sentence the glossary carries, and the chip
+ * cannot open the glossary itself without putting a button inside a button.
  *
  * Sitting above the hand type costs it two things it used to lean on, and
  * both are handled rather than left to misfire. The note about 12 Pieces
@@ -146,10 +153,22 @@ export function PaysForTheTable({
           })}
         </div>
 
+        {/* What the name on the chip actually means. Shown on choosing it,
+          because the chip is already a button and cannot hold another one,
+          and because the moment somebody wants the rule explained is the
+          moment they are deciding whether it is the one that happened. */}
+        {chosen && (
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+            {chosen === 'other'
+              ? 'Anything your table plays that is not on this list. The money moves the same way: whoever you pick pays what all three would have paid.'
+              : definitionOf(chosen)}
+          </p>
+        )}
+
         {/* Waits for a hand type rather than guessing at one, because this
           row is now asked before anybody has said how the hand was won. */}
         {chosen === 'twelve_pieces' && handType === 'ceot_cung' && (
-          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+          <p className="text-xs" style={{ color: 'var(--accent)' }}>
             {glossOf('twelve_pieces')} usually applies only to self-drawn wins.
           </p>
         )}

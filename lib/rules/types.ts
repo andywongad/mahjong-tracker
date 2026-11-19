@@ -59,13 +59,6 @@ export interface Rules {
 export type LiabilityWithDiscarder = 'split' | 'liable_pays_all';
 
 /**
- * What a table plays when its rules were written before 包 existed here.
- *
- * The conservative pair: one reason, and the gentler of the two ways to
- * settle it. A rule set that has never said anything about this should not
- * have the strictest reading assumed for it.
- */
-/**
  * Every 包 rule the app knows, in the order the house rules offer them and
  * the record sheet repeats them. Ordered by how commonly they are played
  * rather than alphabetically, so the two most tables recognise come first.
@@ -78,7 +71,20 @@ export const LIABILITY_REASONS = [
   'fifth_tile',
 ];
 
-export const DEFAULT_LIABILITY_REASONS = ['twelve_pieces'];
+/**
+ * What a table plays when its rules were written before 包 existed here.
+ *
+ * All of them, which is a change of mind. One reason looked like the careful
+ * default and was the wrong kind of careful: a table that has never been
+ * asked the question got a single name and no sense of what the question
+ * covers, which reads less like restraint than like the app knowing one
+ * rule. The list is a list of examples, and a table wanting fewer says so in
+ * the house rules.
+ *
+ * Offering a rule is not playing it. Nothing reaches a score until somebody
+ * says one applied and who it applied to.
+ */
+export const DEFAULT_LIABILITY_REASONS = LIABILITY_REASONS;
 export const DEFAULT_LIABILITY_WITH_DISCARDER: LiabilityWithDiscarder =
   'split';
 
