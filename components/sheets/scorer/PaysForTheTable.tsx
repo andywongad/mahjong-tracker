@@ -10,28 +10,34 @@ import { glossOf, romanOf } from '@/lib/terms';
 /**
  * 包: somebody paying what the whole table would have paid.
  *
- * Folded away by default, because most hands are not one of these and a
- * beginner asked on every hand whether anybody completed a fourth exposed set
- * of one suit from their discard would learn to tap past the question rather
- * than read it. A table that plays none of these rules never sees the row:
- * the house rules say which to offer and an empty list means none.
+ * Asked before how the hand was won, because at the table it is known at the
+ * same moment the winner is: somebody says "that's your twelfth tile" and the
+ * room already knows who is paying. Everything about it lives in one box, so
+ * a question with four parts reads as one question.
  *
- * Built as a plain disclosure, which is worth stating because the first
- * attempt was not. One control opens and closes it, in one place, with the
- * chevron turning over: the same thing it does everywhere else that something
- * folds away. It used to offer a "Nobody" button to back out instead, which
- * was a second way to do one job, and worse, it was only there until a reason
- * was chosen - so a hand that had one could not be folded up again at all.
+ * Folded away by default. Most hands are not one of these, and a beginner
+ * asked on every hand whether anybody completed a fourth exposed set of one
+ * suit from their discard would learn to tap past the question rather than
+ * read it. A table that plays none of these rules never sees the row at all.
  *
- * Closing is not cancelling. A folded row with an answer in it would be a
- * place to lose money, so the header carries the answer when it is shut.
+ * A plain disclosure: one header opens and closes it, in one place, chevron
+ * turning over. Closing is not cancelling, so the header carries the answer
+ * when it is shut, because a folded row hiding a decision about money would
+ * be a place to lose one.
+ *
+ * Sitting above the hand type costs it two things it used to lean on, and
+ * both are handled rather than left to misfire. The note about 12 Pieces
+ * being a self draw rule waits until there is a hand type to judge. And the
+ * payer can no longer be assumed to be whoever fed the tile, because nobody
+ * has said yet that anyone did: a reason chosen with no shooter known waits
+ * for a tap rather than guessing a seat and being quietly wrong.
  */
 export function PaysForTheTable({
   players,
   reasons,
   winnerSeat,
   discarderSeat,
-  selfDrawn,
+  handType,
   value,
   onChange,
 }: {
@@ -39,44 +45,59 @@ export function PaysForTheTable({
   /** Reason ids this table plays, in the order they are offered. */
   reasons: string[];
   winnerSeat: Seat;
-  /** Preselected as the payer on a discard win, and still changeable. */
+  /** Known on an edit, and on a new hand only once the shooter is picked. */
   discarderSeat: Seat | null;
-  selfDrawn: boolean;
+  /** Null until the hand has been said to be a discard win or a self draw. */
+  handType: 'ceot_cung' | 'zi_mo' | null;
   value: Liability | undefined;
   onChange: (liability: Liability | undefined) => void;
 }) {
   const [open, setOpen] = useState(Boolean(value));
+  /** A reason chosen while there was nobody obvious to pin it on yet. */
+  const [waiting, setWaiting] = useState<string | null>(null);
   const panelId = useId();
   if (reasons.length === 0) return null;
 
+  const chosen = value?.reason ?? waiting;
+
   function pick(reason: string) {
-    // A chosen reason tapped again is the way to say nobody after all, which
-    // is how every other thing on this screen that can be on or off behaves.
-    if (value?.reason === reason) {
+    // A chosen reason tapped again is how to say nobody after all, which is
+    // what everything else on this screen that can be on or off does.
+    if (chosen === reason) {
+      setWaiting(null);
       onChange(undefined);
       return;
     }
-    // Whoever fed it is liable far more often than not, so a discard win
-    // starts with them chosen and the other two one tap away.
-    const seat =
+    const known =
       value?.seat ??
       (discarderSeat !== null && discarderSeat !== winnerSeat
         ? discarderSeat
-        : pickableSeats(winnerSeat)[0]);
-    onChange({ reason, seat });
+        : null);
+    if (known === null) {
+      setWaiting(reason);
+      onChange(undefined);
+      return;
+    }
+    setWaiting(null);
+    onChange({ reason, seat: known });
   }
 
-  const chosen = value?.reason;
+  function payer(seat: Seat) {
+    if (!chosen) return;
+    setWaiting(null);
+    onChange({ reason: chosen, seat });
+  }
+
   const offered = [...reasons, 'other'];
 
   return (
-    <section className="flex flex-col gap-2">
+    <section className="tile-sm flex flex-col">
       <button
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen(!open)}
-        className="tile-sm touch flex w-full items-center justify-between gap-3 px-3 py-2 text-left"
+        className="touch flex w-full items-center justify-between gap-3 px-3 py-2 text-left"
       >
         <span className="flex min-w-0 flex-col">
           <span className="text-sm font-semibold">
@@ -85,8 +106,6 @@ export function PaysForTheTable({
               包
             </span>
           </span>
-          {/* Shut with an answer in it is the one state that has to speak for
-            itself, because the answer is money. */}
           {!open && value && (
             <span className="text-xs" style={{ color: 'var(--muted)' }}>
               {nameFor(value.reason)} · {players[value.seat]} pays
@@ -96,7 +115,11 @@ export function PaysForTheTable({
         <Chevron open={open} />
       </button>
 
-      <div id={panelId} hidden={!open} className="flex flex-col gap-2">
+      <div
+        id={panelId}
+        hidden={!open}
+        className="flex flex-col gap-2 px-3 pt-1 pb-3"
+      >
         <div className="flex flex-wrap gap-2">
           {offered.map((reason) => {
             const on = chosen === reason;
@@ -106,15 +129,15 @@ export function PaysForTheTable({
                 type="button"
                 aria-pressed={on}
                 onClick={() => pick(reason)}
-                className="tile-sm touch px-3 text-sm font-semibold"
+                className="touch rounded-pill px-3 text-sm font-semibold"
                 style={
                   on
-                    ? {
-                        background: 'var(--tile-back)',
-                        color: '#fff',
-                        borderColor: 'transparent',
+                    ? { background: 'var(--tile-back)', color: '#fff' }
+                    : {
+                        background: 'var(--surface)',
+                        border: '1px solid var(--line-strong)',
+                        color: 'var(--ink)',
                       }
-                    : undefined
                 }
               >
                 {nameFor(reason)}
@@ -123,10 +146,9 @@ export function PaysForTheTable({
           })}
         </div>
 
-        {/* Only applies to self drawn wins at most tables, and saying so is
-          worth more than refusing: a table that plays it another way is not
-          wrong, it is a different table. */}
-        {chosen === 'twelve_pieces' && !selfDrawn && (
+        {/* Waits for a hand type rather than guessing at one, because this
+          row is now asked before anybody has said how the hand was won. */}
+        {chosen === 'twelve_pieces' && handType === 'ceot_cung' && (
           <p className="text-xs" style={{ color: 'var(--muted)' }}>
             {glossOf('twelve_pieces')} usually applies only to self-drawn wins.
           </p>
@@ -141,7 +163,7 @@ export function PaysForTheTable({
                   key={seat}
                   selected={value?.seat === seat}
                   accent={seatSolid(seat)}
-                  onClick={() => onChange({ reason: chosen, seat })}
+                  onClick={() => payer(seat)}
                 >
                   <Wind
                     wind={SEAT_WINDS[seat]}
@@ -154,9 +176,9 @@ export function PaysForTheTable({
               ))}
             </div>
             <p className="text-xs" style={{ color: 'var(--muted)' }}>
-              {romanOf('baau')}: they pay what all three would have paid, and
-              the winner collects the same either way. Tap {nameFor(chosen)}{' '}
-              again if nobody does.
+              {value
+                ? `${romanOf('baau')}: they pay what all three would have paid, and the winner collects the same either way. Tap ${nameFor(chosen)} again if nobody does.`
+                : 'Nothing is counted until you say who pays.'}
             </p>
           </>
         )}

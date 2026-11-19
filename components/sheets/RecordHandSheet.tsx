@@ -225,6 +225,12 @@ export function RecordHandSheet({
           type,
           winnerSeat: current.winnerSeat ?? presetSeat ?? null,
           faan: built ? null : current.faan,
+          // Who paid for the table is asked before this question is, so a
+          // reset here would quietly throw away an answer already given.
+          // It survives the switch because it is still true either way: the
+          // seat is a loser under both routes, and only the discarder stops
+          // existing when a hand turns out to have been self drawn.
+          liability: current.liability,
         };
       }
       // A draw or a false win is not about a winner at all. Only reachable
@@ -485,6 +491,31 @@ export function RecordHandSheet({
             )}
 
           {editing ? typePicker : winnerPicker}
+          {/* Above how the hand was won, because at the table it is known at
+            the same moment the winner is: somebody says "that's your twelfth
+            tile" and the room already knows who is paying. On a draw or a
+            false win there is nobody for it to be about, so it goes. */}
+          {draft.winnerSeat !== null &&
+            draft.type !== 'draw' &&
+            draft.type !== 'zaa_wu' &&
+            !draft.adjustment && (
+              <PaysForTheTable
+                players={game.players}
+                reasons={liabilityReasonsFor(game.rules)}
+                winnerSeat={draft.winnerSeat}
+                discarderSeat={draft.discarderSeat}
+                handType={
+                  draft.type === 'ceot_cung' || draft.type === 'zi_mo'
+                    ? draft.type
+                    : null
+                }
+                value={draft.liability}
+                onChange={(liability) =>
+                  setDraft((current) => ({ ...current, liability }))
+                }
+              />
+            )}
+
           {editing ? winnerPicker : typePicker}
 
           {needsDiscarder && (
@@ -583,23 +614,6 @@ export function RecordHandSheet({
                 if (adjustment) setEnteringAmounts(false);
               }}
               onCancel={() => setEnteringAmounts(false)}
-            />
-          )}
-
-          {/* After the faan, because it is a rider on a hand that has already
-            been described, and only on a win: a draw and a false win have
-            nothing for anybody to be liable for. */}
-          {needsFaan && draft.winnerSeat !== null && !draft.adjustment && (
-            <PaysForTheTable
-              players={game.players}
-              reasons={liabilityReasonsFor(game.rules)}
-              winnerSeat={draft.winnerSeat}
-              discarderSeat={draft.discarderSeat}
-              selfDrawn={draft.type === 'zi_mo'}
-              value={draft.liability}
-              onChange={(liability) =>
-                setDraft((current) => ({ ...current, liability }))
-              }
             />
           )}
 
