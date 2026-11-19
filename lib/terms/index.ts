@@ -229,7 +229,7 @@ const CORE: Term[] = [
     zh: '十二張包自摸',
     english: '12 Pieces',
     definition:
-      'A winner completes a fourth exposed set of one suit from your discard, and then wins by Zi Mo. You pay for the table. Usually played on self drawn wins only.',
+      'The twelfth tile is the one that completes a fourth exposed set of one suit for somebody, four sets of three. If you fed it and they then won by Zi Mo, you pay for the table: everything all three of you would have paid between you. The winner collects exactly what they would have anyway. Usually played on self drawn wins only.',
     related: ['baau', 'zi_mo'],
     group: 'scoring',
   },
