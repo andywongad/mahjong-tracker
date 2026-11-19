@@ -46,8 +46,42 @@ export function faanValues(rules: Rules): number[] {
 }
 
 /**
+ * One player paying what the whole table would have paid.
+ *
+ * Several Hong Kong rules work this way - 十二張包自摸, 槓上花, 包大三元 and
+ * others - and they share a shape: somebody did a thing that makes the rest
+ * of the table's losses theirs. The app cannot detect any of them, because it
+ * never sees which tile was fed or which sets were exposed, so the
+ * scorekeeper marks it and the engine only moves the money.
+ *
+ * `reason` is an id from the table's own list rather than a union, so a table
+ * inventing a rule needs a label and never new arithmetic.
+ */
+export interface Liability {
+  seat: Seat;
+  reason: string;
+}
+
+/**
+ * Four amounts entered by hand, replacing whatever the rules would have
+ * computed.
+ *
+ * The escape hatch for a night that did something no rule here describes.
+ * It must sum to zero, which is the one thing the engine will not bend on:
+ * a hand that creates or destroys points is not a hand.
+ */
+export interface Adjustment {
+  amounts: Deltas;
+  note?: string;
+}
+
+/**
  * One completed hand. A discriminated union, so a Cheut Chung hand always carries
  * a discarder and a draw can never carry a winner.
+ *
+ * Liability sits on the two winning types only, so "no liability on a draw or
+ * a false win" is a thing the compiler knows rather than a rule written down
+ * somewhere and checked at the far end.
  */
 export type Hand =
   | {
@@ -62,6 +96,10 @@ export type Hand =
       patterns?: HandPattern[];
       /** The tiles tapped into the scorer, in the order they were tapped. */
       tiles?: string[];
+      /** One player paying the table's losses, when a house rule says so. */
+      liability?: Liability;
+      /** Hand-entered amounts, replacing everything above. */
+      adjustment?: Adjustment;
     }
   | {
       type: 'zi_mo';
@@ -70,9 +108,11 @@ export type Hand =
       isLimit?: boolean;
       patterns?: HandPattern[];
       tiles?: string[];
+      liability?: Liability;
+      adjustment?: Adjustment;
     }
-  | { type: 'zaa_wu'; offenderSeat: Seat }
-  | { type: 'draw' };
+  | { type: 'zaa_wu'; offenderSeat: Seat; adjustment?: Adjustment }
+  | { type: 'draw'; adjustment?: Adjustment };
 
 /** One scoring pattern on a built hand. */
 export interface HandPattern {

@@ -12,8 +12,16 @@ import { selfDrawIdFor } from '../selfDrawSplits';
 
 describe('what it keeps from Hong Kong standard', () => {
   it('changes only the four things it means to', () => {
-    const differences = (Object.keys(BASIC_POINTS) as (keyof typeof BASIC_POINTS)[])
-      .filter((key) => BASIC_POINTS[key] !== HK_STANDARD[key])
+    // By value, not by reference: two rule sets holding equal lists are not
+    // thereby different, and an array is never === another array.
+    const differences = (
+      Object.keys(BASIC_POINTS) as (keyof typeof BASIC_POINTS)[]
+    )
+      .filter(
+        (key) =>
+          JSON.stringify(BASIC_POINTS[key]) !==
+          JSON.stringify(HK_STANDARD[key]),
+      )
       .sort();
     expect(differences).toEqual([
       'curve',

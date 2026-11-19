@@ -43,7 +43,31 @@ export interface Rules {
   /** Money per point, for settle up. 0 hides money. */
   baseUnit: number;
   currency: string;
+  /**
+   * Which liability rules this table plays, in the order the record sheet
+   * offers them. Empty hides the feature: a table that does not play 包
+   * should never be asked about it.
+   */
+  liabilityReasons?: string[];
+  /**
+   * On a discard win where the liable player is not the one who fed it,
+   * whether they share the bill or the liable player carries it alone.
+   */
+  liabilityWithDiscarder?: LiabilityWithDiscarder;
 }
+
+export type LiabilityWithDiscarder = 'split' | 'liable_pays_all';
+
+/**
+ * What a table plays when its rules were written before 包 existed here.
+ *
+ * The conservative pair: one reason, and the gentler of the two ways to
+ * settle it. A rule set that has never said anything about this should not
+ * have the strictest reading assumed for it.
+ */
+export const DEFAULT_LIABILITY_REASONS = ['twelve_pieces'];
+export const DEFAULT_LIABILITY_WITH_DISCARDER: LiabilityWithDiscarder =
+  'split';
 
 /** The Hong Kong doubling curve, faan to unit. */
 export const DOUBLING_CURVE: Record<number, number> = {
@@ -85,6 +109,8 @@ export const OUR_TABLE: Rules = {
   sevenPairs: false,
   baseUnit: 0,
   currency: '$',
+  liabilityReasons: ['twelve_pieces'],
+  liabilityWithDiscarder: 'split',
 };
 
 /**
@@ -111,6 +137,8 @@ export const HK_STANDARD: Rules = {
   sevenPairs: false,
   baseUnit: 0,
   currency: '$',
+  liabilityReasons: ['twelve_pieces', 'kong_self_draw', 'big_three_dragons'],
+  liabilityWithDiscarder: 'split',
 };
 
 /**
@@ -144,6 +172,8 @@ export const BASIC_POINTS: Rules = {
   sevenPairs: false,
   baseUnit: 0,
   currency: '$',
+  liabilityReasons: ['twelve_pieces', 'kong_self_draw', 'big_three_dragons'],
+  liabilityWithDiscarder: 'split',
 };
 
 export const PRESETS: Record<Exclude<PresetId, 'custom'>, Rules> = {
@@ -167,16 +197,55 @@ const SCORING_FIELDS: (keyof Rules)[] = [
   'zaaWuPenalty',
   'newSix',
   'sevenPairs',
+  // How a shared liability settles moves money, so it tells two rule sets
+  // apart. Which reasons are offered does not: that is a question about what
+  // the record sheet shows, and two tables scoring identically are the same
+  // rules whether or not one of them has heard of 九張包.
+  'liabilityWithDiscarder',
 ];
+
+/**
+ * A rules object with the liability fields filled in.
+ *
+ * Every game stores a snapshot of its rules, and every snapshot taken before
+ * this existed has neither field. Comparing those against a preset that now
+ * has both would turn every game already played into "Custom rules", so the
+ * defaults are applied when reading rather than written into saved games.
+ * Nothing on disk is touched and nothing a table already played changes.
+ */
+function withLiabilityDefaults(rules: Rules): Rules {
+  if (rules.liabilityWithDiscarder !== undefined) return rules;
+  return {
+    ...rules,
+    liabilityWithDiscarder: DEFAULT_LIABILITY_WITH_DISCARDER,
+  };
+}
+
+/** Which liability rules a table plays, for rules that predate the question. */
+export function liabilityReasonsFor(rules: Rules): string[] {
+  if (rules.liabilityReasons) return rules.liabilityReasons;
+  const preset = presetFor(rules);
+  if (preset !== 'custom') return PRESETS[preset].liabilityReasons ?? [];
+  return DEFAULT_LIABILITY_REASONS;
+}
+
+/** How a shared liability settles, for rules that predate the question. */
+export function liabilityWithDiscarderFor(
+  rules: Rules,
+): LiabilityWithDiscarder {
+  return rules.liabilityWithDiscarder ?? DEFAULT_LIABILITY_WITH_DISCARDER;
+}
 
 /**
  * Which preset a set of rules matches, or "custom". Money settings are ignored
  * because they do not change any score.
  */
 export function presetFor(rules: Rules): PresetId {
+  const filled = withLiabilityDefaults(rules);
   for (const [id, preset] of Object.entries(PRESETS)) {
     const same = SCORING_FIELDS.every(
-      (field) => JSON.stringify(rules[field]) === JSON.stringify(preset[field]),
+      (field) =>
+        JSON.stringify(filled[field]) === JSON.stringify(preset[field]),
     );
     if (same) return id as PresetId;
   }

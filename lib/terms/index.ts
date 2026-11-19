@@ -213,6 +213,66 @@ const CORE: Term[] = [
     related: ['faan'],
     group: 'scoring',
   },
+  {
+    id: 'baau',
+    roman: 'Baau',
+    zh: '包',
+    english: 'Pay for the table',
+    definition:
+      'A family of house rules where one player pays everything the three losers would have paid between them. The winner collects exactly what they were always going to; all that changes is whose pocket it comes from. The app can never work one of these out for itself, because it never sees which tile was fed or which sets were exposed, so the scorekeeper marks it.',
+    related: ['twelve_pieces', 'kong_self_draw', 'big_three_dragons'],
+    group: 'scoring',
+  },
+  {
+    id: 'twelve_pieces',
+    roman: 'Sap Ji Zoeng Baau Zi Mo',
+    zh: '十二張包自摸',
+    english: '12 Pieces',
+    definition:
+      'A winner completes a fourth exposed set of one suit from your discard, and then wins by Zi Mo. You pay for the table. Usually played on self drawn wins only.',
+    related: ['baau', 'zi_mo'],
+    group: 'scoring',
+  },
+  {
+    id: 'kong_self_draw',
+    roman: 'Gong Soeng Faa',
+    zh: '槓上花',
+    english: 'Self-draw after a kong',
+    definition:
+      'A player claims a kong from your discard and then wins on the replacement tile they draw for it. You pay for the table.',
+    related: ['baau', 'zi_mo'],
+    group: 'scoring',
+  },
+  {
+    id: 'big_three_dragons',
+    roman: 'Baau Daai Saam Jyun',
+    zh: '包大三元',
+    english: 'Big Three Dragons feeding',
+    definition:
+      'You discarded the tile that gave a player their third dragon set. The hand is theirs and the bill is yours.',
+    related: ['baau', 'cheut_chung'],
+    group: 'scoring',
+  },
+  {
+    id: 'nine_pieces',
+    roman: 'Gau Zoeng Baau',
+    zh: '九張包',
+    english: '9 Pieces',
+    definition:
+      'After three exposed sets of one suit, whoever feeds the winning tile on a single suit hand pays for the table.',
+    related: ['baau', 'cheut_chung'],
+    group: 'scoring',
+  },
+  {
+    id: 'fifth_tile',
+    roman: 'Ng Zi Baau Saang',
+    zh: '五子包生',
+    english: 'Fifth Tile',
+    definition:
+      'A fresh tile thrown with five or fewer tiles left in the wall. Whoever threw it pays for the table.',
+    related: ['baau', 'cheut_chung'],
+    group: 'scoring',
+  },
 ];
 
 /** Every pattern in the hand builder is also a glossary entry. */
@@ -297,6 +357,11 @@ export const GROUP_LABELS: Record<Term['group'], string> = {
  * catalog; these are the terms that only appear here.
  */
 export const TODO_ROMANISATION: { id: string; note: string }[] = [
+  {
+    id: 'baau',
+    note:
+      'The 包 family. Baau itself is how the group writes it, but the readings of the individual rules come from dictionaries rather than from anybody at the table: Sap Ji Zoeng Baau Zi Mo, Gong Soeng Faa, Baau Daai Saam Jyun, Gau Zoeng Baau, Ng Zi Baau Saang. The English names are what the group actually says, so those are what the app shows; only the romanisations are waiting.',
+  },
   {
     id: 'laan_faa',
     note:

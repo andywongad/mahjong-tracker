@@ -1,9 +1,13 @@
 import { effectiveFaan, unitFor } from '@/lib/rules/curve';
-import type { Rules } from '@/lib/rules/types';
+import {
+  liabilityWithDiscarderFor,
+  type Rules,
+} from '@/lib/rules/types';
 import {
   SEATS,
   type Deltas,
   type Hand,
+  type Liability,
   type HandType,
   type Seat,
 } from './types';
@@ -67,6 +71,20 @@ function payment(
  * The dealer seat is only needed when a dealer bonus is in play.
  */
 export function deltas(hand: Hand, rules: Rules, dealerSeat?: Seat): Deltas {
+  // Hand-entered amounts answer the whole question, so nothing below runs.
+  // Checked for balance rather than trusted: this is the one input that can
+  // invent points, and the sum is the only thing standing in the way.
+  if (hand.adjustment) {
+    const { amounts } = hand.adjustment;
+    const sum = amounts[0] + amounts[1] + amounts[2] + amounts[3];
+    if (sum !== 0) {
+      throw new ScoringError(
+        `A hand entered by hand must sum to zero, got ${sum}`,
+      );
+    }
+    return [amounts[0], amounts[1], amounts[2], amounts[3]];
+  }
+
   const out: [number, number, number, number] = [0, 0, 0, 0];
 
   switch (hand.type) {
@@ -139,13 +157,72 @@ export function deltas(hand: Hand, rules: Rules, dealerSeat?: Seat): Deltas {
     }
   }
 
-  const sum = out[0] + out[1] + out[2] + out[3];
+  const settled =
+    'liability' in hand && hand.liability
+      ? payForTheTable(out, hand, hand.liability, rules)
+      : out;
+
+  const sum = settled[0] + settled[1] + settled[2] + settled[3];
   if (sum !== 0) {
     throw new ScoringError(
       `Hand does not sum to zero (got ${sum}) for ${JSON.stringify(hand)}`,
     );
   }
 
+  return settled;
+}
+
+/**
+ * Moving what the losers owed onto whoever is liable for it.
+ *
+ * The hand is scored normally first and only then redistributed, which is
+ * what keeps this one rule rather than one rule per curve, multiplier and
+ * dealer bonus. The winner is paid exactly what they were always going to be
+ * paid; all that changes is whose pocket it leaves.
+ *
+ * Because the total is summed after every multiplier has been applied, a
+ * dealer bonus is already inside it. A liable dealer therefore pays the
+ * table's bill rather than their own bill scaled again, which is the reading
+ * that keeps the winner's side untouched.
+ */
+function payForTheTable(
+  computed: Deltas,
+  hand: Hand & { winnerSeat: Seat },
+  liability: Liability,
+  rules: Rules,
+): Deltas {
+  if (liability.seat === hand.winnerSeat) {
+    throw new ScoringError('The winner of a hand cannot be liable for it');
+  }
+
+  let total = 0;
+  for (const seat of SEATS) {
+    if (seat !== hand.winnerSeat) total -= computed[seat];
+  }
+
+  const out: [number, number, number, number] = [0, 0, 0, 0];
+  out[hand.winnerSeat] = computed[hand.winnerSeat];
+
+  const discarder =
+    hand.type === 'ceot_cung' ? hand.discarderSeat : undefined;
+
+  // Nobody fed a self drawn hand, and a discarder who is also liable is
+  // already the only payer, so both are the same simple case.
+  const alone =
+    discarder === undefined ||
+    discarder === liability.seat ||
+    liabilityWithDiscarderFor(rules) === 'liable_pays_all';
+
+  if (alone) {
+    out[liability.seat] = -total;
+    return out;
+  }
+
+  // Shared with whoever fed it. An odd total cannot be halved, and the extra
+  // point goes to the player the rule is named after.
+  const share = Math.floor(total / 2);
+  out[liability.seat] = -(total - share);
+  out[discarder] = -share;
   return out;
 }
 
