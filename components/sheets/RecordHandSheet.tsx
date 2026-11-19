@@ -10,6 +10,8 @@ import {
   type Hand,
   type HandRow,
   type HandPattern,
+  type Liability,
+  type Adjustment,
   type Wind as WindName,
   type HandType,
   type Seat,
@@ -22,6 +24,9 @@ import { Wind } from '@/components/ui/Wind';
 import { Sheet } from './Sheet';
 import { HandScorerSheet } from './HandScorerSheet';
 import { TileChoice } from '@/components/ui/TileChoice';
+import { PaysForTheTable } from './scorer/PaysForTheTable';
+import { EnterAmounts } from './scorer/EnterAmounts';
+import { liabilityReasonsFor } from '@/lib/rules/types';
 import { DeltaCell, markFor } from '@/components/ui/HandDeltas';
 import { termForHandType } from '@/lib/terms';
 
@@ -44,6 +49,10 @@ interface Draft {
   patterns?: HandPattern[];
   /** The tiles tapped into the scorer, kept so an edit reopens them. */
   tiles?: TileKey[];
+  /** Who is paying for the whole table, and under which house rule. */
+  liability?: Liability;
+  /** Four amounts typed in by hand, replacing everything the rules say. */
+  adjustment?: Adjustment;
 }
 
 const EMPTY_DRAFT: Draft = {
@@ -66,6 +75,8 @@ function draftFromHand(hand: Hand): Draft {
         isLimit: hand.isLimit,
         patterns: hand.patterns,
         tiles: hand.tiles as TileKey[] | undefined,
+        liability: hand.liability,
+        adjustment: hand.adjustment,
       };
     case 'zi_mo':
       return {
@@ -77,15 +88,18 @@ function draftFromHand(hand: Hand): Draft {
         isLimit: hand.isLimit,
         patterns: hand.patterns,
         tiles: hand.tiles as TileKey[] | undefined,
+        liability: hand.liability,
+        adjustment: hand.adjustment,
       };
     case 'zaa_wu':
       return {
         ...EMPTY_DRAFT,
         type: 'zaa_wu',
         offenderSeat: hand.offenderSeat,
+        adjustment: hand.adjustment,
       };
     case 'draw':
-      return { ...EMPTY_DRAFT, type: 'draw' };
+      return { ...EMPTY_DRAFT, type: 'draw', adjustment: hand.adjustment };
   }
 }
 
@@ -101,6 +115,8 @@ function toHand(draft: Draft, rules: Rules): Hand | null {
         isLimit: draft.isLimit,
         patterns: draft.patterns,
         tiles: draft.tiles,
+        liability: draft.liability,
+        adjustment: draft.adjustment,
       };
     case 'zi_mo':
       return {
@@ -110,11 +126,17 @@ function toHand(draft: Draft, rules: Rules): Hand | null {
         isLimit: draft.isLimit,
         patterns: draft.patterns,
         tiles: draft.tiles,
+        liability: draft.liability,
+        adjustment: draft.adjustment,
       };
     case 'zaa_wu':
-      return { type: 'zaa_wu', offenderSeat: draft.offenderSeat as Seat };
+      return {
+        type: 'zaa_wu',
+        offenderSeat: draft.offenderSeat as Seat,
+        adjustment: draft.adjustment,
+      };
     case 'draw':
-      return { type: 'draw' };
+      return { type: 'draw', adjustment: draft.adjustment };
     default:
       return null;
   }
@@ -165,6 +187,8 @@ export function RecordHandSheet({
   // The chosen player is settled unless the scorekeeper says otherwise.
   const [changingPlayer, setChangingPlayer] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // Only reachable from an edit, and only on purpose.
+  const [enteringAmounts, setEnteringAmounts] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const hand = useMemo(() => toHand(draft, game.rules), [draft, game.rules]);
@@ -347,6 +371,10 @@ export function RecordHandSheet({
             // The winner cannot also be the shooter.
             discarderSeat:
               current.discarderSeat === seat ? null : current.discarderSeat,
+            // Nor can they be liable for their own hand, which the engine
+            // throws on rather than quietly scoring.
+            liability:
+              current.liability?.seat === seat ? undefined : current.liability,
           }))
         }
       />
@@ -529,6 +557,50 @@ export function RecordHandSheet({
                 ))}
               </div>
             </Step>
+          )}
+
+          {/* The repair route, and the only part of this sheet that is not
+            about what happened at the table. Offered once a hand already
+            exists, because it undoes the rules rather than describing a
+            hand, and nobody should meet it while recording one. */}
+          {editing && !enteringAmounts && !draft.adjustment && (
+            <button
+              type="button"
+              onClick={() => setEnteringAmounts(true)}
+              className="touch self-start px-1 text-xs underline underline-offset-2"
+              style={{ color: 'var(--muted)' }}
+            >
+              Enter amounts manually
+            </button>
+          )}
+
+          {editing && (enteringAmounts || draft.adjustment) && (
+            <EnterAmounts
+              players={game.players}
+              value={draft.adjustment}
+              onChange={(adjustment) => {
+                setDraft((current) => ({ ...current, adjustment }));
+                if (adjustment) setEnteringAmounts(false);
+              }}
+              onCancel={() => setEnteringAmounts(false)}
+            />
+          )}
+
+          {/* After the faan, because it is a rider on a hand that has already
+            been described, and only on a win: a draw and a false win have
+            nothing for anybody to be liable for. */}
+          {needsFaan && draft.winnerSeat !== null && !draft.adjustment && (
+            <PaysForTheTable
+              players={game.players}
+              reasons={liabilityReasonsFor(game.rules)}
+              winnerSeat={draft.winnerSeat}
+              discarderSeat={draft.discarderSeat}
+              selfDrawn={draft.type === 'zi_mo'}
+              value={draft.liability}
+              onChange={(liability) =>
+                setDraft((current) => ({ ...current, liability }))
+              }
+            />
           )}
 
           {draft.type === 'draw' && (

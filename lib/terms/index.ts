@@ -414,6 +414,11 @@ export function romanOf(id: string): string {
 }
 
 /** The English gloss of a term, for prose and for labels built around it. */
+/** The one or two sentence explanation, for a screen with room for it. */
+export function definitionOf(id: string): string {
+  return TERM_BY_ID[id]?.definition ?? '';
+}
+
 export function glossOf(id: string): string {
   return TERM_BY_ID[id]?.english ?? id;
 }

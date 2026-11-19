@@ -118,6 +118,15 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                   >
                     <TermStack id="zaa_wu" />
                   </th>
+                  {/* Beside dealing in rather than inside it: feeding the
+                    tile and carrying the whole table are two different
+                    things that happen to one player on one hand. */}
+                  <th
+                    scope="col"
+                    className="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap"
+                  >
+                    <TermStack id="baau" />
+                  </th>
                   <th
                     scope="col"
                     className="px-2 py-2 text-right text-xs font-semibold"
@@ -176,6 +185,9 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                       {player.zaaWu}
                     </td>
                     <td className="tnum px-2 py-2 text-right">
+                      {player.baau}
+                    </td>
+                    <td className="tnum px-2 py-2 text-right">
                       {player.biggestHand}
                     </td>
                   </tr>
@@ -203,6 +215,9 @@ export function StatsScreen({ gameId }: { gameId: string }) {
                   </td>
                   <td className="tnum px-2 py-2 text-right font-semibold">
                     {summary.totals.zaaWu}
+                  </td>
+                  <td className="tnum px-2 py-2 text-right font-semibold">
+                    {summary.totals.baau}
                   </td>
                   <td className="px-2 py-2" />
                 </tr>

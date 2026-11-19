@@ -6,7 +6,7 @@ import { Wind } from '@/components/ui/Wind';
 import { Term } from '@/components/ui/Term';
 import { DeltaLegend, HandDeltas } from '@/components/ui/HandDeltas';
 import { PlayerColumns } from './PlayerColumns';
-import { describeHand } from '@/lib/game/describe';
+import { describeHand, describeRider } from '@/lib/game/describe';
 import { formatHandTime } from '@/lib/game/format';
 import { termForHandType } from '@/lib/terms';
 
@@ -158,6 +158,18 @@ export function HandLog({
                     </span>
                   )}
                 </span>
+
+                {/* A second fact about the same hand, under the first and
+                  quieter than it: who carried the whole table, or that the
+                  amounts were set by hand. */}
+                {describeRider(row.hand, game.players, game.rules) && (
+                  <span
+                    className="mt-0.5 block text-xs"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    {describeRider(row.hand, game.players, game.rules)}
+                  </span>
+                )}
 
                 <HandDeltas
                   hand={row.hand}

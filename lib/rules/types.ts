@@ -65,6 +65,19 @@ export type LiabilityWithDiscarder = 'split' | 'liable_pays_all';
  * settle it. A rule set that has never said anything about this should not
  * have the strictest reading assumed for it.
  */
+/**
+ * Every 包 rule the app knows, in the order the house rules offer them and
+ * the record sheet repeats them. Ordered by how commonly they are played
+ * rather than alphabetically, so the two most tables recognise come first.
+ */
+export const LIABILITY_REASONS = [
+  'twelve_pieces',
+  'kong_self_draw',
+  'big_three_dragons',
+  'nine_pieces',
+  'fifth_tile',
+];
+
 export const DEFAULT_LIABILITY_REASONS = ['twelve_pieces'];
 export const DEFAULT_LIABILITY_WITH_DISCARDER: LiabilityWithDiscarder =
   'split';

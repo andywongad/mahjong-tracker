@@ -12,6 +12,15 @@ export interface PlayerStats {
   ceotCung: number;
   /** False declarations made by this player. */
   zaaWu: number;
+  /**
+   * Hands this player paid the whole table for, under a 包 rule.
+   *
+   * Counted apart from ceotCung rather than instead of it. A player who fed
+   * the winning tile and then carried the bill did both things, and a table
+   * reading this wants to see both: one says how often they feed, the other
+   * how expensive it got.
+   */
+  baau: number;
   /** Biggest single hand gain, 0 if the player never gained in a hand. */
   biggestHand: number;
   /** Final score. */
@@ -96,6 +105,7 @@ export interface StatsTotals {
   /** Total deal ins, which equals the number of hands won on a discard. */
   ceotCung: number;
   zaaWu: number;
+  baau: number;
   draws: number;
   /** Sum of all four scores. Zero in a sound game. */
   score: number;
@@ -302,6 +312,7 @@ export function stats(game: GameRules): StatsResult {
     ziMo: 0,
     ceotCung: 0,
     zaaWu: 0,
+    baau: 0,
     biggestHand: 0,
     score: scores[seat],
     winsByFaan: emptyFaanTally(values),
@@ -390,6 +401,14 @@ export function stats(game: GameRules): StatsResult {
       case 'draw':
         break;
     }
+
+    // Counted after the switch rather than inside it, because it is the same
+    // fact whichever way the hand was won, and it is an extra thing about a
+    // hand rather than a different kind of hand: a player who fed the tile
+    // and then carried the bill is counted under both.
+    if ('liability' in hand && hand.liability) {
+      players[hand.liability.seat].baau += 1;
+    }
   }
 
   // Swings are read off the running score, which replay already worked out.
@@ -413,6 +432,7 @@ export function stats(game: GameRules): StatsResult {
     ziMo: sum((player) => player.ziMo),
     ceotCung: sum((player) => player.ceotCung),
     zaaWu: sum((player) => player.zaaWu),
+    baau: sum((player) => player.baau),
     draws,
     score: sum((player) => player.score),
     accountedFor:

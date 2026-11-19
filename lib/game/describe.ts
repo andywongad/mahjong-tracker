@@ -1,5 +1,6 @@
 import type { Hand, HandRow } from '@/lib/scoring';
-import { termForHandType } from '@/lib/terms';
+import { glossOf, termForHandType } from '@/lib/terms';
+import { liabilityWithDiscarderFor, type Rules } from '@/lib/rules/types';
 import type { GameRecord } from './types';
 
 /**
@@ -22,6 +23,44 @@ export function describeHand(
     case 'draw':
       return 'Nobody won';
   }
+}
+
+/**
+ * The rider on a hand: who paid for the table, or that somebody set the
+ * amounts by hand.
+ *
+ * Kept apart from describeHand because it is a second fact about the same
+ * hand rather than a different way of saying the first, and the log sets it
+ * in its own quieter type. Null for the ordinary hand, which is nearly all
+ * of them.
+ */
+export function describeRider(
+  hand: Hand,
+  players: GameRecord['players'],
+  rules: Rules,
+): string | null {
+  if (hand.adjustment) {
+    const note = hand.adjustment.note?.trim();
+    return note ? `Adjusted · ${note}` : 'Adjusted';
+  }
+  if (!('liability' in hand) || !hand.liability) return null;
+
+  const who = players[hand.liability.seat];
+  const name =
+    hand.liability.reason === 'other'
+      ? 'Paid for the table'
+      : glossOf(hand.liability.reason);
+
+  // Split or not is the difference between one name and two, and a reader
+  // settling up needs to know which.
+  const shared =
+    hand.type === 'ceot_cung' &&
+    hand.discarderSeat !== hand.liability.seat &&
+    liabilityWithDiscarderFor(rules) === 'split';
+
+  return shared
+    ? `包 ${name} · ${who} split it with ${players[hand.discarderSeat]}`
+    : `包 ${name} · ${who} paid for the table`;
 }
 
 /**

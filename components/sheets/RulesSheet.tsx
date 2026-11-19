@@ -25,11 +25,16 @@ import {
   selfDrawIdFor,
 } from '@/lib/rules/selfDrawSplits';
 import { withTrackedPenalty } from '@/lib/rules/penalty';
+import {
+  LIABILITY_REASONS,
+  liabilityReasonsFor,
+  liabilityWithDiscarderFor,
+} from '@/lib/rules/types';
 import { zaaWuCost } from '@/lib/scoring';
 import { RulesWalkthroughSheet } from './RulesWalkthroughSheet';
 import { Sheet } from './Sheet';
 import { romanOf } from '@/lib/terms';
-import { glossOf } from '@/lib/terms';
+import { definitionOf, glossOf } from '@/lib/terms';
 
 export function RulesSheet({
   open,
@@ -340,6 +345,91 @@ export function RulesSheet({
               })}
             </div>
           </Field>
+
+          {/* Which of the 包 rules this table plays. Empty is a real
+            answer and the record sheet honours it by never asking. */}
+          <Field label="Does anyone ever pay for the whole table? 包">
+            <div className="flex flex-col gap-2">
+              {LIABILITY_REASONS.map((reason) => {
+                const on = liabilityReasonsFor(rules).includes(reason);
+                return (
+                  <button
+                    key={reason}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => {
+                      const held = liabilityReasonsFor(rules);
+                      edit({
+                        liabilityReasons: on
+                          ? held.filter((id) => id !== reason)
+                          : // Kept in the catalogue's order rather than the
+                            // order they were tapped, so the record sheet
+                            // offers them the same way every night.
+                            LIABILITY_REASONS.filter(
+                              (id) => id === reason || held.includes(id),
+                            ),
+                      });
+                    }}
+                    className="tile-sm touch px-3 py-2 text-left"
+                    style={
+                      on
+                        ? {
+                            background: 'var(--tile-back)',
+                            color: '#fff',
+                            borderColor: 'transparent',
+                          }
+                        : undefined
+                    }
+                  >
+                    <span className="block text-sm font-semibold">
+                      {glossOf(reason)}
+                    </span>
+                    <span
+                      className="block text-xs"
+                      style={{ color: on ? '#fff' : 'var(--muted)' }}
+                    >
+                      {definitionOf(reason)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
+          {liabilityReasonsFor(rules).length > 0 && (
+            <Field label="When the liable player did not feed the tile">
+              <div className="flex flex-col gap-2">
+                {(
+                  [
+                    ['split', 'Split with whoever fed it'],
+                    ['liable_pays_all', 'The liable player pays it all'],
+                  ] as const
+                ).map(([id, label]) => {
+                  const on = liabilityWithDiscarderFor(rules) === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => edit({ liabilityWithDiscarder: id })}
+                      className="tile-sm touch px-3 py-2 text-left text-sm font-semibold"
+                      style={
+                        on
+                          ? {
+                              background: 'var(--tile-back)',
+                              color: '#fff',
+                              borderColor: 'transparent',
+                            }
+                          : undefined
+                      }
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+          )}
 
           <ToggleRow
             label="Limit hands pay the full cap"
