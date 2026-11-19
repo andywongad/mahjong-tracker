@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { SEATS, type Liability, type PlayerNames, type Seat } from '@/lib/scoring';
 import { SEAT_WINDS, seatSolid } from '@/lib/game/seats';
 import { Wind } from '@/components/ui/Wind';
@@ -10,198 +10,133 @@ import { definitionOf, glossOf, romanOf } from '@/lib/terms';
 /**
  * 包: somebody paying what the whole table would have paid.
  *
- * Asked before how the hand was won, because at the table it is known at the
- * same moment the winner is: somebody says "that's your twelfth tile" and the
- * room already knows who is paying. Everything about it lives in one box, so
- * a question with four parts reads as one question.
+ * One checkbox and a sentence. The rules are listed as examples rather than
+ * offered as a choice, because which of them happened is a thing the table
+ * already knows and the app never needs: the money moves the same way under
+ * every one of them, and the only two facts worth recording are that it
+ * happened and who is paying.
  *
- * Folded away by default. Most hands are not one of these, and a beginner
- * asked on every hand whether anybody completed a fourth exposed set of one
- * suit from their discard would learn to tap past the question rather than
- * read it. A table that plays none of these rules never sees the row at all.
+ * That is also what keeps this small enough to sit on every hand. Asked as a
+ * list of buttons it ran to four hundred pixels, which is a lot of screen for
+ * a question most hands answer no to.
  *
- * A plain disclosure: one header opens and closes it, in one place, chevron
- * turning over. Closing is not cancelling, so the header carries the answer
- * when it is shut, because a folded row hiding a decision about money would
- * be a place to lose one.
+ * The names are hot text: tapping one explains it underneath, in the same
+ * sentence the glossary carries. They do not open the glossary itself, which
+ * would put a second sheet over this one, and a sheet over a sheet is how the
+ * guide once closed the form behind it.
  *
- * The names are the examples. A table that has not said which of these it
- * plays sees all of them, because one name on its own says nothing about
- * what the question covers, and a name is no use to anybody who does not
- * know the rule behind it. So tapping one both chooses it and explains it:
- * the definition is the same sentence the glossary carries, and the chip
- * cannot open the glossary itself without putting a button inside a button.
- *
- * Sitting above the hand type costs it two things it used to lean on, and
- * both are handled rather than left to misfire. The note about 12 Pieces
- * being a self draw rule waits until there is a hand type to judge. And the
- * payer can no longer be assumed to be whoever fed the tile, because nobody
- * has said yet that anyone did: a reason chosen with no shooter known waits
- * for a tap rather than guessing a seat and being quietly wrong.
+ * A table that plays none of these never sees the row, because the house
+ * rules say which to list and an empty list means none.
  */
 export function PaysForTheTable({
   players,
   reasons,
   winnerSeat,
-  discarderSeat,
-  handType,
   value,
   onChange,
 }: {
   players: PlayerNames;
-  /** Reason ids this table plays, in the order they are offered. */
+  /** Which rules to name as examples, from the house rules. */
   reasons: string[];
   winnerSeat: Seat;
-  /** Known on an edit, and on a new hand only once the shooter is picked. */
-  discarderSeat: Seat | null;
-  /** Null until the hand has been said to be a discard win or a self draw. */
-  handType: 'ceot_cung' | 'zi_mo' | null;
   value: Liability | undefined;
   onChange: (liability: Liability | undefined) => void;
 }) {
-  const [open, setOpen] = useState(Boolean(value));
-  /** A reason chosen while there was nobody obvious to pin it on yet. */
-  const [waiting, setWaiting] = useState<string | null>(null);
-  const panelId = useId();
+  /** Ticked without a payer yet, which is a question half answered. */
+  const [asking, setAsking] = useState(false);
+  /** Which example is being explained, if any. */
+  const [explaining, setExplaining] = useState<string | null>(null);
   if (reasons.length === 0) return null;
 
-  const chosen = value?.reason ?? waiting;
+  const on = Boolean(value) || asking;
 
-  function pick(reason: string) {
-    // A chosen reason tapped again is how to say nobody after all, which is
-    // what everything else on this screen that can be on or off does.
-    if (chosen === reason) {
-      setWaiting(null);
+  function toggle() {
+    if (on) {
+      setAsking(false);
       onChange(undefined);
       return;
     }
-    const known =
-      value?.seat ??
-      (discarderSeat !== null && discarderSeat !== winnerSeat
-        ? discarderSeat
-        : null);
-    if (known === null) {
-      setWaiting(reason);
-      onChange(undefined);
-      return;
-    }
-    setWaiting(null);
-    onChange({ reason, seat: known });
+    setAsking(true);
   }
-
-  function payer(seat: Seat) {
-    if (!chosen) return;
-    setWaiting(null);
-    onChange({ reason: chosen, seat });
-  }
-
-  const offered = [...reasons, 'other'];
 
   return (
-    <section className="tile-sm flex flex-col">
+    <section className="tile-sm flex flex-col gap-2 px-3 py-2">
       <button
         type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen(!open)}
-        className="touch flex w-full items-center justify-between gap-3 px-3 py-2 text-left"
+        role="checkbox"
+        aria-checked={on}
+        onClick={toggle}
+        className="touch flex items-center gap-2.5 text-left"
       >
-        <span className="flex min-w-0 flex-col">
-          <span className="text-sm font-semibold">
-            Someone pays for the table?{' '}
-            <span lang="zh-Hant" className="hanzi">
-              包
-            </span>
+        <Box checked={on} />
+        <span className="text-sm font-semibold">
+          Someone pays for the table{' '}
+          <span lang="zh-Hant" className="hanzi">
+            包
           </span>
-          {!open && value && (
-            <span className="text-xs" style={{ color: 'var(--muted)' }}>
-              {nameFor(value.reason)} · {players[value.seat]} pays
-            </span>
-          )}
         </span>
-        <Chevron open={open} />
       </button>
 
-      <div
-        id={panelId}
-        hidden={!open}
-        className="flex flex-col gap-2 px-3 pt-1 pb-3"
-      >
-        <div className="flex flex-wrap gap-2">
-          {offered.map((reason) => {
-            const on = chosen === reason;
-            return (
-              <button
-                key={reason}
-                type="button"
-                aria-pressed={on}
-                onClick={() => pick(reason)}
-                className="touch rounded-pill px-3 text-sm font-semibold"
-                style={
-                  on
-                    ? { background: 'var(--tile-back)', color: '#fff' }
-                    : {
-                        background: 'var(--surface)',
-                        border: '1px solid var(--line-strong)',
-                        color: 'var(--ink)',
-                      }
-                }
+      {/* Always here, ticked or not: it is the explanation of what the line
+        above is asking, and a question nobody understands is a question
+        answered wrongly. */}
+      <p className="text-xs" style={{ color: 'var(--muted)' }}>
+        Examples:{' '}
+        {reasons.map((reason, index) => (
+          <span key={reason}>
+            {index > 0 && ', '}
+            <button
+              type="button"
+              onClick={() =>
+                setExplaining(explaining === reason ? null : reason)
+              }
+              aria-expanded={explaining === reason}
+              className="underline decoration-dotted underline-offset-2"
+              style={{
+                color: explaining === reason ? 'var(--ink)' : 'var(--muted)',
+              }}
+            >
+              {glossOf(reason)}
+            </button>
+          </span>
+        ))}
+        , and anything else your table plays this way.
+      </p>
+
+      {explaining && (
+        <p className="text-xs" style={{ color: 'var(--ink)' }}>
+          {definitionOf(explaining)}
+        </p>
+      )}
+
+      {on && (
+        <>
+          <h3 className="text-sm font-semibold">Who pays?</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {pickableSeats(winnerSeat).map((seat) => (
+              <TileChoice
+                key={seat}
+                selected={value?.seat === seat}
+                accent={seatSolid(seat)}
+                onClick={() => {
+                  setAsking(false);
+                  onChange({ seat, reason: value?.reason });
+                }}
               >
-                {nameFor(reason)}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* What the name on the chip actually means. Shown on choosing it,
-          because the chip is already a button and cannot hold another one,
-          and because the moment somebody wants the rule explained is the
-          moment they are deciding whether it is the one that happened. */}
-        {chosen && (
+                <Wind wind={SEAT_WINDS[seat]} className="text-sm leading-none" />
+                <span className="w-full truncate text-xs font-semibold">
+                  {players[seat]}
+                </span>
+              </TileChoice>
+            ))}
+          </div>
           <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            {chosen === 'other'
-              ? 'Anything your table plays that is not on this list. The money moves the same way: whoever you pick pays what all three would have paid.'
-              : definitionOf(chosen)}
+            {value
+              ? `${romanOf('baau')}: they pay what all three would have paid, and the winner collects the same either way.`
+              : 'Nothing is counted until you say who pays.'}
           </p>
-        )}
-
-        {/* Waits for a hand type rather than guessing at one, because this
-          row is now asked before anybody has said how the hand was won. */}
-        {chosen === 'twelve_pieces' && handType === 'ceot_cung' && (
-          <p className="text-xs" style={{ color: 'var(--accent)' }}>
-            {glossOf('twelve_pieces')} usually applies only to self-drawn wins.
-          </p>
-        )}
-
-        {chosen && (
-          <>
-            <h3 className="text-sm font-semibold">Who pays?</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {pickableSeats(winnerSeat).map((seat) => (
-                <TileChoice
-                  key={seat}
-                  selected={value?.seat === seat}
-                  accent={seatSolid(seat)}
-                  onClick={() => payer(seat)}
-                >
-                  <Wind
-                    wind={SEAT_WINDS[seat]}
-                    className="text-sm leading-none"
-                  />
-                  <span className="w-full truncate text-xs font-semibold">
-                    {players[seat]}
-                  </span>
-                </TileChoice>
-              ))}
-            </div>
-            <p className="text-xs" style={{ color: 'var(--muted)' }}>
-              {value
-                ? `${romanOf('baau')}: they pay what all three would have paid, and the winner collects the same either way. Tap ${nameFor(chosen)} again if nobody does.`
-                : 'Nothing is counted until you say who pays.'}
-            </p>
-          </>
-        )}
-      </div>
+        </>
+      )}
     </section>
   );
 }
@@ -211,32 +146,33 @@ function pickableSeats(winnerSeat: Seat): Seat[] {
   return SEATS.filter((seat) => seat !== winnerSeat);
 }
 
-/** The reason in the words the rest of the app uses for it. */
-function nameFor(reason: string): string {
-  return reason === 'other' ? 'Other' : glossOf(reason);
-}
-
-/** Turns over to say which way the row will go, at the header icons' weight. */
-function Chevron({ open }: { open: boolean }) {
+/** A box with a tick in it, at the weight the header icons are drawn to. */
+function Box({ checked }: { checked: boolean }) {
   return (
-    <svg
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      focusable={false}
-      className="shrink-0 transition-transform"
-      style={{
-        color: 'var(--muted)',
-        transform: open ? 'rotate(180deg)' : undefined,
-      }}
+    <span
+      aria-hidden="true"
+      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md"
+      style={
+        checked
+          ? { background: 'var(--tile-back)' }
+          : { border: '1.5px solid var(--line-strong)' }
+      }
     >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
+      {checked && (
+        <svg
+          width={14}
+          height={14}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#fff"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          focusable={false}
+        >
+          <path d="m5 13 4 4 10-10" />
+        </svg>
+      )}
+    </span>
   );
 }

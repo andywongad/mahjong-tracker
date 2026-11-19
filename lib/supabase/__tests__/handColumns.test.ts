@@ -41,6 +41,13 @@ describe('the columns a hand is read through', () => {
     expect(sql).toMatch(/add column if not exists adjustment jsonb/);
   });
 
+  it('does not require a reason, only a payer', () => {
+    // The record sheet names the rules as examples rather than asking which
+    // one applied, so a hand carries a payer and usually no name.
+    expect(sql).toMatch(/liability_reason is null or liable_seat is not null/);
+    expect(sql).not.toMatch(/\(liable_seat is null\) = \(liability_reason is null\)/);
+  });
+
   it('will not let a liability belong to the winner of the hand', () => {
     // The engine refuses this too. Two locks, because a row written by
     // anything other than this app would reach the engine already wrong.

@@ -55,11 +55,15 @@ export function faanValues(rules: Rules): number[] {
  * scorekeeper marks it and the engine only moves the money.
  *
  * `reason` is an id from the table's own list rather than a union, so a table
- * inventing a rule needs a label and never new arithmetic.
+ * inventing a rule needs a label and never new arithmetic. It is optional
+ * because the record sheet stopped asking which rule applied: the rules are
+ * offered as examples of what the question covers, and the only thing a
+ * scorekeeper has to say is that it happened and who is paying. Hands
+ * recorded while it did ask still carry theirs.
  */
 export interface Liability {
   seat: Seat;
-  reason: string;
+  reason?: string;
 }
 
 /**

@@ -46,10 +46,11 @@ export function describeRider(
   if (!('liability' in hand) || !hand.liability) return null;
 
   const who = players[hand.liability.seat];
+  // Most hands carry a payer and no name, because the record sheet stopped
+  // asking which rule applied. The ones recorded while it did keep theirs.
+  const reason = hand.liability.reason;
   const name =
-    hand.liability.reason === 'other'
-      ? 'Paid for the table'
-      : glossOf(hand.liability.reason);
+    reason && reason !== 'other' ? `${glossOf(reason)} · ` : '';
 
   // Split or not is the difference between one name and two, and a reader
   // settling up needs to know which.
@@ -59,8 +60,8 @@ export function describeRider(
     liabilityWithDiscarderFor(rules) === 'split';
 
   return shared
-    ? `包 ${name} · ${who} split it with ${players[hand.discarderSeat]}`
-    : `包 ${name} · ${who} paid for the table`;
+    ? `包 ${name}${who} split it with ${players[hand.discarderSeat]}`
+    : `包 ${name}${who} paid for the table`;
 }
 
 /**

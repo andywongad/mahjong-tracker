@@ -503,12 +503,6 @@ export function RecordHandSheet({
                 players={game.players}
                 reasons={liabilityReasonsFor(game.rules)}
                 winnerSeat={draft.winnerSeat}
-                discarderSeat={draft.discarderSeat}
-                handType={
-                  draft.type === 'ceot_cung' || draft.type === 'zi_mo'
-                    ? draft.type
-                    : null
-                }
                 value={draft.liability}
                 onChange={(liability) =>
                   setDraft((current) => ({ ...current, liability }))

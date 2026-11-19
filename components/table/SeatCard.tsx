@@ -177,14 +177,18 @@ export function SeatCard({
     </>
   );
 
-  const infoClass = `flex w-full flex-col justify-between text-left ${
+  // h-full so a card given a taller box than its own content fills it, and
+  // the content held at the top rather than spread through it: the four
+  // cards are a scoreboard, and two side by side should put their totals on
+  // the same line whether or not one of them also has a change to show.
+  const infoClass = `flex h-full w-full flex-col justify-start text-left ${
     compact ? 'gap-1 px-2.5 py-2.5' : 'gap-1.5 px-3 py-3'
   }`;
   const style = { borderTopColor: color, borderTopWidth: 3 };
 
   if (!onSelect) {
     return (
-      <div className="tile relative w-full" style={style}>
+      <div className="tile relative flex h-full w-full flex-col" style={style}>
         <div className={infoClass}>{inner}</div>
       </div>
     );
@@ -195,7 +199,7 @@ export function SeatCard({
   return (
     <div
       // Clipped, so the strip at the foot ends in the card's own corners.
-      className={`tile relative w-full overflow-hidden${pulse ? ' seat-pulse' : ''}`}
+      className={`tile relative flex h-full w-full flex-col overflow-hidden${pulse ? ' seat-pulse' : ''}`}
       style={style}
     >
       {/* The card above the strip is the win. Two controls, never nested:
@@ -209,7 +213,9 @@ export function SeatCard({
           selectLabel ??
           `${name}, ${windLabel(wind)}, ${spokenScore(score)}. Record a win for ${name}.`
         }
-        className="seat-press w-full"
+        // Takes the slack, so the false win strip stays at the foot of
+        // every card and the four strips line up with each other.
+        className="seat-press w-full flex-1"
       >
         <span className={infoClass}>{inner}</span>
       </button>

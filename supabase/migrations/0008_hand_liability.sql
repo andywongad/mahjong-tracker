@@ -23,17 +23,19 @@ comment on column public.hands.liable_seat is
   'Seat paying for the whole table on this hand, or null. Never the winner.';
 
 comment on column public.hands.liability_reason is
-  'Which house rule made them liable: twelve_pieces, kong_self_draw, big_three_dragons, nine_pieces, fifth_tile, or other.';
+  'Which house rule made them liable, where it was recorded: twelve_pieces, kong_self_draw, big_three_dragons, nine_pieces, fifth_tile, or other. Null on hands that only say somebody paid.';
 
 comment on column public.hands.adjustment is
   'Hand-entered deltas replacing the computed ones: {"amounts":[n,n,n,n],"note":"..."}. The four must sum to zero.';
 
--- A liability belongs to a win, is never the winner's own, and never arrives
--- without a reason to point at.
+-- A liability belongs to a win and is never the winner's own. The reason is
+-- not required: the record sheet offers the rules as examples of what the
+-- question covers rather than asking which one applied, so most hands carry
+-- a payer and no name. A name without a payer is still nothing, though.
 alter table public.hands drop constraint if exists hands_liability_shape;
 alter table public.hands
   add constraint hands_liability_shape check (
-    (liable_seat is null) = (liability_reason is null)
+    (liability_reason is null or liable_seat is not null)
     and (liable_seat is null or liable_seat between 0 and 3)
     and (liable_seat is null or type in ('ceot_cung', 'zi_mo'))
     and (liable_seat is null or liable_seat is distinct from winner_seat)

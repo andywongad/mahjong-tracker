@@ -44,10 +44,15 @@ export function TableSurface({
           // much width as the middle, which only carries the round and the
           // hand number.
           gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          // Even rows as well, so the four seats are one size. Their content
+          // is not: a player the last hand did not move has no change to
+          // show, and a card that shrank to fit that made the table look
+          // like the quiet players mattered less.
+          gridTemplateRows: 'repeat(3, minmax(0, 1fr))',
         }}
       >
         {SEATS.map((seat: Seat) => (
-          <div key={seat} style={{ gridArea: SEAT_GRID_AREA[seat] }}>
+          <div key={seat} className="h-full" style={{ gridArea: SEAT_GRID_AREA[seat] }}>
             <SeatCard
               seat={seat}
               name={game.players[seat]}
