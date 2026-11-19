@@ -139,20 +139,21 @@ export function SeatCard({
         )}
       </div>
 
-      <span
-        className={`leading-tight font-semibold break-words ${seatNameClass(name, compact)}`}
-      >
-        {name}
-      </span>
+      {/* The name and what they are on, as one block with nothing between
+        them: it is one fact about one player, and the card's spacing
+        belongs between the groups rather than inside this one.
 
-      {/* Both numbers say what they are. They look alike and mean different
+        Both numbers say what they are. They look alike and mean different
         things, and a card with room for the words is worth more than a card
         that saves two lines: a tile is tall anyway. */}
       <div className="flex flex-col">
-        <NumberLabel eyebrow>Total</NumberLabel>
         <span
-          className="tnum display leading-none font-bold text-hero tablet:text-hero-lg"
+          className={`leading-tight font-semibold break-words ${seatNameClass(name, compact)}`}
         >
+          {name}
+        </span>
+        <NumberLabel eyebrow>Total</NumberLabel>
+        <span className="tnum display leading-none font-bold text-hero tablet:text-hero-lg">
           {formatSigned(score)}
         </span>
       </div>
