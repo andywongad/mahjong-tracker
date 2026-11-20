@@ -14,11 +14,22 @@ import { expect, test } from '@playwright/test';
  * off. What they are short of, measured:
  *
  *   the table   11.2px round labels and player names, 10.4px Final and
- *               legend; 30px tabs, a 29px false win strip
- *   stats       9.6px column headings, 11.2px figures; 24px term tags
- *   history     10.4px Final, 11.2px names, 9.6px column headings
+ *               legend. Its targets are done: the tabs were 30px and the
+ *               false win strip 29px, and both clear 44 now.
+ *   stats       9.6px column headings, 11.2px figures; a 24px chart and
+ *               values switch, 24px series buttons, 24px term tags
+ *   history     10.4px Final, 11.2px names, 9.6px column headings; 24px
+ *               term tags
  *   score hand  11.2px wind labels, an 8.8px star, a 20px checkbox
- *   home        a 24px History button
+ *   home        a 24px History button, inline in a sentence
+ *
+ * Two of those are a question rather than a job. A term tag in a column
+ * heading and a History inside a sentence are what WCAG 2.5.8 calls inline
+ * targets, exempt because their size is held by the line height of the text
+ * around them, and making either of them 44px tall would wreck the sentence
+ * it sits in. They are counted here because this file measures the floor
+ * rather than the standard, and whether to exempt them is a decision to
+ * take once rather than quietly in a selector.
  */
 
 const ROUTES = [
@@ -73,13 +84,7 @@ function smallTargets(): string[] {
 
 /** Routes still short of the floors, by name. */
 const SHORT_ON_TEXT = ['the table', 'stats', 'history', 'score a hand'];
-const SHORT_ON_TARGETS = [
-  'home',
-  'the table',
-  'stats',
-  'history',
-  'score a hand',
-];
+const SHORT_ON_TARGETS = ['home', 'stats', 'history', 'score a hand'];
 
 for (const [url, name] of ROUTES) {
   test(`${name} sets no text below 12px`, async ({ page }) => {

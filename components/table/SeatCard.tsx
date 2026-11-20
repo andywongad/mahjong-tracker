@@ -226,7 +226,9 @@ export function SeatCard({
           type="button"
           onClick={onFalseWin}
           aria-label={falseWinLabel ?? `Record a false win called by ${name}`}
-          className="seat-strip flex w-full items-center justify-center px-1 py-2 text-xs leading-none font-semibold whitespace-nowrap"
+          // A real control and the only one on the card that is not the
+          // card itself, so it clears the same 44px everything else does.
+          className="seat-strip touch flex w-full items-center justify-center px-1 text-xs leading-none font-semibold whitespace-nowrap"
         >
           {/* Words only. A seat card has about 110px, which holds the label
             or the characters beside it but not both, and half a label is

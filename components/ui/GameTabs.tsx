@@ -74,7 +74,11 @@ function GameTab({
         onClick={onClick}
         aria-current={current ? 'page' : undefined}
         {...targetProps}
-        className="inline-flex items-center gap-1.5 px-1 pb-2 text-sm font-semibold"
+        // 44px tall, reached with padding rather than a min-height, so the
+        // underline stays on the hairline where it belongs: a tab that
+        // floats above the rule it is supposed to join reads as a button
+        // that happens to be near it.
+        className="inline-flex items-center gap-1.5 px-1 pt-2.5 pb-3 text-sm font-semibold"
         style={{
           color: current ? 'var(--ink)' : 'var(--muted)',
           // Sits directly on the hairline under the row, so the marked tab
