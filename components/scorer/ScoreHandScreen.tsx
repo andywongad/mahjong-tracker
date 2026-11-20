@@ -134,7 +134,7 @@ export function ScoreHandScreen() {
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex flex-wrap gap-x-4 gap-y-2">
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex min-h-11 items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={selfDraw}
@@ -153,7 +153,7 @@ export function ScoreHandScreen() {
               {/* The tiles cannot show it: a claimed set and a drawn one look
                 the same once they are down. */}
               {concealable && (
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex min-h-11 items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     checked={concealed}

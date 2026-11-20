@@ -142,6 +142,9 @@ export function HomeScreen() {
                 <button
                   type="button"
                   onClick={() => go('games', null)}
+                  // Inline in the sentence it reads as part of, so the
+                  // 44px floor does not apply: see Term for why.
+                  data-inline-target="true"
                   className="underline underline-offset-2"
                   style={{ color: 'var(--accent)' }}
                 >

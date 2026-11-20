@@ -8,28 +8,24 @@ import { expect, test } from '@playwright/test';
  * size inherited from a parent, or shrunk by a utility three files away, is
  * not, and that is where the small text had been hiding.
  *
- * Four routes do not meet either floor yet, which is P1-3's work and not a
- * regression. They are marked as expected failures rather than skipped, so
- * the suite says so when one of them starts passing and the marker can come
- * off. What they are short of, measured:
+ * Every route clears the 44px floor. Four are still short on text, which is
+ * P1-3's work and not a regression, and they are marked as expected failures
+ * rather than skipped so the suite says so when one starts passing and the
+ * marker can come off. What they are short of, measured:
  *
  *   the table   11.2px round labels and player names, 10.4px Final and
- *               legend. Its targets are done: the tabs were 30px and the
- *               false win strip 29px, and both clear 44 now.
- *   stats       9.6px column headings, 11.2px figures; a 24px chart and
- *               values switch, 24px series buttons, 24px term tags
- *   history     10.4px Final, 11.2px names, 9.6px column headings; 24px
- *               term tags
- *   score hand  11.2px wind labels, an 8.8px star, a 20px checkbox
- *   home        a 24px History button, inline in a sentence
+ *               legend
+ *   stats       9.6px column headings, 11.2px figures
+ *   history     10.4px Final, 11.2px names, 9.6px column headings
+ *   score hand  11.2px wind labels, an 8.8px star
  *
- * Two of those are a question rather than a job. A term tag in a column
- * heading and a History inside a sentence are what WCAG 2.5.8 calls inline
- * targets, exempt because their size is held by the line height of the text
- * around them, and making either of them 44px tall would wreck the sentence
- * it sits in. They are counted here because this file measures the floor
- * rather than the standard, and whether to exempt them is a decision to
- * take once rather than quietly in a selector.
+ * Two kinds of target are measured differently rather than grown, and both
+ * are judgements worth stating. A target declaring itself inline is skipped,
+ * because WCAG 2.5.8 exempts one whose size is held by the line height
+ * around it: a glossary term in a column heading, a History inside a
+ * sentence. The markup declares that rather than this file guessing it from
+ * styling, which would sooner or later excuse a real button. And a checkbox
+ * in a label is measured by the label, because that is what a thumb hits.
  */
 
 const ROUTES = [
@@ -67,10 +63,20 @@ function smallTargets(): string[] {
   for (const el of controls) {
     const style = getComputedStyle(el);
     if (style.visibility === 'hidden' || style.display === 'none') continue;
-    const box = el.getBoundingClientRect();
+    // A checkbox in a label is tapped by its label, so that is the target
+    // a thumb actually has to hit. Measuring the 20px box alone understates
+    // it, and growing the box to 44 would be a very large checkbox solving
+    // a problem nobody had.
+    const label = el.closest('label');
+    const box = (label ?? el).getBoundingClientRect();
     if (box.width === 0 && box.height === 0) continue;
     const owner = el.closest('button');
     if (owner && owner !== el) continue;
+    // A target inside a run of text, exempted by WCAG 2.5.8 because its
+    // size is held by the line height around it. Declared in the markup
+    // rather than guessed at here: a rule inferring "this looks inline"
+    // from padding or display would sooner or later excuse a real button.
+    if (el.closest('[data-inline-target]')) continue;
     if (box.height < 44 || box.width < 24) {
       const name =
         el.getAttribute('aria-label') || el.textContent?.trim() || el.tagName;
@@ -84,7 +90,8 @@ function smallTargets(): string[] {
 
 /** Routes still short of the floors, by name. */
 const SHORT_ON_TEXT = ['the table', 'stats', 'history', 'score a hand'];
-const SHORT_ON_TARGETS = ['home', 'stats', 'history', 'score a hand'];
+/** Every route clears the 44px floor. Nothing left to mark. */
+const SHORT_ON_TARGETS: string[] = [];
 
 for (const [url, name] of ROUTES) {
   test(`${name} sets no text below 12px`, async ({ page }) => {

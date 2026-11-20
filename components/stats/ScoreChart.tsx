@@ -344,7 +344,9 @@ export function ScoreChart({
                   type="button"
                   onClick={() => setOnlySeat(selected ? null : seat)}
                   aria-pressed={selected}
-                  className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs"
+                  // Standalone controls rather than words in a sentence,
+                  // so they clear the 44px floor like every other button.
+                  className="touch flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs"
                   style={{
                     background: selected ? 'var(--line)' : undefined,
                     opacity: onlySeat === null || selected ? 1 : 0.5,
@@ -378,7 +380,7 @@ export function ScoreChart({
               type="button"
               onClick={() => setView(option)}
               aria-pressed={view === option}
-              className="px-2.5 py-1 text-xs font-semibold capitalize"
+              className="touch px-2.5 text-xs font-semibold capitalize"
               style={
                 view === option
                   ? { background: 'var(--ink)', color: 'var(--tile-face)' }

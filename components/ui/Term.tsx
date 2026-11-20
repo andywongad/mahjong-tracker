@@ -8,6 +8,13 @@ import { TERM_BY_ID } from '@/lib/terms';
  *
  * Marked with a dotted underline rather than a link colour, so a table full of
  * them still reads as a table.
+ *
+ * Declared as an inline target. WCAG 2.5.8 exempts one whose size is held by
+ * the line height of the text around it, which is exactly this: a term is a
+ * run of words inside a heading or a sentence, and a 44px tall one would
+ * push the heading apart to make room for itself. The exemption is written
+ * here, at the point where somebody can see it is true, rather than guessed
+ * at by the floors spec from how the thing happens to be styled.
  */
 export function Term({
   id,
@@ -27,6 +34,7 @@ export function Term({
     <button
       type="button"
       onClick={() => define(id)}
+      data-inline-target="true"
       className={`underline decoration-dotted underline-offset-2 ${className}`}
       style={{ textDecorationColor: 'var(--muted)' }}
       aria-label={`${entry.roman}. What this means`}
